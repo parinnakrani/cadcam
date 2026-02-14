@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. Handle Root Request: Redirect empty request to public/index.php
+    RewriteRule ^$ public/index.php [L]
+
+    # 2. Existing Files/Dirs: Serve them directly (e.g. admintheme)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 3. Everything Else: Rewrite to public/ folder
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
