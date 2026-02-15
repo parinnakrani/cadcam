@@ -1,9 +1,10 @@
 # AI CODING PROMPTS - TASK 06
+
 ## Delivery Management
 
-**Version:** 1.0  
-**Phase:** 6 - Delivery Management (Weeks 15-16)  
-**Generated:** February 10, 2026
+**Version:** 1.1 (Updated to match DB Schema)
+**Phase:** 6 - Delivery Management
+**Generated:** February 14, 2026
 
 ---
 
@@ -13,33 +14,34 @@
 
 ## 🎯 TASK 6.1: DELIVERY DATABASE & MODELS
 
-### Subtask 6.1.1: Create deliveries Migration
+### Subtask 6.1.1: Modify deliveries Migration
 
 ```
 [PASTE .antigravity RULES FIRST]
 
-FILE: app/Database/Migrations/2026-01-01-000018_create_deliveries_table.php
+FILE: app/Database/Migrations/2026-02-14-000001_modify_deliveries_table.php
 
-TABLE STRUCTURE:
+INTRUCTIONS:
+The `deliveries` table ALREADY EXISTS in the database. Do NOT create it.
+You must create a migration to ADD missing columns and modify the ENUM if necessary.
+
+EXISTING SCHEMA (Do not change these):
 - id, company_id, invoice_id
-- assigned_to (INT, FK to users.id) // Delivery person
+- assigned_to (INT), assigned_by (INT)
 - delivery_address (TEXT)
-- delivery_contact_name, delivery_contact_mobile
-- expected_delivery_date (DATE)
-- actual_delivery_date (DATE, NULL)
-- delivery_status (ENUM('Pending', 'Out for Delivery', 'Delivered', 'Failed'))
-- proof_of_delivery_photo (VARCHAR 255, NULL)
-- delivery_notes (TEXT)
-- failed_reason (TEXT, NULL)
-- created_by, is_deleted, created_at, updated_at
+- customer_contact_mobile (VARCHAR)
+- expected_delivery_date (DATE), actual_delivery_date (DATE)
+- delivery_status ENUM('Assigned', 'In Transit', 'Delivered', 'Failed')
+- delivery_proof_photo (VARCHAR 255)
+- created_at, updated_at, is_deleted
 
-INDEXES: company_id, invoice_id, assigned_to, delivery_status
+COLUMNS TO ADD (via ALTER TABLE):
+1. `delivery_contact_name` (VARCHAR 100, AFTER delivery_address)
+2. `failed_reason` (TEXT, NULL, AFTER delivery_notes)
 
-FOREIGN KEYS: company_id, invoice_id, assigned_to, created_by
+DELIVERABLES: Complete migration file using `forge->addColumn`.
 
-DELIVERABLES: Complete migration
-
-ACCEPTANCE CRITERIA: Migration runs, FKs working
+ACCEPTANCE CRITERIA: Migration runs successfully without errors on existing table.
 ```
 
 ---
@@ -51,17 +53,36 @@ ACCEPTANCE CRITERIA: Migration runs, FKs working
 
 FILE: app/Models/DeliveryModel.php
 
+TABLE: deliveries
+PRIMARY KEY: id
+ALLOWED FIELDS:
+- company_id, invoice_id
+- assigned_to, assigned_by, assigned_date
+- expected_delivery_date, actual_delivery_date
+- delivery_status, delivery_address
+- customer_contact_mobile, delivery_contact_name
+- delivery_notes, failed_reason
+- delivery_proof_photo, delivered_timestamp
+- is_deleted, created_at, updated_at
+
 METHODS:
 1. findAll() - with company filter
 2. getDeliveriesByInvoice(int $invoiceId): array
-3. getMyDeliveries(int $userId): array - assigned deliveries
-4. getPendingDeliveries(): array - status = Pending or Out for Delivery
+3. getMyDeliveries(int $userId): array
+   - Returns deliveries assigned to $userId
+   - Filters by status NOT 'Delivered' OR 'Failed' (Active deliveries)
+4. getPendingDeliveries(): array
+   - status = 'Assigned' or 'In Transit'
 5. markAsDelivered(int $id, string $photoPath, $actualDate): bool
+   - Updates status to 'Delivered'
+   - Sets delivery_proof_photo
 6. markAsFailed(int $id, string $reason): bool
+   - Updates status to 'Failed'
+   - Sets failed_reason
 
 DELIVERABLES: Complete DeliveryModel.php
 
-ACCEPTANCE CRITERIA: All methods working
+ACCEPTANCE CRITERIA: All methods working, soft deletes handled
 ```
 
 ---
@@ -76,29 +97,40 @@ FILE: app/Services/Delivery/DeliveryService.php
 DEPENDENCIES: DeliveryModel, InvoiceModel, FileUploadService, AuditService
 
 METHODS:
-1. public function assignDelivery(int $invoiceId, int $userId, $expectedDate): int
-   - Validate invoice fully paid
-   - Create delivery record
-   - Update invoice.delivery_status = 'Out for Delivery'
+1. public function assignDelivery(int $invoiceId, int $assignedToUserId, int $assignedByUserId, $expectedDate, $notes = null): int
+   - Validate invoice exists and is fully paid (payment_status = 'Paid')
+   - Validate invoice not already assigned (check existing delivery)
+   - Create delivery record with status 'Assigned'
+   - Update Invoice: No status change needed yet (remains 'Paid')
+   - Audit log: MODULE_DELIVERY, ACTION_ASSIGN
+
+2. public function startDelivery(int $deliveryId): bool
+   - Update delivery_status = 'In Transit'
    - Audit log
 
-2. public function markDelivered(int $deliveryId, $proofPhoto): bool
-   - Upload proof photo
-   - Update delivery status = 'Delivered', actual_date = today
-   - Update invoice status = 'Delivered'
+3. public function markDelivered(int $deliveryId, $proofPhotoFile): bool
+   - Upload proof photo using FileUploadService
+   - Update delivery:
+     - delivery_status = 'Delivered'
+     - actual_delivery_date = current date
+     - delivered_timestamp = current timestamp
+     - delivery_proof_photo = path
+   - Update Invoice:
+     - invoice_status = 'Delivered'
    - Audit log
 
-3. public function markFailed(int $deliveryId, string $reason): bool
-   - Update status = 'Failed', failed_reason
+4. public function markFailed(int $deliveryId, string $reason): bool
+   - Update delivery:
+     - delivery_status = 'Failed'
+     - failed_reason = $reason
    - Audit log
 
-4. public function getMyDeliveries(int $userId): array
-   - Get deliveries assigned to user
-   - Status not 'Delivered'
+5. public function getMyDashboard(int $userId): array
+   - Return counts: Assigned, In Transit, Delivered Today
 
 DELIVERABLES: Complete DeliveryService.php
 
-ACCEPTANCE CRITERIA: Delivery assignment works, proof upload works
+ACCEPTANCE CRITERIA: Delivery assignment flow, Status transitions (Assigned -> In Transit -> Delivered)
 ```
 
 ---
@@ -113,38 +145,46 @@ ACCEPTANCE CRITERIA: Delivery assignment works, proof upload works
 FILE 1: app/Controllers/Deliveries/DeliveryController.php
 
 ROUTES:
-- GET /deliveries → index()
+- GET /deliveries → index() (Admin/Manager view)
+- GET /my-deliveries → myDeliveries() (Delivery Personnel view)
 - GET /deliveries/create → create()
 - POST /deliveries → store()
 - GET /deliveries/{id} → show()
-- POST /deliveries/{id}/mark-delivered → markDelivered()
-- POST /deliveries/{id}/mark-failed → markFailed()
+- POST /deliveries/{id}/start → start()
+- POST /deliveries/{id}/complete → complete() (Mark Delivered)
+- POST /deliveries/{id}/fail → fail()
 
 METHODS:
-1. index() - list all deliveries
-2. create() - assign delivery form (select invoice, user, date)
-3. store() - call DeliveryService->assignDelivery()
-4. show() - delivery details
-5. markDelivered() - upload photo, mark delivered
-6. markFailed() - enter reason, mark failed
+1. index() - List all deliveries (Serverside DataTable)
+2. myDeliveries() - List current user's active deliveries
+3. create() - Form to assign delivery.
+   - Fetch 'Paid' invoices that are NOT yet assigned.
+   - Fetch users with 'Delivery Personnel' role.
+4. store() - Validates and calls Service->assignDelivery()
+5. start() - Service->startDelivery()
+6. complete() - Handle file upload, Service->markDelivered()
+7. fail() - Service->markFailed()
 
 FILE 2: app/Views/deliveries/index.php
-- DataTable: Delivery ID, Invoice No, Customer, Assigned To, Expected Date, Status, Actions
+- Admin view
+- Columns: ID, Invoice #, Customer, Assigned To, Status (Badge), Exp Date, Actions
 
-FILE 3: app/Views/deliveries/create.php
-- Form: Invoice (paid invoices), Assign To (users), Expected Date, Notes
+FILE 3: app/Views/deliveries/my_deliveries.php
+- Mobile-friendly card layout for delivery personnel
+- Tabs: Assigned (New), In Transit (Ongoing), History (Delivered)
+- 'Start' button for Assigned
+- 'Complete' / 'Fail' buttons for In Transit
 
-FILE 4: app/Views/deliveries/show.php
-- Display delivery details
-- If Pending: buttons to Mark Delivered (with photo upload) or Mark Failed
+FILE 4: app/Views/deliveries/create.php
+- Fields: Select Paid Invoice, Select Delivery Person, Expected Date, Notes
 
-FILE 5: Routes & Sidebar
-- Add delivery routes
-- Add sidebar menu item
+FILE 5: app/Views/deliveries/show.php
+- Detailed view with Map link (optional placeholder), Customer details, Items list.
+- Action buttons based on status.
 
-DELIVERABLES: Controller, 3 views, routes, sidebar
+DELIVERABLES: Controller, 4 Views, Route Config, Sidebar Menu update
 
-ACCEPTANCE CRITERIA: Delivery assignment works, mark delivered with photo upload works
+ACCEPTANCE CRITERIA: Full lifecycle test: Assign -> Start -> Complete/Fail.
 ```
 
 ---

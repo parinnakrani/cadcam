@@ -1,4 +1,5 @@
 # AI CODING PROMPTS - TASK 08
+
 ## Reports Module
 
 **Version:** 1.0  
@@ -16,7 +17,7 @@
 ### Subtask 8.1.2: Create LedgerReportService
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Services/Report/LedgerReportService.php
 
@@ -56,7 +57,7 @@ ACCEPTANCE CRITERIA: Ledger generation accurate, running balance correct
 ### Subtask 8.1.3: Create LedgerReportController
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Controllers/Reports/LedgerReportController.php
 
@@ -89,7 +90,7 @@ ACCEPTANCE CRITERIA: Reports display correctly, export works
 ### Subtask 8.2.1: Create OutstandingReportService
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Services/Report/OutstandingReportService.php
 
@@ -136,7 +137,7 @@ ACCEPTANCE CRITERIA: Outstanding calculations accurate, aging report works
 ### Subtask 8.2.2: Create ReceivableReportService
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Services/Report/ReceivableReportService.php
 
@@ -170,7 +171,7 @@ ACCEPTANCE CRITERIA: Monthly summary accurate
 ### Subtask 8.2.3: Create OutstandingReportController
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Controllers/Reports/OutstandingReportController.php
 
@@ -193,7 +194,7 @@ ACCEPTANCE CRITERIA: Outstanding reports display correctly
 ### Subtask 8.2.4: Create ReceivableReportController
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Controllers/Reports/ReceivableReportController.php
 
@@ -219,7 +220,7 @@ ACCEPTANCE CRITERIA: Receivable reports accurate
 ### Subtask 8.3.1: Create DashboardService
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Services/Report/DashboardService.php
 
@@ -266,7 +267,7 @@ ACCEPTANCE CRITERIA: Dashboard KPIs accurate
 ### Subtask 8.3.2: Create DashboardController
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Controllers/DashboardController.php
 
@@ -298,7 +299,7 @@ ACCEPTANCE CRITERIA: Dashboard displays all KPIs, charts render
 ### Subtask 8.3.3: Create Report Export Library
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE 1: app/Libraries/PDF/ReportPDF.php
 
@@ -336,7 +337,7 @@ ACCEPTANCE CRITERIA: Export to PDF/Excel works
 
 ### Add Reports Routes & Sidebar
 
-```
+````
 FILE 1: app/Config/Routes.php
 
 ```php
@@ -354,30 +355,58 @@ $routes->group('reports', ['filter' => 'auth', 'filter' => 'permission:report'],
     $routes->get('receivables', 'Reports\ReceivableReportController::index');
     $routes->get('receivables/monthly', 'Reports\ReceivableReportController::monthlySummary');
 });
-```
+````
 
 FILE 2: Sidebar
 
 ```html
 <?php if (can('report.view')): ?>
 <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
-        <i class="fas fa-chart-bar"></i> Reports
-    </a>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="<?= base_url('reports/ledger/consolidated') ?>">Ledger Reports</a></li>
-        <li><a class="dropdown-item" href="<?= base_url('reports/outstanding') ?>">Outstanding Invoices</a></li>
-        <li><a class="dropdown-item" href="<?= base_url('reports/receivables') ?>">Receivables</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" href="<?= base_url('reports/outstanding/aging') ?>">Aging Report</a></li>
-    </ul>
+  <a
+    class="nav-link dropdown-toggle"
+    href="#"
+    id="reportsDropdown"
+    role="button"
+    data-bs-toggle="dropdown"
+  >
+    <i class="fas fa-chart-bar"></i> Reports
+  </a>
+  <ul class="dropdown-menu">
+    <li>
+      <a
+        class="dropdown-item"
+        href="<?= base_url('reports/ledger/consolidated') ?>"
+        >Ledger Reports</a
+      >
+    </li>
+    <li>
+      <a class="dropdown-item" href="<?= base_url('reports/outstanding') ?>"
+        >Outstanding Invoices</a
+      >
+    </li>
+    <li>
+      <a class="dropdown-item" href="<?= base_url('reports/receivables') ?>"
+        >Receivables</a
+      >
+    </li>
+    <li><hr class="dropdown-divider" /></li>
+    <li>
+      <a
+        class="dropdown-item"
+        href="<?= base_url('reports/outstanding/aging') ?>"
+        >Aging Report</a
+      >
+    </li>
+  </ul>
 </li>
 <?php endif; ?>
 ```
 
 DELIVERABLES: Routes and sidebar
+
 ```
 
 ---
 
 **END OF TASK-08 COMPLETE**
+```

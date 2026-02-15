@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 12, 2026 at 08:56 PM
+-- Generation Time: Feb 15, 2026 at 02:12 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -139,6 +139,19 @@ CREATE TABLE `cash_customers` (
   `notes` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `cash_customers`
+--
+
+INSERT INTO `cash_customers` (`id`, `company_id`, `customer_name`, `mobile_number`, `created_at`, `updated_at`, `is_active`, `is_deleted`, `mobile`, `email`, `address_line1`, `address_line2`, `city`, `state_id`, `pincode`, `notes`) VALUES
+(2, 0, 'Parin Patel', '9586969009', '2026-02-13 16:39:39', '2026-02-13 16:39:39', 1, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(6, 1, 'Parin Nakrani', '9999999999', '2026-02-13 17:49:03', '2026-02-13 17:49:03', 1, 0, '9999999999', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(7, 1, 'Parin Patel', '9909998990', '2026-02-13 18:47:07', '2026-02-13 18:47:07', 1, 0, '9909998990', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(8, 1, 'Alpesh', '9090909099', '2026-02-13 20:51:46', '2026-02-13 20:51:46', 1, 0, '9090909099', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(9, 1, 'Parin', '9909998990', '2026-02-14 08:54:28', '2026-02-14 08:54:28', 1, 0, '9909998990', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(10, 1, 'Alpesh Pansheriya', '8000259032', '2026-02-14 09:11:57', '2026-02-14 09:11:57', 1, 0, '8000259032', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(11, 1, 'Alpesh', '9998887775', '2026-02-14 09:26:02', '2026-02-14 09:26:02', 1, 0, '9998887775', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -175,9 +188,10 @@ CREATE TABLE `challans` (
 --
 
 INSERT INTO `challans` (`id`, `company_id`, `challan_number`, `challan_date`, `challan_type`, `customer_type`, `account_id`, `cash_customer_id`, `challan_status`, `total_weight`, `subtotal_amount`, `tax_percent`, `tax_amount`, `total_amount`, `invoice_generated`, `invoice_id`, `notes`, `delivery_date`, `created_by`, `is_deleted`, `created_at`, `updated_at`) VALUES
-(1, 1, 'CH-0003', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Draft', 0.000, 66.00, NULL, 11.88, 77.88, 0, NULL, 'Notes here', '0000-00-00', 2, 0, '2026-02-11 19:30:20', '2026-02-11 20:32:26'),
-(2, 1, 'CH-0004', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Draft', 0.000, 252.50, 18.00, 45.45, 297.95, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-11 20:44:56', '2026-02-11 20:44:56'),
-(3, 1, 'CH-0005', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Draft', 0.000, 85.00, 18.00, 15.30, 100.30, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-11 20:48:10', '2026-02-11 20:48:10');
+(1, 1, 'CH-0003', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Invoiced', 0.000, 66.00, NULL, 11.88, 77.88, 1, 21, 'Notes here', '0000-00-00', 2, 0, '2026-02-11 19:30:20', '2026-02-14 11:03:07'),
+(2, 1, 'CH-0004', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Invoiced', 0.000, 252.50, 18.00, 45.45, 297.95, 1, 21, '', '0000-00-00', 2, 0, '2026-02-11 20:44:56', '2026-02-14 11:03:07'),
+(3, 1, 'CH-0005', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Completed', 0.000, 85.00, 18.00, 15.30, 100.30, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-11 20:48:10', '2026-02-14 10:15:37'),
+(4, 1, 'CH-0006', '2026-02-14', 'Rhodium', 'Account', 3, NULL, 'Completed', 0.000, 300.00, 18.00, 54.00, 354.00, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-14 09:50:21', '2026-02-14 10:09:19');
 
 -- --------------------------------------------------------
 
@@ -215,7 +229,8 @@ INSERT INTO `challan_lines` (`id`, `challan_id`, `line_number`, `product_ids`, `
 (6, 1, 2, '[\"3\",\"2\"]', 'Earring, Pendant', '[\"1\",\"3\"]', NULL, 1, 0.200, 80.00, 16.00, NULL, 0.000, NULL, '', NULL, '2026-02-11 20:32:26', '2026-02-11 20:32:26'),
 (7, 2, 1, '[\"2\"]', 'Pendant', '[\"3\"]', '[]', 1, 2.000, 20.00, 40.00, NULL, NULL, NULL, NULL, NULL, '2026-02-11 20:44:56', '2026-02-11 20:44:56'),
 (8, 2, 2, '[\"1\",\"4\"]', 'Ring, Necklace', '[\"1\",\"2\"]', '[]', 1, 2.500, 85.00, 212.50, NULL, NULL, NULL, NULL, NULL, '2026-02-11 20:44:56', '2026-02-11 20:44:56'),
-(9, 3, 1, '[\"2\",\"3\"]', 'Pendant, Earring', '[\"1\",\"2\"]', '[]', 1, 1.000, 85.00, 85.00, NULL, NULL, NULL, NULL, NULL, '2026-02-11 20:48:10', '2026-02-11 20:48:10');
+(9, 3, 1, '[\"2\",\"3\"]', 'Pendant, Earring', '[\"1\",\"2\"]', '[]', 1, 1.000, 85.00, 85.00, NULL, NULL, NULL, NULL, NULL, '2026-02-11 20:48:10', '2026-02-11 20:48:10'),
+(10, 4, 1, '[\"2\"]', 'Pendant', '[\"1\"]', '[]', 1, 5.000, 60.00, 300.00, NULL, NULL, NULL, NULL, NULL, '2026-02-14 09:50:21', '2026-02-14 09:50:21');
 
 -- --------------------------------------------------------
 
@@ -259,7 +274,7 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `company_name`, `business_legal_name`, `business_type`, `address_line1`, `address_line2`, `city`, `state_id`, `pincode`, `contact_person_name`, `contact_email`, `contact_phone`, `gst_number`, `pan_number`, `company_logo`, `invoice_prefix`, `challan_prefix`, `default_tax_rate`, `minimum_wax_price`, `financial_year_start_month`, `date_format`, `timezone`, `status`, `last_invoice_number`, `last_challan_number`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(1, 'System Administrator', 'System Administrator', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'admin@gmail.com', '9999999999', NULL, NULL, NULL, 'SYS-', 'CH-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 0, 5, '2026-02-08 16:31:03', '2026-02-11 20:48:10', 0);
+(1, 'System Administrator', 'System Administrator', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'admin@gmail.com', '9999999999', NULL, NULL, NULL, 'SYS-', 'CH-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 6, 6, '2026-02-08 16:31:03', '2026-02-14 11:03:07', 0);
 
 -- --------------------------------------------------------
 
@@ -293,14 +308,23 @@ CREATE TABLE `deliveries` (
   `actual_delivery_date` date DEFAULT NULL,
   `delivery_status` enum('Assigned','In Transit','Delivered','Failed') NOT NULL DEFAULT 'Assigned',
   `delivery_address` text NOT NULL,
+  `delivery_contact_name` varchar(100) DEFAULT NULL,
   `customer_contact_mobile` varchar(10) NOT NULL,
   `delivery_notes` text DEFAULT NULL,
+  `failed_reason` text DEFAULT NULL,
   `delivery_proof_photo` varchar(255) DEFAULT NULL,
   `delivered_timestamp` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `deliveries`
+--
+
+INSERT INTO `deliveries` (`id`, `company_id`, `invoice_id`, `assigned_to`, `assigned_by`, `assigned_date`, `expected_delivery_date`, `actual_delivery_date`, `delivery_status`, `delivery_address`, `delivery_contact_name`, `customer_contact_mobile`, `delivery_notes`, `failed_reason`, `delivery_proof_photo`, `delivered_timestamp`, `created_at`, `updated_at`, `is_deleted`) VALUES
+(1, 1, 13, 5, 2, '2026-02-14 13:22:36', '2026-02-14', '2026-02-14', 'Delivered', 'Address Not Available', 'Alpesh Pansheriya', '8000259032', '', NULL, '1771076752_60a7bc7ec3b40e90f091.png', '2026-02-14 13:45:52', '2026-02-14 13:22:36', '2026-02-14 13:45:52', 0);
 
 -- --------------------------------------------------------
 
@@ -371,6 +395,18 @@ CREATE TABLE `invoices` (
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `invoices`
+--
+
+INSERT INTO `invoices` (`id`, `company_id`, `invoice_number`, `invoice_type`, `invoice_date`, `due_date`, `account_id`, `cash_customer_id`, `billing_address`, `shipping_address`, `reference_number`, `challan_ids`, `subtotal`, `tax_rate`, `tax_amount`, `cgst_amount`, `sgst_amount`, `igst_amount`, `grand_total`, `total_paid`, `amount_due`, `invoice_status`, `payment_status`, `gold_adjustment_applied`, `gold_adjustment_date`, `gold_adjustment_amount`, `gold_rate_used`, `notes`, `terms_conditions`, `created_by`, `created_at`, `updated_by`, `updated_at`, `is_deleted`) VALUES
+(10, 1, 'SYS-0001', 'Cash Invoice', '2026-02-13', '0000-00-00', NULL, 6, NULL, NULL, NULL, NULL, 56.25, 3.00, 0.00, 0.00, 0.00, 1.69, 56.25, 0.00, 56.25, 'Posted', 'Pending', 0, NULL, NULL, NULL, NULL, '', 2, '2026-02-13 17:58:31', 2, '2026-02-14 12:40:00', 0),
+(11, 1, 'SYS-0002', 'Cash Invoice', '2026-02-13', '0000-00-00', NULL, 7, '', '', '#10', NULL, 187.50, 3.00, 0.00, 0.00, 0.00, 2.18, 187.50, 0.00, 187.50, 'Posted', 'Pending', 0, NULL, NULL, NULL, 'Notes 1', 'Terms & Conditions goes here 1', 2, '2026-02-13 18:47:07', 2, '2026-02-14 12:40:04', 0),
+(12, 1, 'SYS-0003', 'Cash Invoice', '2026-02-13', '0000-00-00', NULL, 8, NULL, NULL, NULL, NULL, 60.00, 3.00, 0.00, 0.00, 0.00, 1.80, 60.00, 0.00, 60.00, 'Posted', 'Pending', 0, NULL, NULL, NULL, NULL, '', 2, '2026-02-13 20:51:47', 2, '2026-02-14 12:40:08', 1),
+(13, 1, 'SYS-0004', 'Cash Invoice', '2026-02-14', '2026-02-28', NULL, 10, NULL, NULL, '#11', NULL, 214.50, 3.00, 0.00, 0.00, 0.00, 6.44, 214.50, 214.50, 0.00, 'Delivered', 'Paid', 0, NULL, NULL, NULL, 'Pay your dues within 15 days of time', 'New Terms & Conditions here', 2, '2026-02-14 09:11:57', 2, '2026-02-14 13:45:52', 0),
+(14, 1, 'SYS-0005', 'Cash Invoice', '2026-02-14', '0000-00-00', NULL, 11, NULL, NULL, NULL, NULL, 120.00, 18.00, 21.60, 10.80, 10.80, 0.00, 141.60, 0.00, 141.60, 'Posted', 'Pending', 0, NULL, NULL, NULL, NULL, '', 2, '2026-02-14 09:26:02', 2, '2026-02-14 12:40:16', 0),
+(21, 1, 'SYS-0006', 'Accounts Invoice', '2026-02-14', NULL, 3, NULL, 'Minibazaar , Surat - 395006', NULL, NULL, '[\"1\",\"2\"]', 318.50, 18.00, 57.33, 28.67, 28.66, 0.00, 375.83, 0.00, 375.83, 'Posted', 'Pending', 0, NULL, NULL, NULL, NULL, NULL, 2, '2026-02-14 11:03:07', 2, '2026-02-14 12:40:19', 0);
+
 -- --------------------------------------------------------
 
 --
@@ -401,6 +437,21 @@ CREATE TABLE `invoice_lines` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `invoice_lines`
+--
+
+INSERT INTO `invoice_lines` (`id`, `invoice_id`, `line_number`, `source_challan_id`, `source_challan_line_id`, `product_ids`, `product_name`, `process_ids`, `process_prices`, `quantity`, `weight`, `rate`, `amount`, `gold_weight`, `gold_fine_weight`, `gold_purity`, `original_gold_weight`, `adjusted_gold_weight`, `gold_adjustment_amount`, `line_notes`, `created_at`, `updated_at`) VALUES
+(1, 10, 1, NULL, NULL, '[\"4\"]', NULL, '[\"2\",\"3\"]', NULL, 1, 0.250, 45.00, 11.25, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-13 17:58:31', '2026-02-13 17:58:31'),
+(2, 10, 2, NULL, NULL, '[\"3\",\"2\"]', NULL, '[\"1\"]', NULL, 1, 0.750, 60.00, 45.00, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-13 17:58:31', '2026-02-13 17:58:31'),
+(6, 11, 1, NULL, NULL, '[\"4\"]', NULL, '[\"1\",\"2\"]', NULL, 1, 1.500, 85.00, 127.50, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-14 09:06:03', '2026-02-14 09:06:03'),
+(7, 11, 2, NULL, NULL, '[\"3\",\"2\",\"1\"]', NULL, '[\"1\"]', NULL, 1, 1.000, 60.00, 60.00, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-14 09:06:03', '2026-02-14 09:06:03'),
+(8, 13, 1, NULL, NULL, '[\"4\"]', NULL, '[\"2\",\"3\"]', NULL, 1, 1.700, 45.00, 76.50, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-14 09:11:57', '2026-02-14 09:11:57'),
+(9, 13, 2, NULL, NULL, '[\"3\",\"1\"]', NULL, '[\"1\"]', NULL, 1, 2.300, 60.00, 138.00, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-14 09:11:57', '2026-02-14 09:11:57'),
+(10, 14, 1, NULL, NULL, '[\"3\"]', NULL, '[\"1\"]', NULL, 1, 2.000, 60.00, 120.00, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-14 09:26:02', '2026-02-14 09:26:02'),
+(11, 21, 1, 1, NULL, '[\"1\",\"3\",\"2\"]', NULL, '[\"2\",\"1\",\"3\"]', NULL, 2, 2.200, 105.00, 66.00, 0.000, NULL, '', 0.000, 0.000, 0.00, 'Consolidated from Challan CH-0003 (Lines: 5, 6)', '2026-02-14 11:03:07', '2026-02-14 11:03:07'),
+(12, 21, 2, 2, NULL, '[\"2\",\"1\",\"4\"]', NULL, '[\"3\",\"1\",\"2\"]', NULL, 2, 4.500, 105.00, 252.50, 0.000, NULL, '', 0.000, 0.000, 0.00, 'Consolidated from Challan CH-0004 (Lines: 7, 8)', '2026-02-14 11:03:07', '2026-02-14 11:03:07');
 
 -- --------------------------------------------------------
 
@@ -459,7 +510,12 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (24, '20260211015300', 'App\\Database\\Migrations\\FixCashCustomersTableAddress', 'default', 'App', 1770755018, 7),
 (25, '20260211015600', 'App\\Database\\Migrations\\FixCashCustomersTableAddressLine2', 'default', 'App', 1770755036, 8),
 (26, '2026-01-01-000012', 'App\\Database\\Migrations\\CreateChallansTable', 'default', 'App', 1770833690, 9),
-(27, '2026-02-11-203826', 'App\\Database\\Migrations\\AddTaxPercentToChallans', 'default', 'App', 1770842330, 10);
+(27, '2026-02-11-203826', 'App\\Database\\Migrations\\AddTaxPercentToChallans', 'default', 'App', 1770842330, 10),
+(28, '2026-01-01-000014', 'AppDatabaseMigrationsCreateInvoicesTable', 'default', 'App', 1771071119, 1),
+(29, '2026-01-01-000014', 'App\\Database\\Migrations\\CreateInvoicesTable', 'default', 'App', 1771071301, 11),
+(30, '2026-01-01-000015', 'App\\Database\\Migrations\\CreateInvoiceLinesTable', 'default', 'App', 1771071301, 11),
+(31, '2026-01-01-000016', 'App\\Database\\Migrations\\CreatePaymentsTable', 'default', 'App', 1771071327, 12),
+(32, '2026-02-14-000001', 'App\\Database\\Migrations\\ModifyDeliveriesTable', 'default', 'App', 1771074966, 13);
 
 -- --------------------------------------------------------
 
@@ -470,7 +526,11 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 CREATE TABLE `payments` (
   `id` int(10) UNSIGNED NOT NULL,
   `company_id` int(10) UNSIGNED NOT NULL,
+  `payment_number` varchar(50) NOT NULL,
   `invoice_id` int(10) UNSIGNED NOT NULL,
+  `customer_type` enum('Account','Cash') NOT NULL,
+  `account_id` int(10) UNSIGNED DEFAULT NULL,
+  `cash_customer_id` int(10) UNSIGNED DEFAULT NULL,
   `payment_date` date NOT NULL,
   `payment_amount` decimal(15,2) NOT NULL,
   `payment_mode` enum('Cash','Cheque','Bank Transfer','UPI','Card','Other') NOT NULL,
@@ -480,9 +540,19 @@ CREATE TABLE `payments` (
   `transaction_reference` varchar(100) DEFAULT NULL,
   `notes` text DEFAULT NULL,
   `received_by` int(10) UNSIGNED NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ;
+
+--
+-- Dumping data for table `payments`
+--
+
+INSERT INTO `payments` (`id`, `company_id`, `payment_number`, `invoice_id`, `customer_type`, `account_id`, `cash_customer_id`, `payment_date`, `payment_amount`, `payment_mode`, `cheque_number`, `cheque_date`, `bank_name`, `transaction_reference`, `notes`, `received_by`, `created_at`, `updated_at`, `is_deleted`) VALUES
+(1, 1, 'PAY-0001', 13, 'Cash', NULL, 10, '2026-02-14', 100.00, 'Cash', '', '0000-00-00', '', '', '', 2, '2026-02-14 12:54:22', '2026-02-14 12:54:22', 0),
+(2, 1, 'PAY-0002', 13, 'Cash', NULL, 10, '2026-02-14', 114.50, 'Cash', '', '0000-00-00', '', '', '', 2, '2026-02-14 12:55:31', '2026-02-14 12:56:33', 1),
+(3, 1, 'PAY-0003', 13, 'Cash', NULL, 10, '2026-02-14', 114.50, 'Cash', '', '0000-00-00', '', '', '', 2, '2026-02-14 13:19:12', '2026-02-14 13:19:12', 0);
 
 -- --------------------------------------------------------
 
@@ -657,8 +727,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `company_id`, `username`, `email`, `password_hash`, `full_name`, `mobile_number`, `remember_token`, `remember_expires_at`, `profile_photo`, `adhar_card_number`, `date_of_joining`, `employment_status`, `failed_login_attempts`, `last_login_at`, `last_login_ip`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(2, 1, 'superadmin', 'admin@gmail.com', '$2y$10$3lD2hiugSlildxvjTeH9bue.5rQEqtidB6krrpytoJk4hpXfKZ/WC', 'System Administrator', '9999999999', '24b19a219c1dc6d90d989a06c15b4c37', '2026-03-10 23:24:12', NULL, NULL, NULL, 'Active', 0, '2026-02-12 12:53:58', NULL, '2026-02-08 16:31:03', '2026-02-12 12:53:58', 0),
-(4, 1, 'parinpatel', 'parinwork@gmail.com', '$2y$10$TBdnobbaIGwuvdZuPhT5yu7U1hVKWCcVbpSpmwMNhINEdFYkUsiNa', 'Parin Patel', '9586969009', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-10 20:12:17', NULL, '2026-02-10 20:11:17', '2026-02-10 20:12:17', 0);
+(2, 1, 'superadmin', 'admin@gmail.com', '$2y$10$3lD2hiugSlildxvjTeH9bue.5rQEqtidB6krrpytoJk4hpXfKZ/WC', 'System Administrator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-14 06:36:12', NULL, '2026-02-08 16:31:03', '2026-02-14 06:36:12', 0),
+(4, 1, 'parinpatel', 'parinwork@gmail.com', '$2y$10$TBdnobbaIGwuvdZuPhT5yu7U1hVKWCcVbpSpmwMNhINEdFYkUsiNa', 'Parin Patel', '9586969009', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-10 20:12:17', NULL, '2026-02-10 20:11:17', '2026-02-10 20:12:17', 0),
+(5, 1, 'parindelivery', 'parindelivery@gmail.com', '$2y$10$JVSHEEiKOf62a3cxPmxjL.WmzMc.yCkRfH.oo/96cxRztNIcFiLA.', 'Parin Delivery', '9586969119', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-14 13:22:58', NULL, '2026-02-14 13:22:23', '2026-02-14 13:22:58', 0);
 
 -- --------------------------------------------------------
 
@@ -680,7 +751,8 @@ CREATE TABLE `user_roles` (
 
 INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `assigned_at`, `assigned_by`) VALUES
 (1, 2, 1, '2026-02-08 16:31:03', 2),
-(5, 4, 3, '2026-02-10 20:11:17', NULL);
+(5, 4, 3, '2026-02-10 20:11:17', NULL),
+(6, 5, 5, '2026-02-14 13:22:23', NULL);
 
 --
 -- Indexes for dumped tables
@@ -842,13 +914,13 @@ ALTER TABLE `migrations`
 --
 ALTER TABLE `payments`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_company_id` (`company_id`),
-  ADD KEY `idx_invoice_id` (`invoice_id`),
-  ADD KEY `idx_payment_date` (`payment_date`),
-  ADD KEY `idx_payment_mode` (`payment_mode`),
-  ADD KEY `idx_deleted` (`is_deleted`),
-  ADD KEY `fk_payments_received_by` (`received_by`),
-  ADD KEY `idx_payments_company_date` (`company_id`,`payment_date`);
+  ADD UNIQUE KEY `uk_company_payment_number` (`company_id`,`payment_number`),
+  ADD KEY `payments_received_by_foreign` (`received_by`),
+  ADD KEY `company_id` (`company_id`),
+  ADD KEY `invoice_id` (`invoice_id`),
+  ADD KEY `account_id` (`account_id`),
+  ADD KEY `cash_customer_id` (`cash_customer_id`),
+  ADD KEY `payment_date` (`payment_date`);
 
 --
 -- Indexes for table `processes`
@@ -941,7 +1013,7 @@ ALTER TABLE `audit_logs`
 -- AUTO_INCREMENT for table `cash_customers`
 --
 ALTER TABLE `cash_customers`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `challans`
@@ -953,7 +1025,7 @@ ALTER TABLE `challans`
 -- AUTO_INCREMENT for table `challan_lines`
 --
 ALTER TABLE `challan_lines`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `companies`
@@ -971,7 +1043,7 @@ ALTER TABLE `company_settings`
 -- AUTO_INCREMENT for table `deliveries`
 --
 ALTER TABLE `deliveries`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `gold_rates`
@@ -983,13 +1055,13 @@ ALTER TABLE `gold_rates`
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `invoice_lines`
 --
 ALTER TABLE `invoice_lines`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `ledger_entries`
@@ -1001,7 +1073,7 @@ ALTER TABLE `ledger_entries`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -1043,13 +1115,13 @@ ALTER TABLE `states`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
@@ -1141,9 +1213,11 @@ ALTER TABLE `ledger_entries`
 -- Constraints for table `payments`
 --
 ALTER TABLE `payments`
-  ADD CONSTRAINT `fk_payments_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`),
-  ADD CONSTRAINT `fk_payments_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`),
-  ADD CONSTRAINT `fk_payments_received_by` FOREIGN KEY (`received_by`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `payments_account_id_foreign` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`),
+  ADD CONSTRAINT `payments_cash_customer_id_foreign` FOREIGN KEY (`cash_customer_id`) REFERENCES `cash_customers` (`id`),
+  ADD CONSTRAINT `payments_company_id_foreign` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `payments_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`),
+  ADD CONSTRAINT `payments_received_by_foreign` FOREIGN KEY (`received_by`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `processes`

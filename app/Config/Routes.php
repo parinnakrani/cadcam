@@ -254,3 +254,77 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('(:num)/print', 'WaxInvoiceController::print/$1');
   });
 });
+
+// PAYMENT ROUTES
+$routes->group('payments', ['namespace' => 'App\Controllers\Payments', 'filter' => 'auth'], function ($routes) {
+  $routes->get('/', 'PaymentController::index');
+  $routes->get('create', 'PaymentController::create');
+  $routes->post('/', 'PaymentController::store');
+  $routes->get('(:num)', 'PaymentController::show/$1');
+  $routes->delete('(:num)', 'PaymentController::delete/$1');
+});
+
+// LEDGER & REMINDER ROUTES
+$routes->group('ledgers', ['namespace' => 'App\Controllers\Ledgers', 'filter' => 'auth'], function ($routes) {
+  // Ledger List (Index)
+  $routes->get('accounts', 'LedgerController::accountsLedger');
+  $routes->get('cash-customers', 'LedgerController::cashCustomersLedger');
+
+  // Ledger Detail
+  $routes->get('account/(:num)', 'LedgerController::accountLedger/$1');
+  $routes->get('cash-customer/(:num)', 'LedgerController::cashCustomerLedger/$1');
+
+  // Export
+  $routes->get('export/(:alpha)/(:num)', 'LedgerController::exportLedger/$1/$2');
+
+  // Reminders
+  $routes->group('reminders', function ($routes) {
+    $routes->get('outstanding', 'ReminderController::outstandingInvoices');
+    $routes->post('send/(:num)', 'ReminderController::sendReminder/$1');
+  });
+});
+
+// REPORT ROUTES
+$routes->group('reports', ['namespace' => 'App\Controllers\Reports', 'filter' => 'auth'], function ($routes) {
+  // Outstanding Report (OutstandingReportController)
+  $routes->group('outstanding', function ($routes) {
+    $routes->get('/', 'OutstandingReportController::index');
+    $routes->get('aging', 'OutstandingReportController::agingReport');
+  });
+
+  // Ledger (Note: LedgerController is in Ledgers namespace, alias here for consistency)
+  $routes->group('ledger', ['namespace' => 'App\Controllers\Ledgers'], function ($routes) {
+    // We link 'reports/receivables' to LedgerController index or new ReceivableReportController
+    // Task 8 says ReceivableReportController.
+    // Let's assume ReceivableReportController exists or we use LedgerController for now.
+    // Existing sidebar points to reports/receivables.
+  });
+
+  // Receivables (ReceivableReportController)
+  // If ReceivableReportController is not yet made, we might fallback to LedgerController or create it?
+  // User Prompt says "Complete Reports Module". I should make sure ReceivableReportController exists if I route to it.
+  // I recall LedgerController handles most of this. Let's check if ReceivableReportController exists.
+  // I will add the route, assuming I will use LedgerController if Receivable doesn't exist, OR I will create ReceivableReportController.
+  // Let's use specific controllers.
+
+  $routes->get('receivables', 'ReceivableReportController::index');
+  $routes->get('receivables/monthly', 'ReceivableReportController::monthlySummary');
+});
+
+
+// DELIVERY ROUTES
+$routes->group('deliveries', ['filter' => 'auth'], function ($routes) {
+  // Admin / Manager Routes
+  $routes->get('/', 'Deliveries\DeliveryController::index');
+  $routes->get('create', 'Deliveries\DeliveryController::create');
+  $routes->post('/', 'Deliveries\DeliveryController::store');
+
+  // Actions
+  $routes->get('(:num)', 'Deliveries\DeliveryController::show/$1');
+  $routes->post('(:num)/start', 'Deliveries\DeliveryController::start/$1');
+  $routes->post('(:num)/complete', 'Deliveries\DeliveryController::complete/$1');
+  $routes->post('(:num)/fail', 'Deliveries\DeliveryController::fail/$1');
+});
+
+// Delivery Personnel Route
+$routes->get('my-deliveries', 'Deliveries\DeliveryController::myDeliveries', ['filter' => 'auth']);

@@ -55,7 +55,8 @@ class NumberingService
     $invoiceNumber = $prefix . $paddedNumber;
 
     // Final safety check for uniqueness
-    if ($this->invoiceModel->where('invoice_number', $invoiceNumber)
+    if (
+      $this->invoiceModel->where('invoice_number', $invoiceNumber)
       ->where('company_id', $companyId)
       ->countAllResults() > 0
     ) {
@@ -88,5 +89,30 @@ class NumberingService
     $paddedNumber = str_pad((string)$nextNumber, 4, '0', STR_PAD_LEFT);
 
     return $prefix . $paddedNumber;
+  }
+
+  /**
+   * Get the next payment number for a company.
+   *
+   * @param int $companyId
+   * @return string Formatted payment number (e.g., PAY-0001)
+   */
+  public function getNextPaymentNumber(int $companyId): string
+  {
+    $builder = $this->db->table('payments');
+    $builder->select('payment_number');
+    $builder->where('company_id', $companyId);
+    $builder->orderBy('id', 'DESC');
+    $builder->limit(1);
+    $row = $builder->get()->getRow();
+
+    $lastNumber = $row ? $row->payment_number : null;
+    $nextSequence = 1;
+
+    if ($lastNumber && preg_match('/PAY-(\d+)/', $lastNumber, $matches)) {
+      $nextSequence = (int)$matches[1] + 1;
+    }
+
+    return 'PAY-' . str_pad((string)$nextSequence, 4, '0', STR_PAD_LEFT);
   }
 }

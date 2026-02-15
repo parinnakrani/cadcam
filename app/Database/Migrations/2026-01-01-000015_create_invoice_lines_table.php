@@ -8,6 +8,11 @@ class CreateInvoiceLinesTable extends Migration
 {
   public function up()
   {
+    // Check if table exists to prevent errors on re-run
+    if ($this->db->tableExists('invoice_lines')) {
+      return;
+    }
+
     // Create invoice_lines table
     $this->forge->addField([
       'id' => [

@@ -243,5 +243,78 @@
       </li>
     <?php endif; ?>
 
+
+
+    <!-- Payments -->
+    <?php
+    $canPayment = can('payment.view');
+    if ($canPayment):
+      $isPaymentsActive = (strpos(uri_string(), 'payments') === 0);
+    ?>
+      <li class="menu-item <?= $isPaymentsActive ? 'active' : '' ?>">
+        <a href="<?= base_url('payments') ?>" class="menu-link">
+          <i class="menu-icon tf-icons ri-money-dollar-circle-line"></i>
+          <div data-i18n="Payments">Payments</div>
+        </a>
+      </li>
+    <?php endif; ?>
+
+
+
+    <!-- Reports -->
+    <?php
+    $canReport = can('report.view');
+    if ($canReport):
+      $isReportsActive = (strpos(uri_string(), 'reports') === 0);
+    ?>
+      <li class="menu-item <?= $isReportsActive ? 'active open' : '' ?>">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon tf-icons ri-bar-chart-line"></i>
+          <div data-i18n="Reports">Reports</div>
+        </a>
+        <ul class="menu-sub">
+          <li class="menu-item <?= (strpos(uri_string(), 'reports/ledger') === 0) ? 'active' : '' ?>">
+            <a href="<?= base_url('reports/receivables') ?>" class="menu-link"> <!-- Consolidated view -->
+              <div data-i18n="Ledger Summary">Ledger Summary</div>
+            </a>
+          </li>
+          <li class="menu-item <?= (strpos(uri_string(), 'reports/outstanding') === 0 && strpos(uri_string(), 'aging') === false) ? 'active' : '' ?>">
+            <a href="<?= base_url('reports/outstanding') ?>" class="menu-link">
+              <div data-i18n="Outstanding Invoices">Outstanding Invoices</div>
+            </a>
+          </li>
+          <li class="menu-item <?= (strpos(uri_string(), 'reports/outstanding/aging') !== false) ? 'active' : '' ?>">
+            <a href="<?= base_url('reports/outstanding/aging') ?>" class="menu-link">
+              <div data-i18n="Aging Report">Aging Report</div>
+            </a>
+          </li>
+          <li class="menu-item <?= (strpos(uri_string(), 'reports/receivables/monthly') !== false) ? 'active' : '' ?>">
+            <a href="<?= base_url('reports/receivables/monthly') ?>" class="menu-link">
+              <div data-i18n="Monthly Receivables">Monthly Receivables</div>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+    <?php endif; ?>
+
+    <!-- Deliveries -->
+    <?php
+    // Check permissions
+    $canDeliveryAdmin = can('deliveries.view');
+    $canDeliveryStaff = can('deliveries.view_assigned');
+
+    if ($canDeliveryAdmin || $canDeliveryStaff):
+      $isDeliveriesActive = (strpos(uri_string(), 'deliveries') === 0 || strpos(uri_string(), 'my-deliveries') === 0);
+      $deliveryUrl = $canDeliveryAdmin ? base_url('deliveries') : base_url('my-deliveries');
+    ?>
+      <li class="menu-item <?= $isDeliveriesActive ? 'active' : '' ?>">
+        <a href="<?= $deliveryUrl ?>" class="menu-link">
+          <i class="menu-icon tf-icons ri-truck-line"></i>
+          <div data-i18n="Deliveries">Deliveries</div>
+        </a>
+      </li>
+    <?php endif; ?>
+
   </ul>
 </aside>
