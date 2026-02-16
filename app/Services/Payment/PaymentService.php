@@ -143,16 +143,7 @@ class PaymentService
       }
 
       // 7. Audit Log
-      $this->auditService->logAction(
-        $companyId,
-        $userId,
-        'Payment',
-        'create',
-        'payments',
-        $paymentId,
-        null,
-        $paymentData
-      );
+      $this->auditService->logCreate('Payment', 'Payment', $paymentId, $paymentData);
 
       $this->db->transComplete();
 
@@ -268,16 +259,7 @@ class PaymentService
       // We will assumedly just log the action for now as per instructions.
 
       // 4. Audit Log
-      $this->auditService->logAction(
-        $companyId,
-        $currentUserId,
-        'Payment',
-        'delete',
-        'payments',
-        $id,
-        $payment,
-        ['is_deleted' => 1]
-      );
+      $this->auditService->logDelete('Payment', 'Payment', $id, $payment);
 
       $this->db->transComplete();
 

@@ -27,7 +27,7 @@ class CashCustomerController extends BaseController
 
   public function index()
   {
-    if (!has_permission('cash_customer.view')) {
+    if (!can('cash_customer.view')) {
       return redirect()->to('/dashboard')->with('error', 'Permission denied');
     }
 
@@ -43,7 +43,7 @@ class CashCustomerController extends BaseController
 
   public function create()
   {
-    if (!has_permission('cash_customer.create')) {
+    if (!can('cash_customer.create')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -54,7 +54,7 @@ class CashCustomerController extends BaseController
 
   public function store()
   {
-    if (!has_permission('cash_customer.create')) {
+    if (!can('cash_customer.create')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -84,7 +84,7 @@ class CashCustomerController extends BaseController
 
   public function findOrCreate()
   {
-    if (!has_permission('cash_customer.create')) {
+    if (!can('cash_customer.create')) {
       return $this->response->setJSON(['success' => false, 'message' => 'Permission denied']);
     }
 
@@ -105,7 +105,7 @@ class CashCustomerController extends BaseController
 
   public function show($id)
   {
-    if (!has_permission('cash_customer.view')) {
+    if (!can('cash_customer.view')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -128,7 +128,7 @@ class CashCustomerController extends BaseController
 
   public function edit($id)
   {
-    if (!has_permission('cash_customer.edit')) {
+    if (!can('cash_customer.edit')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -145,7 +145,7 @@ class CashCustomerController extends BaseController
 
   public function update($id)
   {
-    if (!has_permission('cash_customer.edit')) {
+    if (!can('cash_customer.edit')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -162,7 +162,7 @@ class CashCustomerController extends BaseController
 
   public function delete($id)
   {
-    if (!has_permission('cash_customer.delete')) {
+    if (!can('cash_customer.delete')) {
       return $this->response->setJSON(['status' => 'error', 'message' => 'Permission denied']);
     }
 
@@ -177,7 +177,7 @@ class CashCustomerController extends BaseController
 
   public function search()
   {
-    if (!has_permission('cash_customer.view')) {
+    if (!can('cash_customer.view')) {
       return $this->response->setJSON([]);
     }
 

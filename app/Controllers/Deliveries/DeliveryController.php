@@ -30,7 +30,7 @@ class DeliveryController extends BaseController
    */
   public function index()
   {
-    if (!has_permission('deliveries.view')) {
+    if (!can('deliveries.view')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -96,7 +96,7 @@ class DeliveryController extends BaseController
    */
   public function create()
   {
-    if (!has_permission('deliveries.manage')) {
+    if (!can('deliveries.manage')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -127,7 +127,7 @@ class DeliveryController extends BaseController
    */
   public function store()
   {
-    if (!has_permission('deliveries.manage')) {
+    if (!can('deliveries.manage')) {
       return $this->failForbidden();
     }
 
@@ -167,7 +167,7 @@ class DeliveryController extends BaseController
 
       // Security check
       $userId = session()->get('user_id');
-      if ($delivery['assigned_to'] != $userId && !has_permission('deliveries.manage')) {
+      if ($delivery['assigned_to'] != $userId && !can('deliveries.manage')) {
         throw new \Exception('You are not authorized to start this delivery');
       }
 
@@ -195,7 +195,7 @@ class DeliveryController extends BaseController
 
       // Security check
       $userId = session()->get('user_id');
-      if ($delivery['assigned_to'] != $userId && !has_permission('deliveries.manage')) {
+      if ($delivery['assigned_to'] != $userId && !can('deliveries.manage')) {
         throw new \Exception('You are not authorized to complete this delivery');
       }
 
@@ -223,7 +223,7 @@ class DeliveryController extends BaseController
 
       // Security check
       $userId = session()->get('user_id');
-      if ($delivery['assigned_to'] != $userId && !has_permission('deliveries.manage')) {
+      if ($delivery['assigned_to'] != $userId && !can('deliveries.manage')) {
         throw new \Exception('You are not authorized to fail this delivery');
       }
 

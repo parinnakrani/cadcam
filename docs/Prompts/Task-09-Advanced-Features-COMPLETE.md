@@ -1,4 +1,5 @@
 # AI CODING PROMPTS - TASK 09
+
 ## Advanced Features & Helpers
 
 **Version:** 1.0  
@@ -15,16 +16,20 @@
 
 ### Subtask 9.1.1: Create audit_logs Migration
 
-```
-[PASTE .antigravity RULES FIRST]
+IMPORTANT: The `audit_logs` table ALREADY EXISTS.
+The migration must:
 
-FILE: app/Database/Migrations/2026-01-01-000019_create_audit_logs_table.php
+1. Check if the table exists.
+2. If it exists, MODIFY columns `module` and `record_type` to VARCHAR(100).
+3. UPDATE `action_type` ENUM to include: 'create', 'update', 'delete', 'view', 'login', 'logout', 'print', 'export', 'switch_company', 'access_denied'.
+4. If it does not exist, CREATE it with the full structure.
 
-TABLE STRUCTURE:
+TABLE STRUCTURE (Target):
+
 - id, company_id
 - user_id (INT, FK to users.id, NOT NULL)
 - module (VARCHAR 100) // e.g., 'Invoice', 'Payment', 'User'
-- action_type (ENUM('create', 'update', 'delete', 'view', 'login', 'logout'))
+- action_type (ENUM('create', 'update', 'delete', 'view', 'login', 'logout', 'print', 'export', 'switch_company', 'access_denied'))
 - record_type (VARCHAR 100) // e.g., 'Invoice', 'User'
 - record_id (INT)
 - before_data (JSON, NULL) // State before change
@@ -35,17 +40,16 @@ TABLE STRUCTURE:
 
 INDEXES: company_id, user_id, module, action_type, record_type, record_id, created_at
 
-DELIVERABLES: Complete migration
+DELIVERABLES: Robust migration handling existing table
 
-ACCEPTANCE CRITERIA: Migration runs, audit logs captured
-```
+ACCEPTANCE CRITERIA: Migration runs without error on existing DB, schema updated
 
 ---
 
 ### Subtask 9.1.2: Create AuditLogModel
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Models/AuditLogModel.php
 
@@ -67,7 +71,7 @@ DELIVERABLES: Complete AuditLogModel.php
 ### Subtask 9.1.3: Create AuditService
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Services/Audit/AuditService.php
 
@@ -99,7 +103,22 @@ METHODS:
    - Call log() with action_type = 'view'
    - Optional: only log sensitive views
 
-6. public function getAuditTrail(string $recordType, int $recordId): array
+6. public function logPrint(string $module, string $recordType, int $recordId): int
+   - Call log() with action_type = 'print'
+
+7. public function logExport(string $module, string $recordType, array $filters = []): int
+   - Call log() with action_type = 'export'
+   - store filters in before_data or after_data
+
+8. public function logAccessDenied(string $module, string $action, string $details = ''): int
+   - Call log() with action_type = 'access_denied'
+   - store details in after_data
+
+9. public function logCompanySwitch(int $fromCompanyId, int $toCompanyId): int
+   - Call log() with action_type = 'switch_company'
+   - Store details in data
+
+10. public function getAuditTrail(string $recordType, int $recordId): array
    - Call AuditLogModel->getAuditTrail()
    - Return audit history
 
@@ -113,7 +132,7 @@ ACCEPTANCE CRITERIA: All actions logged, audit trail retrievable
 ### Subtask 9.1.4: Create AuditLogController & View
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Controllers/Audit/AuditLogController.php
 
@@ -142,7 +161,7 @@ ACCEPTANCE CRITERIA: Audit logs viewable, filterable
 ### Subtask 9.2.1: Create FileUploadService
 
 ```
-[PASTE .antigravity RULES FIRST]
+read .antigravity content and then
 
 FILE: app/Services/Common/FileUploadService.php
 
@@ -180,8 +199,8 @@ ACCEPTANCE CRITERIA: Image upload works, file validation enforced
 
 ### Subtask 9.2.2: Create Helper Functions
 
-```
-[PASTE .antigravity RULES FIRST]
+````
+read .antigravity content and then
 
 FILE 1: app/Helpers/permission_helper.php
 
@@ -199,7 +218,7 @@ if (!function_exists('hasRole')) {
         return $permissionService->hasRole($roleName);
     }
 }
-```
+````
 
 FILE 2: app/Helpers/format_helper.php
 
@@ -243,6 +262,7 @@ if (!function_exists('convertToWords')) {
 DELIVERABLES: 3 helper files
 
 ACCEPTANCE CRITERIA: Helpers autoloaded, functions working
+
 ```
 
 ---
@@ -250,11 +270,13 @@ ACCEPTANCE CRITERIA: Helpers autoloaded, functions working
 ### Subtask 9.2.3: Create ValidationService & Custom Rules
 
 ```
-[PASTE .antigravity RULES FIRST]
+
+read .antigravity content and then
 
 FILE 1: app/Services/Common/ValidationService.php
 
 METHODS:
+
 1. validateGST(string $gst): bool
    - Regex: 15 chars, format validation
 2. validatePAN(string $pan): bool
@@ -271,6 +293,7 @@ METHODS:
 FILE 2: app/Validation/CustomRules.php
 
 Custom validation rules for CodeIgniter:
+
 - gst_number (format validation)
 - pan_number (format validation)
 - indian_mobile (10 digit validation)
@@ -280,8 +303,10 @@ Custom validation rules for CodeIgniter:
 DELIVERABLES: ValidationService, CustomRules
 
 ACCEPTANCE CRITERIA: Validation rules working, custom rules registered
+
 ```
 
 ---
 
 **END OF TASK-09 COMPLETE**
+```

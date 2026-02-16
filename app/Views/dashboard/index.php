@@ -1,14 +1,14 @@
-<?= $this->extend('admintheme/layouts/main') ?>
+<?= $this->extend('Layouts/main') ?>
 
 <?= $this->section('content') ?>
-<div class="container-fluid">
+<div class="container-xxl flex-grow-1 container-p-y">
   <div class="row">
     <div class="col-12">
       <div class="page-title-box d-sm-flex align-items-center justify-content-between">
         <h4 class="mb-sm-0">Dashboard</h4>
         <div class="page-title-right">
           <ol class="breadcrumb m-0">
-            <li class="breadcrumb-item"><a href="javascript: void(0);">Company: <?= session('company_name') ?></a></li>
+            <li class="breadcrumb-item"><a href="javascript: void(0);">Company: <?= session('company_name') ?: 'My Company' ?></a></li>
             <li class="breadcrumb-item active">Dashboard</li>
           </ol>
         </div>
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Today's Summary -->
-  <div class="row">
+  <div class="row mb-6">
     <div class="col-xl-3 col-md-6">
       <div class="card card-animate">
         <div class="card-body">
@@ -117,7 +117,7 @@
   </div>
 
   <!-- Outstanding Summary & Top Customers -->
-  <div class="row">
+  <div class="row mb-6">
     <!-- Outstanding Summary -->
     <div class="col-xl-4">
       <div class="card card-height-100">
@@ -134,7 +134,7 @@
 
           <div class="mt-4">
             <div id="challan_status_chart"
-              data-colors='["--vz-primary", "--vz-success", "--vz-secondary"]'
+              data-colors='["#f7b84b", "#0ab39c", "#405189"]'
               class="apex-charts" dir="ltr"></div>
           </div>
         </div>
@@ -197,7 +197,7 @@
     </div>
   </div>
   <!-- Trend Charts -->
-  <div class="row">
+  <div class="row mb-6">
     <div class="col-xl-6">
       <div class="card">
         <div class="card-header align-items-center d-flex">
@@ -205,7 +205,7 @@
         </div>
         <div class="card-body">
           <div id="invoice_trend_chart"
-            data-colors='["--vz-primary"]'
+            data-colors='["#405189"]'
             class="apex-charts" dir="ltr"></div>
         </div>
       </div>
@@ -217,8 +217,95 @@
         </div>
         <div class="card-body">
           <div id="payment_trend_chart"
-            data-colors='["--vz-success"]'
+            data-colors='["#0ab39c"]'
             class="apex-charts" dir="ltr"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="row mb-6">
+    <!-- Recent Invoices -->
+    <div class="col-xl-6">
+      <div class="card">
+        <div class="card-header align-items-center d-flex">
+          <h4 class="card-title mb-0 flex-grow-1">Recent Invoices</h4>
+          <div class="flex-shrink-0">
+            <a href="<?= base_url('invoices') ?>" class="btn btn-soft-primary btn-sm">View All</a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive table-card">
+            <table class="table table-hover table-centered align-middle table-nowrap mb-0">
+              <thead class="text-muted table-light">
+                <tr>
+                  <th scope="col">Invoice ID</th>
+                  <th scope="col">Customer</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (empty($recentInvoices)): ?>
+                  <tr>
+                    <td colspan="4" class="text-center">No recent invoices found.</td>
+                  </tr>
+                <?php else: ?>
+                  <?php foreach ($recentInvoices as $inv): ?>
+                    <tr>
+                      <td><a href="<?= base_url('invoices/show/' . $inv['id']) ?>" class="fw-medium link-primary"><?= esc($inv['invoice_number']) ?></a></td>
+                      <td><?= esc($inv['account_name'] ?? $inv['cash_customer_name'] ?? 'N/A') ?></td>
+                      <td><?= number_format($inv['grand_total'], 2) ?></td>
+                      <td><span class="badge badge-soft-<?= ($inv['payment_status'] == 'Paid') ? 'success' : (($inv['payment_status'] == 'Partial') ? 'warning' : 'danger') ?>"><?= esc($inv['payment_status'] ?? 'Pending') ?></span></td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="col-xl-6">
+      <div class="card">
+        <div class="card-header align-items-center d-flex">
+          <h4 class="card-title mb-0 flex-grow-1">Recent Payments</h4>
+          <div class="flex-shrink-0">
+            <a href="<?= base_url('payments') ?>" class="btn btn-soft-primary btn-sm">View All</a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive table-card">
+            <table class="table table-hover table-centered align-middle table-nowrap mb-0">
+              <thead class="text-muted table-light">
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Customer</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col">Mode</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (empty($recentPayments)): ?>
+                  <tr>
+                    <td colspan="4" class="text-center">No recent payments found.</td>
+                  </tr>
+                <?php else: ?>
+                  <?php foreach ($recentPayments as $pay): ?>
+                    <tr>
+                      <td><?= date('d M, Y', strtotime($pay['payment_date'])) ?></td>
+                      <td><?= esc($pay['account_name'] ?? $pay['cash_customer_name'] ?? 'N/A') ?></td>
+                      <td class="text-success fw-bold"><?= number_format($pay['payment_amount'], 2) ?></td>
+                      <td><?= esc($pay['payment_mode']) ?></td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -227,7 +314,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('page_js') ?>
-<script src="<?= base_url('admintheme/libs/apexcharts/apexcharts.min.js') ?>"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
   // Helper to get colors
   function getChartColorsArray(chartId) {
@@ -260,47 +347,56 @@
   var challanData = <?= json_encode($challanStatus) ?>;
   var seriesChallan = [];
   var labelsChallan = [];
+  var totalChallan = 0;
+
   for (var key in challanData) {
     if (challanData.hasOwnProperty(key)) {
       labelsChallan.push(key);
       seriesChallan.push(challanData[key]);
+      totalChallan += challanData[key];
     }
   }
 
-  var optionsChallan = {
-    series: seriesChallan,
-    labels: labelsChallan,
-    chart: {
-      type: 'donut',
-      height: 220
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: '70%',
-          labels: {
-            show: true,
-            total: {
+  if (totalChallan === 0) {
+    if (document.querySelector("#challan_status_chart")) {
+      document.querySelector("#challan_status_chart").innerHTML = '<div class="text-center text-muted py-5 text-nowrap">No challan data available</div>';
+    }
+  } else {
+    var optionsChallan = {
+      series: seriesChallan,
+      labels: labelsChallan,
+      chart: {
+        type: 'donut',
+        height: 220
+      },
+      plotOptions: {
+        pie: {
+          donut: {
+            size: '70%',
+            labels: {
               show: true,
-              label: 'Total',
-              formatter: function(w) {
-                return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+              total: {
+                show: true,
+                label: 'Total',
+                formatter: function(w) {
+                  return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                }
               }
             }
           }
         }
-      }
-    },
-    dataLabels: {
-      enabled: false
-    },
-    legend: {
-      position: 'bottom'
-    },
-    colors: getChartColorsArray("challan_status_chart") || ['#405189', '#0ab39c', '#f7b84b', '#f06548']
-  };
-  if (document.querySelector("#challan_status_chart")) {
-    new ApexCharts(document.querySelector("#challan_status_chart"), optionsChallan).render();
+      },
+      dataLabels: {
+        enabled: false
+      },
+      legend: {
+        position: 'bottom'
+      },
+      colors: getChartColorsArray("challan_status_chart") || ['#405189', '#0ab39c', '#f7b84b', '#f06548']
+    };
+    if (document.querySelector("#challan_status_chart")) {
+      new ApexCharts(document.querySelector("#challan_status_chart"), optionsChallan).render();
+    }
   }
 
   // --- Invoice Trend Chart ---

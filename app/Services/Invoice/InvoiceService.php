@@ -197,11 +197,7 @@ class InvoiceService
       }
 
       // Audit log
-      $this->auditService->log(
-        'invoice.create',
-        "Invoice {$data['invoice_number']} created",
-        ['invoice_id' => $invoiceId, 'data' => $data]
-      );
+      $this->auditService->logCreate('Invoice', 'Invoice', $invoiceId, $data);
 
       return $invoiceId;
     } catch (Exception $e) {
@@ -288,11 +284,7 @@ class InvoiceService
       }
 
       // Audit log
-      $this->auditService->log(
-        'invoice.create_from_challan',
-        "Invoice created from Challan {$challan['challan_number']}",
-        ['invoice_id' => $invoiceId, 'challan_id' => $challanId]
-      );
+      $this->auditService->logCreate('Invoice', 'Invoice', $invoiceId, ['from_challan' => $challanId, 'data' => $invoiceData]);
 
       return $invoiceId;
     } catch (Exception $e) {
@@ -376,11 +368,7 @@ class InvoiceService
       }
 
       // Audit log
-      $this->auditService->log(
-        'invoice.update',
-        "Invoice {$invoice['invoice_number']} updated",
-        ['invoice_id' => $id, 'data' => $data]
-      );
+      $this->auditService->logUpdate('Invoice', 'Invoice', $id, [], $data);
 
       return true;
     } catch (Exception $e) {
@@ -445,11 +433,7 @@ class InvoiceService
       }
 
       // Audit log
-      $this->auditService->log(
-        'invoice.delete',
-        "Invoice {$invoice['invoice_number']} deleted",
-        ['invoice_id' => $id]
-      );
+      $this->auditService->logDelete('Invoice', 'Invoice', $id, $invoice);
 
       return true;
     } catch (Exception $e) {
@@ -520,11 +504,7 @@ class InvoiceService
       }
 
       // Audit log
-      $this->auditService->log(
-        'invoice.payment_received',
-        "Payment of ₹{$amount} received for Invoice {$invoice['invoice_number']}",
-        ['invoice_id' => $invoiceId, 'amount' => $amount, 'new_total_paid' => $newTotalPaid]
-      );
+      $this->auditService->log('Invoice', 'update', 'Invoice', $invoiceId, ['total_paid' => $invoice['total_paid']], ['total_paid' => $newTotalPaid, 'payment_amount' => $amount]);
 
       return true;
     } catch (Exception $e) {

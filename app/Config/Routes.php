@@ -16,7 +16,7 @@ $routes->group('', ['namespace' => 'App\Controllers\Auth'], function ($routes) {
 });
 
 // Protected Dashboard
-$routes->get('dashboard', 'Home::dashboard', ['filter' => 'auth']);
+$routes->get('dashboard', 'DashboardController::index', ['filter' => 'auth']);
 $routes->get('switch-company/(:num)', 'Home::switchCompany/$1', ['filter' => 'auth']);
 
 // User Management Routes
@@ -328,3 +328,10 @@ $routes->group('deliveries', ['filter' => 'auth'], function ($routes) {
 
 // Delivery Personnel Route
 $routes->get('my-deliveries', 'Deliveries\DeliveryController::myDeliveries', ['filter' => 'auth']);
+
+// AUDIT LOG ROUTES
+$routes->group('audit-logs', ['namespace' => 'App\Controllers\Audit', 'filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'AuditLogController::index');
+    $routes->get('record/(:alpha)/(:num)', 'AuditLogController::recordAuditTrail//');
+    $routes->get('user/(:num)', 'AuditLogController::userActivity/');
+});

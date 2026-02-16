@@ -2,73 +2,129 @@
 
 namespace App\Services\Audit;
 
-use CodeIgniter\I18n\Time;
+use App\Models\AuditLogModel;
 
-/**
- * AuditService
- * 
- * Handles logging of critical system events for security and debugging.
- */
 class AuditService
 {
-    /**
-     * Log a system event
-     *
-     * @param string $event Type of event (e.g., 'login', 'logout', 'failed_login')
-     * @param string $message Description
-     * @param array $context Additional data
-     */
-    public function log(string $event, string $message, array $context = []): void
-    {
-        $logPath = WRITEPATH . 'logs/audit-' . date('Y-m-d') . '.log';
-        
-        $entry = [
-            'timestamp' => Time::now()->toDateTimeString(),
-            'event'     => $event,
-            'message'   => $message,
-            'context'   => $context,
-            'ip_address' => service('request')->getIPAddress(),
-            'user_agent' => service('request')->getUserAgent()->getAgentString()
-        ];
-        
-        $logMessage = json_encode($entry) . PHP_EOL;
-        
-        // Append to log file
-        file_put_contents($logPath, $logMessage, FILE_APPEND);
-    }
+  protected $auditModel;
+  protected $session;
+  protected $request;
 
-    /**
-     * Log a specific business action (CRUD operations)
-     *
-     * @param string $action      Action identifier (e.g., 'product.create')
-     * @param int|string $recordId   ID of the record affected
-     * @param string $recordCode  Code/Reference of the record
-     * @param string $message     Description of the action
-     */
-    public function logAction(string $action, $recordId, string $recordCode, string $message): void
-    {
-        $userId = session()->get('user_id') ?? 0;
-        
-        $context = [
-            'record_id'   => $recordId,
-            'record_code' => $recordCode,
-            'user_id'     => $userId
-        ];
+  public function __construct()
+  {
+    $this->auditModel = new AuditLogModel();
+    $this->session = session();
+    $this->request = service('request');
+  }
 
-        $this->log($action, $message, $context);
-    }
+  /**
+   * Core log method that writes to the database
+   */
+  public function log(string $module, string $actionType, string $recordType = null, int $recordId = null, $beforeData = null, $afterData = null): int
+  {
+    // Get User ID from session
+    $user = $this->session->get('user');
+    $userId = $user['id'] ?? 0; // Default to 0 if not logged in (might fail FK if user 0 doesn't exist, ensure system user 0 or valid ID)
+    $companyId = $user['company_id'] ?? 0;
 
-    /**
-     * Log CRUD operation with specific signature matching services
-     */
-    public function logCrud(string $module, string $action, $recordId, $before = null, $after = null): void
-    {
-        $message = ucfirst($module) . ' ' . ucfirst($action);
-        $context = [
-            'record_id' => $recordId,
-            'before'    => $before,
-            'after'     => $after
-        ];
-        $this->log($module . '.' . $action, $message, $context);
+    // If strict FK on user_id, we must have a valid ID.
+    // We assume the application ensures a user is logged in for most actions.
+    // If userId is 0 and no user 0 exists, this insert will fail. 
+    // We'll perform a check or try/catch around insert if needed, but for now assuming valid session.
+
+    $data = [
+      'company_id'  => !empty($companyId) ? $companyId : null,
+      'user_id'     => !empty($userId) ? $userId : null,
+      'module'      => $module,
+      'action_type' => $actionType,
+      'record_type' => $recordType,
+      'record_id'   => $recordId,
+      'before_data' => $beforeData ? json_encode($beforeData) : null,
+      'after_data'  => $afterData ? json_encode($afterData) : null,
+      'ip_address'  => $this->request->getIPAddress(),
+      'user_agent'  => (string)$this->request->getUserAgent(),
+    ];
+
+    // Basic error handling to prevent app crash if audit log fails
+    try {
+      return $this->auditModel->insert($data);
+    } catch (\Exception $e) {
+      // Log error to system log but don't stop execution
+      log_message('error', 'Audit Log Insert Failed: ' . $e->getMessage());
+      return 0;
     }
+  }
+
+  /**
+   * Log creation of a record
+   */
+  public function logCreate(string $module, string $recordType, int $recordId, array $data): int
+  {
+    return $this->log($module, 'create', $recordType, $recordId, null, $data);
+  }
+
+  /**
+   * Log update of a record
+   */
+  public function logUpdate(string $module, string $recordType, int $recordId, array $beforeData, array $afterData): int
+  {
+    return $this->log($module, 'update', $recordType, $recordId, $beforeData, $afterData);
+  }
+
+  /**
+   * Log deletion of a record
+   */
+  public function logDelete(string $module, string $recordType, int $recordId, array $beforeData): int
+  {
+    return $this->log($module, 'delete', $recordType, $recordId, $beforeData, null);
+  }
+
+  /**
+   * Log viewing of a record (use sparingly for sensitive data)
+   */
+  public function logView(string $module, string $recordType, int $recordId): int
+  {
+    return $this->log($module, 'view', $recordType, $recordId);
+  }
+
+  /**
+   * Log printing of a record
+   */
+  public function logPrint(string $module, string $recordType, int $recordId): int
+  {
+    return $this->log($module, 'print', $recordType, $recordId);
+  }
+
+  /**
+   * Log export of data
+   */
+  public function logExport(string $module, string $recordType, array $filters = []): int
+  {
+    // For export, record_id is usually null
+    return $this->log($module, 'export', $recordType, null, null, $filters);
+  }
+
+  /**
+   * Log access denied attempts
+   */
+  public function logAccessDenied(string $module, string $action, string $details = ''): int
+  {
+    return $this->log($module, 'access_denied', null, null, null, ['action' => $action, 'details' => $details]);
+  }
+
+  /**
+   * Log company switching
+   */
+  public function logCompanySwitch(int $fromCompanyId, int $toCompanyId): int
+  {
+    return $this->log('User', 'switch_company', 'Company', $toCompanyId, ['from_company_id' => $fromCompanyId], ['to_company_id' => $toCompanyId]);
+  }
+
+  /**
+   * Retrieve audit trail for a specific record
+   */
+  public function getAuditTrail(string $recordType, int $recordId): array
+  {
+    return $this->auditModel->getAuditTrail($recordType, $recordId);
+  }
 }

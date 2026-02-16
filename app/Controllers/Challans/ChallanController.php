@@ -96,7 +96,7 @@ class ChallanController extends BaseController
    */
   public function index()
   {
-    if (!has_permission('challan.view')) {
+    if (!can('challan.view')) {
       return redirect()->to('/dashboard')->with('error', 'Permission denied');
     }
 
@@ -138,7 +138,7 @@ class ChallanController extends BaseController
    */
   public function create()
   {
-    if (!has_permission('challan.create')) {
+    if (!can('challan.create')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -178,7 +178,7 @@ class ChallanController extends BaseController
    */
   public function store()
   {
-    if (!has_permission('challan.create')) {
+    if (!can('challan.create')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -222,7 +222,7 @@ class ChallanController extends BaseController
    */
   public function show($id)
   {
-    if (!has_permission('challan.view')) {
+    if (!can('challan.view')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -249,7 +249,7 @@ class ChallanController extends BaseController
    */
   public function edit($id)
   {
-    if (!has_permission('challan.edit')) {
+    if (!can('challan.edit')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -291,7 +291,7 @@ class ChallanController extends BaseController
    */
   public function update($id)
   {
-    if (!has_permission('challan.edit')) {
+    if (!can('challan.edit')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -330,7 +330,7 @@ class ChallanController extends BaseController
    */
   public function delete($id)
   {
-    if (!has_permission('challan.delete')) {
+    if (!can('challan.delete')) {
       return $this->response->setJSON([
         'status'  => 'error',
         'message' => 'Permission denied',
@@ -364,7 +364,7 @@ class ChallanController extends BaseController
    */
   public function addLine($id)
   {
-    if (!has_permission('challan.edit')) {
+    if (!can('challan.edit')) {
       return $this->error('Permission denied', 403);
     }
 
@@ -410,7 +410,7 @@ class ChallanController extends BaseController
    */
   public function updateLine($id, $lineId)
   {
-    if (!has_permission('challan.edit')) {
+    if (!can('challan.edit')) {
       return $this->error('Permission denied', 403);
     }
 
@@ -454,7 +454,7 @@ class ChallanController extends BaseController
    */
   public function deleteLine($lineId)
   {
-    if (!has_permission('challan.edit')) {
+    if (!can('challan.edit')) {
       return $this->error('Permission denied', 403);
     }
 
@@ -502,7 +502,7 @@ class ChallanController extends BaseController
    */
   public function changeStatus($id)
   {
-    if (!has_permission('challan.edit')) {
+    if (!can('challan.edit')) {
       return $this->error('Permission denied', 403);
     }
 
@@ -537,7 +537,7 @@ class ChallanController extends BaseController
    */
   public function print($id)
   {
-    if (!has_permission('challan.view')) {
+    if (!can('challan.view')) {
       return redirect()->back()->with('error', 'Permission denied');
     }
 
@@ -567,7 +567,7 @@ class ChallanController extends BaseController
    */
   public function search()
   {
-    if (!has_permission('challan.view')) {
+    if (!can('challan.view')) {
       return $this->response->setJSON([]);
     }
 
@@ -590,7 +590,7 @@ class ChallanController extends BaseController
    */
   public function calculateLine()
   {
-    if (!has_permission('challan.create')) {
+    if (!can('challan.create')) {
       return $this->error('Permission denied', 403);
     }
 
@@ -625,7 +625,7 @@ class ChallanController extends BaseController
    */
   public function getProcessesByType()
   {
-    if (!has_permission('challan.view')) {
+    if (!can('challan.view')) {
       return $this->response->setJSON([]);
     }
 
