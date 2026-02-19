@@ -25,7 +25,8 @@ class CashCustomerModel extends BaseModel
     'pincode',
     'notes',
     'is_active',
-    'is_deleted'
+    'is_deleted',
+    'current_balance'
   ];
 
   // Dates
@@ -37,7 +38,6 @@ class CashCustomerModel extends BaseModel
 
   // Validation
   protected $validationRules      = [
-    'company_id'    => 'required|integer',
     'customer_name' => 'required|min_length[3]|max_length[255]',
     'mobile_number' => 'required|regex_match[/^[0-9]{10}$/]', // Assuming 10 digits
     'email'         => 'permit_empty|valid_email'
@@ -45,8 +45,29 @@ class CashCustomerModel extends BaseModel
   protected $validationMessages   = [];
   protected $skipValidation       = false;
   protected $cleanValidationRules = true;
-    
-    // BaseModel handles findAll/find company filtering and is_deleted check.
+
+  // Cash customers are shared across all companies - no company_id filter
+  // Override BaseModel methods to skip company filter
+
+  /**
+   * Override findAll to skip company filter for cash customers.
+   */
+  public function findAll(int $limit = 0, int $offset = 0)
+  {
+    // Skip applyCompanyFilter(), only apply is_deleted check
+    $this->where($this->table . '.is_deleted', 0);
+    return \CodeIgniter\Model::findAll($limit, $offset);
+  }
+
+  /**
+   * Override find to skip company filter for cash customers.
+   */
+  public function find($id = null)
+  {
+    // Skip applyCompanyFilter(), only apply is_deleted check
+    $this->where($this->table . '.is_deleted', 0);
+    return \CodeIgniter\Model::find($id);
+  }
 
   /**
    * Get active cash customers.
@@ -55,9 +76,7 @@ class CashCustomerModel extends BaseModel
    */
   public function getActiveCashCustomers(): array
   {
-    $this->applyCompanyFilter();
     $this->where('is_active', 1);
-    $this->where('is_deleted', 0);
     $this->orderBy('customer_name', 'ASC');
 
     return $this->findAll();
@@ -72,7 +91,6 @@ class CashCustomerModel extends BaseModel
    */
   public function findByNameAndMobile(string $name, string $mobile): ?array
   {
-    $this->applyCompanyFilter();
     $this->where('customer_name', $name);
     $this->where('mobile_number', $mobile);
     $this->where('is_deleted', 0);
@@ -88,9 +106,7 @@ class CashCustomerModel extends BaseModel
    */
   public function searchCashCustomers(string $query): array
   {
-    $this->applyCompanyFilter();
     $this->where('is_active', 1);
-    $this->where('is_deleted', 0);
 
     $this->groupStart();
     $this->like('customer_name', $query);

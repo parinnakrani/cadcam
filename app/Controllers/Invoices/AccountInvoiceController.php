@@ -50,52 +50,51 @@ class AccountInvoiceController extends InvoiceController
       // Get invoices with filters
       $invoiceModel = new \App\Models\InvoiceModel();
 
-      // Base query
-      $invoiceModel->where('company_id', session()->get('company_id'))
-        ->where('is_deleted', 0)
-        ->where('invoice_type', $this->invoiceType);
+      // Base query with customer name JOINs
+      $invoiceModel->select('invoices.*, COALESCE(accounts.account_name, cash_customers.customer_name) as customer_name')
+        ->join('accounts', 'accounts.id = invoices.account_id', 'left')
+        ->join('cash_customers', 'cash_customers.id = invoices.cash_customer_id', 'left')
+        ->where('invoices.company_id', session()->get('company_id'))
+        ->where('invoices.is_deleted', 0)
+        ->where('invoices.invoice_type', $this->invoiceType);
 
       // Apply other filters
       if (!empty($filters['payment_status'])) {
-        $invoiceModel->where('payment_status', $filters['payment_status']);
+        $invoiceModel->where('invoices.payment_status', $filters['payment_status']);
       }
 
       if (!empty($filters['date_from'])) {
-        $invoiceModel->where('invoice_date >=', $filters['date_from']);
+        $invoiceModel->where('invoices.invoice_date >=', $filters['date_from']);
       }
 
       if (!empty($filters['date_to'])) {
-        $invoiceModel->where('invoice_date <=', $filters['date_to']);
+        $invoiceModel->where('invoices.invoice_date <=', $filters['date_to']);
       }
 
       if (!empty($filters['search'])) {
         $invoiceModel->groupStart()
-          ->like('invoice_number', $filters['search'])
-          ->orLike('reference_number', $filters['search'])
+          ->like('invoices.invoice_number', $filters['search'])
+          ->orLike('invoices.reference_number', $filters['search'])
           ->groupEnd();
       }
 
-      $invoiceModel->orderBy('invoice_date', 'DESC')
-        ->orderBy('id', 'DESC');
+      $invoiceModel->orderBy('invoices.invoice_date', 'DESC')
+        ->orderBy('invoices.id', 'DESC');
 
-      // Pagination
-      $perPage = 20;
-      $invoices = $invoiceModel->paginate($perPage);
-      $pager = $invoiceModel->pager;
+      // Get all invoices (DataTables handles pagination)
+      $invoices = $invoiceModel->findAll();
 
       // Check if AJAX request
       if ($this->request->isAJAX()) {
         return $this->response->setJSON([
           'success' => true,
-          'data' => $invoices,
-          'pager' => $pager->links()
+          'data' => $invoices
         ]);
       }
 
       // Load view
       return view('invoices/index', [
         'invoices' => $invoices,
-        'pager' => $pager,
         'filters' => $filters,
         'invoice_type' => $this->invoiceType
       ]);

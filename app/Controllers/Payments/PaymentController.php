@@ -82,8 +82,7 @@ class PaymentController extends BaseController
       $this->paymentModel->orderBy('payment_date', 'DESC');
 
       $data = [
-        'payments' => $this->paymentModel->paginate(20),
-        'pager'    => $this->paymentModel->pager,
+        'payments' => $this->paymentModel->findAll(),
         'filters'  => $filters
       ];
 

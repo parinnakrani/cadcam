@@ -415,6 +415,10 @@ class ChallanService
   public function getChallans(array $filters = []): array
   {
     // Start with the model (BaseModel handles company filter + is_deleted)
+    $this->challanModel->select('challans.*, COALESCE(accounts.account_name, cash_customers.customer_name) as customer_name');
+    $this->challanModel->join('accounts', 'accounts.id = challans.account_id', 'left');
+    $this->challanModel->join('cash_customers', 'cash_customers.id = challans.cash_customer_id', 'left');
+
     if (!empty($filters['status'])) {
       $this->challanModel->where('challans.challan_status', $filters['status']);
     }
@@ -1010,9 +1014,7 @@ class ChallanService
       if (!$cashCustomer) {
         throw new Exception("Cash Customer not found: {$data['cash_customer_id']}");
       }
-      if ((int)$cashCustomer['company_id'] !== (int)$companyId) {
-        throw new Exception("Cash Customer does not belong to your company.");
-      }
+      // Cash customers are shared across companies - no company_id check needed
       if (!empty($cashCustomer['is_deleted']) && (int)$cashCustomer['is_deleted'] === 1) {
         throw new Exception("Cash Customer has been deleted: {$data['cash_customer_id']}");
       }

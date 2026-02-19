@@ -121,7 +121,7 @@ class InvoiceModel extends Model
       }
     } elseif ($companyId && !isset($data['id'])) {
       // For find operations
-      $this->where('company_id', $companyId);
+      $this->where($this->table . '.company_id', $companyId);
     }
 
     return $data;
@@ -142,10 +142,10 @@ class InvoiceModel extends Model
     $builder = $this->builder();
 
     if ($companyId) {
-      $builder->where('company_id', $companyId);
+      $builder->where($this->table . '.company_id', $companyId);
     }
 
-    $builder->where('is_deleted', 0);
+    $builder->where($this->table . '.is_deleted', 0);
 
     if ($limit > 0) {
       $builder->limit($limit, $offset);
@@ -480,7 +480,7 @@ class InvoiceModel extends Model
     $builder->where('is_deleted', 0);
 
     if ($companyId) {
-      $builder->where('company_id', $companyId);
+      $builder->where($this->table . '.company_id', $companyId);
     }
 
     $builder->orderBy('invoice_date', 'DESC');
@@ -504,7 +504,7 @@ class InvoiceModel extends Model
     $builder->where('is_deleted', 0);
 
     if ($companyId) {
-      $builder->where('company_id', $companyId);
+      $builder->where($this->table . '.company_id', $companyId);
     }
 
     $builder->orderBy('invoice_date', 'DESC');
@@ -530,7 +530,7 @@ class InvoiceModel extends Model
     $builder->where('is_deleted', 0);
 
     if ($companyId) {
-      $builder->where('company_id', $companyId);
+      $builder->where($this->table . '.company_id', $companyId);
     }
 
     $builder->orderBy('invoice_date', 'DESC');
@@ -558,7 +558,7 @@ class InvoiceModel extends Model
     $builder->whereIn('invoice_status', ['Posted', 'Partially Paid', 'Paid', 'Delivered', 'Closed']);
 
     if ($companyId) {
-      $builder->where('company_id', $companyId);
+      $builder->where($this->table . '.company_id', $companyId);
     }
 
     $result = $builder->get()->getRowArray();
@@ -583,7 +583,7 @@ class InvoiceModel extends Model
     $builder->where('is_deleted', 0);
 
     if ($companyId) {
-      $builder->where('company_id', $companyId);
+      $builder->where($this->table . '.company_id', $companyId);
     }
 
     $result = $builder->get()->getRowArray();

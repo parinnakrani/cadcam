@@ -181,12 +181,7 @@ class InvoiceService
       // Create ledger entry (Debit for customer - they owe us)
       $this->ledgerService->createInvoiceLedgerEntry(
         $invoiceId,
-        $data['company_id'],
-        $data['account_id'] ?? null,
-        $data['cash_customer_id'] ?? null,
-        $data['grand_total'],
-        'debit',
-        "Invoice {$data['invoice_number']} created"
+        $data
       );
 
       // Commit transaction
@@ -539,7 +534,7 @@ class InvoiceService
    */
   public function recalculateTotals(int $invoiceId): bool
   {
-    // Get line totals (these are exclusive of tax)
+    // Get line totals (these are tax-inclusive amounts)
     $totals = $this->invoiceLineModel->getTotalsForInvoice($invoiceId);
 
     // Get current invoice
@@ -560,8 +555,11 @@ class InvoiceService
 
     // Default tax rate if not set
     $taxRate = (float)($invoice['tax_rate'] ?? 3.00);
-    $subtotal = (float)$totals['total_subtotal'];
-    $taxAmount = round($subtotal * ($taxRate / 100), 2);
+    $lineTotal = (float)$totals['total_subtotal']; // sum of line amounts (tax-inclusive)
+
+    // Tax-inclusive: back-calculate tax from the total line amounts
+    $taxAmount = round($lineTotal * $taxRate / (100 + $taxRate), 2);
+    $subtotal = round($lineTotal - $taxAmount, 2); // taxable amount (excl. tax)
 
     // Breakdown
     $cgst = 0;
@@ -581,7 +579,7 @@ class InvoiceService
       $igst = $taxAmount;
     }
 
-    $grandTotal = $subtotal + $taxAmount;
+    $grandTotal = $lineTotal; // Grand total = sum of line amounts (tax already included)
 
     // Calculate amount_due
     $amountDue = $grandTotal - (float) $invoice['total_paid'];
