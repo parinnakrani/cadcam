@@ -107,54 +107,53 @@ class InvoiceController extends BaseController
       // Get invoices with filters
       $invoiceModel = new \App\Models\InvoiceModel();
 
-      // Initial query config
-      $invoiceModel->where('company_id', session()->get('company_id'))
-        ->where('is_deleted', 0)
-        ->orderBy('invoice_date', 'DESC')
-        ->orderBy('id', 'DESC');
+      // Initial query config with customer name JOINs
+      $invoiceModel->select('invoices.*, COALESCE(accounts.account_name, cash_customers.customer_name) as customer_name')
+        ->join('accounts', 'accounts.id = invoices.account_id', 'left')
+        ->join('cash_customers', 'cash_customers.id = invoices.cash_customer_id', 'left')
+        ->where('invoices.company_id', session()->get('company_id'))
+        ->where('invoices.is_deleted', 0)
+        ->orderBy('invoices.invoice_date', 'DESC')
+        ->orderBy('invoices.id', 'DESC');
 
       // Apply filters
       if (!empty($filters['invoice_type'])) {
-        $invoiceModel->where('invoice_type', $filters['invoice_type']);
+        $invoiceModel->where('invoices.invoice_type', $filters['invoice_type']);
       }
 
       if (!empty($filters['payment_status'])) {
-        $invoiceModel->where('payment_status', $filters['payment_status']);
+        $invoiceModel->where('invoices.payment_status', $filters['payment_status']);
       }
 
       if (!empty($filters['date_from'])) {
-        $invoiceModel->where('invoice_date >=', $filters['date_from']);
+        $invoiceModel->where('invoices.invoice_date >=', $filters['date_from']);
       }
 
       if (!empty($filters['date_to'])) {
-        $invoiceModel->where('invoice_date <=', $filters['date_to']);
+        $invoiceModel->where('invoices.invoice_date <=', $filters['date_to']);
       }
 
       if (!empty($filters['search'])) {
         $invoiceModel->groupStart()
-          ->like('invoice_number', $filters['search'])
-          ->orLike('reference_number', $filters['search'])
+          ->like('invoices.invoice_number', $filters['search'])
+          ->orLike('invoices.reference_number', $filters['search'])
           ->groupEnd();
       }
 
-      // Pagination
-      $perPage = 20;
-      $invoices = $invoiceModel->paginate($perPage);
-      $pager = $invoiceModel->pager;
+      // Get all invoices (DataTables handles pagination)
+      $invoices = $invoiceModel->findAll();
 
       // Check if AJAX request
       if ($this->request->isAJAX()) {
         return $this->response->setJSON([
           'success' => true,
-          'data' => $invoices,
-          'pager' => $pager->links()
+          'data' => $invoices
         ]);
       }
 
       // Load view
       return view('invoices/index', [
         'invoices' => $invoices,
-        'pager' => $pager,
         'filters' => $filters
       ]);
     } catch (Exception $e) {
@@ -193,8 +192,7 @@ class InvoiceController extends BaseController
           ->where('is_deleted', 0)
           ->orderBy('account_name', 'ASC')
           ->findAll(),
-        'cash_customers' => $this->cashCustomerModel->where('company_id', $companyId)
-          ->where('is_deleted', 0)
+        'cash_customers' => $this->cashCustomerModel
           ->orderBy('customer_name', 'ASC')
           ->findAll(),
         'products' => $this->productModel->where('company_id', $companyId)
@@ -505,8 +503,7 @@ class InvoiceController extends BaseController
           ->where('is_deleted', 0)
           ->orderBy('account_name', 'ASC')
           ->findAll(),
-        'cash_customers' => $this->cashCustomerModel->where('company_id', $companyId)
-          ->where('is_deleted', 0)
+        'cash_customers' => $this->cashCustomerModel
           ->orderBy('customer_name', 'ASC')
           ->findAll(),
         'products' => $this->productModel->where('company_id', $companyId)
@@ -665,41 +662,11 @@ class InvoiceController extends BaseController
         return redirect()->to('/invoices')->with('error', 'Invoice not found');
       }
 
-      // Generate PDF
-      if (!class_exists('\App\Libraries\InvoicePDF')) {
-        // If library doesn't exist, log error and return placeholder or error
-        // For development, we might throw exception. For production, graceful fail.
-        // We'll throw exception to be explicit during dev.
-        throw new Exception('InvoicePDF library not implemented yet');
-      }
-      // The following comments were part of the instruction, but are not valid code.
-      // $pdf = new \App\Libraries\InvoicePDF($invoice); // Check if this library exists
-      // For now, assume it's a placeholder or needs to be implemented.
-      // If the user didn't provide this library, we can't fix it properly.
-      // I'll leave it as is but commented out if it's causing issues, or just ignore.
-      // Actually, I'll just check if the file exists first.
-      $pdf = new \App\Libraries\InvoicePDF();
-      $pdfContent = $pdf->generate($invoice);
-
-      // Determine download or inline
-      $action = $this->request->getGet('action') ?? 'download';
-
-      if ($action === 'inline') {
-        // Display in browser
-        return $this->response
-          ->setContentType('application/pdf')
-          ->setBody($pdfContent);
-      } else {
-        // Download
-        $filename = "Invoice_{$invoice['invoice_number']}.pdf";
-        return $this->response
-          ->setContentType('application/pdf')
-          ->setHeader('Content-Disposition', "attachment; filename=\"{$filename}\"")
-          ->setBody($pdfContent);
-      }
+      // Render printable HTML view
+      return view('invoices/print', ['invoice' => $invoice]);
     } catch (Exception $e) {
-      log_message('error', 'Invoice PDF generation error: ' . $e->getMessage());
-      return redirect()->back()->with('error', 'Failed to generate PDF');
+      log_message('error', 'Invoice print error: ' . $e->getMessage());
+      return redirect()->back()->with('error', 'Failed to generate printable invoice: ' . $e->getMessage());
     }
   }
 }

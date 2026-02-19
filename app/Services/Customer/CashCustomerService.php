@@ -70,10 +70,9 @@ class CashCustomerService
   public function createCashCustomer(array $data): int
   {
     $session = session();
-    $data['company_id'] = $session->get('company_id');
-
-    if (empty($data['company_id'])) {
-      throw new \Exception('Company ID not found in session.');
+    // Cash customers are shared - company_id is optional (saved for reference only)
+    if (empty($data['company_id']) && $session->get('company_id')) {
+      $data['company_id'] = $session->get('company_id');
     }
 
     // Ensure mobile_number is set

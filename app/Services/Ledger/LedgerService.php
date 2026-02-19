@@ -33,8 +33,6 @@ class LedgerService
    */
   public function createInvoiceLedgerEntry(int $invoiceId, array $invoiceData): int
   {
-    $this->db->transStart();
-
     try {
       $companyId   = $invoiceData['company_id'];
       $invoiceDate = $invoiceData['invoice_date'];
@@ -96,15 +94,8 @@ class LedgerService
         $this->cashCustomerModel->update($cashCustomerId, ['current_balance' => $newBalance]);
       }
 
-      $this->db->transComplete();
-
-      if ($this->db->transStatus() === false) {
-        throw new Exception("Transaction failed while creating invoice ledger entry.");
-      }
-
       return $entryId;
     } catch (Exception $e) {
-      $this->db->transRollback();
       log_message('error', '[LedgerService::createInvoiceLedgerEntry] ' . $e->getMessage());
       throw $e;
     }

@@ -54,47 +54,46 @@ class TaxCalculationService
     ?int $customerStateId = null,
     ?int $companyStateId = null
   ): array {
-    // Calculate subtotal from lines
-    $subtotal = 0.00;
+    // Calculate total from lines (all amounts are tax-inclusive)
+    $lineTotal = 0.00;
     foreach ($lines as $line) {
       // Support both weight-based and quantity-based pricing
       if (isset($line['amount'])) {
-        $subtotal += (float) $line['amount'];
+        $lineTotal += (float) $line['amount'];
       } elseif (isset($line['line_subtotal'])) {
         // Legacy fallback
-        $subtotal += (float) $line['line_subtotal'];
+        $lineTotal += (float) $line['line_subtotal'];
       } else {
-        // Calculate from weight/rate or quantity/rate
+        // Calculate from weight/rate or quantity/rate (tax-inclusive amount)
         $weight = (float) ($line['weight'] ?? 0);
         $rate = (float) ($line['rate'] ?? 0);
         $quantity = (int) ($line['quantity'] ?? 1);
 
         if ($weight > 0) {
-          $lineTotal = $weight * $rate;
+          $lineTotal += $weight * $rate;
         } else {
-          $lineTotal = $quantity * $rate;
+          $lineTotal += $quantity * $rate;
         }
-
-        // Back-calculate subtotal from tax-inclusive total
-        $lineTax = $lineTotal * $taxRate / (100 + $taxRate);
-        $lineSubtotal = $lineTotal - $lineTax;
-        $subtotal += $lineSubtotal;
       }
     }
 
     // Determine tax type based on states
     $taxType = $this->determineTaxTypeByStates($companyStateId, $customerStateId);
 
-    // Calculate tax amounts
+    // Tax-inclusive: back-calculate tax from the total line amounts
+    $totalTax = round($lineTotal * $taxRate / (100 + $taxRate), 2);
+    $subtotal = round($lineTotal - $totalTax, 2); // taxable amount (excl. tax)
+
+    // Calculate tax breakdown
     if ($taxType === 'CGST_SGST') {
       // Intra-state: Split tax equally between CGST and SGST
       $cgstRate = $taxRate / 2;
       $sgstRate = $taxRate / 2;
-      $cgstAmount = round($subtotal * $cgstRate / 100, 2);
-      $sgstAmount = round($subtotal * $sgstRate / 100, 2);
+      $halfTax = round($totalTax / 2, 2);
+      $cgstAmount = $halfTax;
+      $sgstAmount = $totalTax - $halfTax; // avoids rounding mismatch
       $igstRate = 0.00;
       $igstAmount = 0.00;
-      $totalTax = $cgstAmount + $sgstAmount;
     } else {
       // Inter-state: Full tax as IGST
       $cgstRate = 0.00;
@@ -102,11 +101,10 @@ class TaxCalculationService
       $cgstAmount = 0.00;
       $sgstAmount = 0.00;
       $igstRate = $taxRate;
-      $igstAmount = round($subtotal * $igstRate / 100, 2);
-      $totalTax = $igstAmount;
+      $igstAmount = $totalTax;
     }
 
-    $grandTotal = $subtotal + $totalTax;
+    $grandTotal = $lineTotal; // Grand total = sum of line amounts (tax already included)
 
     return [
       'tax_type'         => $taxType,

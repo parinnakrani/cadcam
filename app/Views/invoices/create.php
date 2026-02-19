@@ -107,15 +107,29 @@
         <!-- Cash Customer (shown when Cash selected) -->
         <div class="col-md-6" id="cashCustomerSection" style="display: none;">
           <label class="form-label">Cash Customer <span class="text-danger">*</span></label>
-          <div class="input-group mb-2">
-            <input type="text" class="form-control" id="cashCustomerName" name="cash_customer_name"
-              placeholder="Customer Name" autocomplete="off">
-            <input type="text" class="form-control" id="cashCustomerMobile" name="cash_customer_mobile"
-              placeholder="Mobile Number" autocomplete="off">
-            <input type="hidden" id="cashCustomerId" name="cash_customer_id">
+          <div class="row g-2 mb-2">
+            <div class="col-md-6">
+              <label for="cashCustomerName" class="form-label small mb-1">Customer Name</label>
+              <input
+                id="cashCustomerName"
+                class="form-control typeahead-customer-name"
+                type="text"
+                name="cash_customer_name"
+                autocomplete="off"
+                placeholder="Start typing name..." />
+            </div>
+            <div class="col-md-6">
+              <label for="cashCustomerMobile" class="form-label small mb-1">Mobile Number</label>
+              <input
+                id="cashCustomerMobile"
+                class="form-control typeahead-customer-mobile"
+                type="text"
+                name="cash_customer_mobile"
+                autocomplete="off"
+                placeholder="Start typing mobile..." />
+            </div>
           </div>
-          <!-- Autocomplete Results -->
-          <div id="customerSearchResults" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></div>
+          <input type="hidden" id="cashCustomerId" name="cash_customer_id">
           <small class="text-muted">Start typing to search. New customers will be created automatically.</small>
         </div>
 
@@ -154,10 +168,13 @@
 
   <?= $this->section('vendorStyles') ?>
   <link rel="stylesheet" href="<?= base_url('admintheme/assets/vendor/libs/select2/select2.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('admintheme/assets/vendor/libs/typeahead-js/typeahead.css') ?>">
   <?= $this->endSection() ?>
 
   <?= $this->section('vendorScripts') ?>
   <script src="<?= base_url('admintheme/assets/vendor/libs/select2/select2.js') ?>"></script>
+  <script src="<?= base_url('admintheme/assets/vendor/libs/typeahead-js/typeahead.js') ?>"></script>
+  <script src="<?= base_url('admintheme/assets/vendor/libs/bloodhound/bloodhound.js') ?>"></script>
   <?= $this->endSection() ?>
 
   <!-- Line Items Section -->
@@ -209,7 +226,7 @@
                 </td>
               </tr>
               <tr>
-                <td class="text-end text-muted">Tax:</td>
+                <td class="text-end text-muted">Tax (Inclusive):</td>
                 <td class="text-end fw-semibold">
                   <span id="totalTaxDisplay">₹0.00</span>
                 </td>
@@ -431,17 +448,8 @@
         onCustomerChange();
       });
 
-      // Cash Customer Autocomplete
-      $('#cashCustomerName').on('input', debounce(function() {
-        searchCashCustomer($(this).val());
-      }, 300));
-
-      // Hide results on click outside
-      $(document).on('click', function(e) {
-        if (!$(e.target).closest('#cashCustomerSection').length) {
-          $('#customerSearchResults').hide();
-        }
-      });
+      // Cash Customer Typeahead is initialized after DOMContentLoaded setup
+      initCustomerTypeahead();
 
       // Add line item
       $('#btn-add-line').on('click', function() {
@@ -585,31 +593,22 @@
     }
 
     function calculateTotals() {
-      let subtotal = 0;
+      let lineTotal = 0;
 
       $('#linesBody .line-row').each(function() {
         var amount = parseFloat($(this).find('.line-amount').val()) || 0;
-        subtotal += amount;
+        lineTotal += amount;
       });
 
-      // Tax Calculation
-      // We need to know tax type and rate
-      // Simplification: We assume tax rate is set in hidden input or derived
-      // But currently we don't have a tax breakdown UI in the new layout request (only "Remove tax & total from column")
-      // However, the Invoice model likely still expects tax info.
-      // We will perform calculations but maybe not show detailed breakdown in line items anymore.
-      // We still need to show the Grand Total somewhere? 
-      // The user request "Remove tax & total from column" likely refers to the LINE ITEM table columns.
-      // The overall invoice totals (Subtotal, Tax, Grand Total) should probably remain.
-
-      // Let's re-add the Totals card at the bottom which I might have removed in the chunk replacement.
-      // Oops, I removed the Totals card in the chunk replacement above. I should add it back below the table.
-
+      // Tax-inclusive calculation:
+      // Line amounts already include tax, so grand total = sum of line amounts
+      // Tax is back-calculated (extracted) from the total
       const taxRate = parseFloat($('#taxRateInput').val()) || 0;
-      const taxAmount = subtotal * (taxRate / 100);
-      const grandTotal = subtotal + taxAmount;
+      const taxAmount = lineTotal * taxRate / (100 + taxRate);
+      const subtotal = lineTotal - taxAmount; // taxable amount (excl. tax)
+      const grandTotal = lineTotal; // grand total = sum of line amounts (tax already included)
 
-      // Update Displays (We need to re-add these elements in the HTML)
+      // Update Displays
       $('#subtotalDisplay').text('₹' + subtotal.toFixed(2));
       $('#totalTaxDisplay').text('₹' + taxAmount.toFixed(2));
       $('#grandTotalDisplay').text('₹' + grandTotal.toFixed(2));
@@ -715,43 +714,69 @@
       }
     }
 
-    function searchCashCustomer(query) {
-      // ... (Same as before)
-      if (query.length < 2) {
-        $('#customerSearchResults').hide();
-        return;
-      }
-      $.ajax({
-        url: '<?= base_url("customers/cash-customers/search") ?>',
-        data: {
-          q: query
+    function initCustomerTypeahead() {
+      // Bloodhound remote source for customer search
+      var customerBloodhound = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('customer_name', 'mobile_number'),
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        identify: function(obj) {
+          return String(obj.id);
         },
-        success: function(data) {
-          const results = $('#customerSearchResults');
-          results.empty();
-          if (data.length > 0) {
-            data.forEach(customer => {
-              const item = $(`<a href="#" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                          <h6 class="mb-1">${customer.customer_name}</h6>
-                          <small>${customer.mobile}</small>
-                        </div></a>`);
-              item.on('click', function(e) {
-                e.preventDefault();
-                $('#cashCustomerName').val(customer.customer_name);
-                $('#cashCustomerMobile').val(customer.mobile);
-                $('#cashCustomerId').val(customer.id);
-                $('#customerSearchResults').hide();
-                if (customer.address) $('#billingAddress').val(customer.address);
-                // Trigger tax recalculation?
-              });
-              results.append(item);
-            });
-            results.show();
-          } else {
-            results.hide();
-          }
+        sufficient: 1,
+        remote: {
+          url: '<?= base_url("customers/cash-customers/search") ?>?q=%QUERY',
+          wildcard: '%QUERY'
         }
+      });
+
+      // Shared suggestion template
+      var suggestionTemplate = function(data) {
+        return '<div><strong>' + data.customer_name + '</strong> &ndash; <span class="text-muted">' + (data.mobile_number || data.mobile || '') + '</span></div>';
+      };
+
+      // Typeahead on Customer Name field
+      $('#cashCustomerName').typeahead({
+        hint: true,
+        highlight: true,
+        minLength: 2
+      }, {
+        name: 'customers-by-name',
+        display: 'customer_name',
+        source: customerBloodhound,
+        limit: 20, // Show up to 20 suggestions
+        templates: {
+          empty: '<div class="p-2 text-muted">No customers found</div>',
+          suggestion: suggestionTemplate
+        }
+      }).on('typeahead:select', function(e, customer) {
+        $('#cashCustomerMobile').typeahead('val', customer.mobile_number || customer.mobile || '');
+        $('#cashCustomerId').val(customer.id);
+      });
+
+      // Typeahead on Mobile Number field
+      $('#cashCustomerMobile').typeahead({
+        hint: true,
+        highlight: true,
+        minLength: 2
+      }, {
+        name: 'customers-by-mobile',
+        display: function(data) {
+          return data.mobile_number || data.mobile || '';
+        },
+        source: customerBloodhound,
+        limit: 20, // Show up to 20 suggestions
+        templates: {
+          empty: '<div class="p-2 text-muted">No customers found</div>',
+          suggestion: suggestionTemplate
+        }
+      }).on('typeahead:select', function(e, customer) {
+        $('#cashCustomerName').typeahead('val', customer.customer_name);
+        $('#cashCustomerId').val(customer.id);
+      });
+
+      // Clear cash_customer_id when user manually edits either field
+      $('#cashCustomerName, #cashCustomerMobile').on('input', function() {
+        $('#cashCustomerId').val('');
       });
     }
 
@@ -820,8 +845,12 @@
             $('#submitBtn').prop('disabled', false).html('Create Invoice');
           }
         },
-        error: function() {
-          alert('Failed to submit');
+        error: function(xhr) {
+          var msg = 'Failed to submit';
+          if (xhr.responseJSON && (xhr.responseJSON.error || xhr.responseJSON.message)) {
+            msg = xhr.responseJSON.error || xhr.responseJSON.message;
+          }
+          alert(msg);
           $('#submitBtn').prop('disabled', false).html('Create Invoice');
         }
       }); // End ajax submit

@@ -149,7 +149,6 @@
           <tr>
             <th>Invoice Number</th>
             <th>Date</th>
-            <th>Type</th>
             <th>Customer</th>
             <th class="text-end">Grand Total</th>
             <th class="text-end">Amount Paid</th>
@@ -173,36 +172,9 @@
                 <!-- Date -->
                 <td><?= date('d M Y', strtotime($invoice['invoice_date'])) ?></td>
 
-                <!-- Type Badge -->
-                <td>
-                  <?php
-                  $typeBadge = 'secondary';
-                  if ($invoice['invoice_type'] === 'Accounts Invoice') {
-                    $typeBadge = 'primary';
-                  } elseif ($invoice['invoice_type'] === 'Cash Invoice') {
-                    $typeBadge = 'success';
-                  } elseif ($invoice['invoice_type'] === 'Wax Invoice') {
-                    $typeBadge = 'info';
-                  }
-                  ?>
-                  <span class="badge bg-<?= $typeBadge ?>">
-                    <?= esc($invoice['invoice_type']) ?>
-                  </span>
-                </td>
-
                 <!-- Customer Name -->
                 <td>
-                  <?php
-                  $customerName = 'N/A';
-                  if (!empty($invoice['account_id'])) {
-                    // Get account customer name (would be joined in query)
-                    $customerName = $invoice['customer_name'] ?? 'Account Customer';
-                  } elseif (!empty($invoice['cash_customer_id'])) {
-                    // Get cash customer name (would be joined in query)
-                    $customerName = $invoice['customer_name'] ?? 'Cash Customer';
-                  }
-                  ?>
-                  <?= esc($customerName) ?>
+                  <?= esc($invoice['customer_name'] ?? 'N/A') ?>
                 </td>
 
                 <!-- Grand Total -->
@@ -301,7 +273,7 @@
             <?php endforeach; ?>
           <?php else: ?>
             <tr>
-              <td colspan="10" class="text-center text-muted py-4">
+              <td colspan="9" class="text-center text-muted py-4">
                 <i class="ri-inbox-line" style="font-size: 3rem;"></i>
                 <p class="mt-2">No invoices found</p>
               </td>
@@ -311,12 +283,7 @@
       </table>
     </div>
 
-    <!-- Pagination -->
-    <?php if (isset($pager)): ?>
-      <div class="mt-3">
-        <?= $pager->links() ?>
-      </div>
-    <?php endif; ?>
+
   </div>
 </div>
 
@@ -335,11 +302,11 @@
       ], // Sort by date descending
       columnDefs: [{
           orderable: false,
-          targets: [9]
+          targets: [8]
         }, // Disable sorting on Actions column
         {
           className: 'text-end',
-          targets: [4, 5, 6]
+          targets: [3, 4, 5]
         } // Right-align amount columns
       ],
       language: {
@@ -478,7 +445,7 @@
 
     $('#invoicesTable tbody tr').each(function() {
       const dateCell = $(this).find('td:eq(1)').text();
-      const amountDue = parseFloat($(this).find('td:eq(6)').text().replace('₹', '').replace(',', ''));
+      const amountDue = parseFloat($(this).find('td:eq(5)').text().replace('₹', '').replace(',', ''));
 
       if (dateCell && amountDue > 0) {
         const invoiceDate = new Date(dateCell);
