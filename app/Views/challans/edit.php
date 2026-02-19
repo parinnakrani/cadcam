@@ -115,7 +115,6 @@ $challanId     = $challan['id'] ?? 0;
         <table class="table table-bordered mb-0" id="linesTable">
           <thead class="table-light">
             <tr>
-              <th style="width:45px">#</th>
               <th style="width:160px">Product</th>
               <th style="width:160px">Processes</th>
               <th style="width:65px">Qty</th>
@@ -152,14 +151,6 @@ $challanId     = $challan['id'] ?? 0;
                 <td class="text-muted">Total Weight:</td>
                 <td class="text-end fw-semibold"><span id="total-weight"><?= number_format((float)($challan['total_weight'] ?? 0), 3) ?></span> g</td>
               </tr>
-              <tr>
-                <td class="text-muted">Subtotal:</td>
-                <td class="text-end fw-semibold">₹ <span id="total-subtotal"><?= number_format((float)($challan['subtotal_amount'] ?? 0), 2) ?></span></td>
-              </tr>
-              <tr>
-                <td class="text-muted">Tax (<span id="tax-rate-display">0</span>%):</td>
-                <td class="text-end fw-semibold">₹ <span id="total-tax"><?= number_format((float)($challan['tax_amount'] ?? 0), 2) ?></span></td>
-              </tr>
               <tr class="border-top">
                 <td class="fw-bold fs-5">Total:</td>
                 <td class="text-end fw-bold fs-5 text-primary">₹ <span id="total-amount"><?= number_format((float)($challan['total_amount'] ?? 0), 2) ?></span></td>
@@ -191,7 +182,6 @@ $challanId     = $challan['id'] ?? 0;
 <!-- ================================================================== -->
 <template id="line-row-template">
   <tr class="line-row" data-line-index="__INDEX__">
-    <td class="text-center align-middle line-number">__NUM__</td>
     <td>
       <select class="form-select form-select-sm line-product" name="lines[__INDEX__][product_ids][]" multiple>
         <?php foreach ($products as $product): ?>
@@ -249,8 +239,11 @@ $challanId     = $challan['id'] ?? 0;
         <input type="file" class="d-none line-image-input"
           name="line_images[__INDEX__]" accept="image/*">
         <input type="hidden" class="line-existing-image" name="lines[__INDEX__][existing_image]" value="">
+        <input type="hidden" class="line-current-gold-price" name="lines[__INDEX__][current_gold_price]" value="">
+        <input type="hidden" class="line-adjusted-gold-weight" name="lines[__INDEX__][adjusted_gold_weight]" value="">
+        <input type="hidden" class="line-gold-adjustment-amount" name="lines[__INDEX__][gold_adjustment_amount]" value="">
         <div class="line-image-preview d-none mb-1">
-          <img src="" alt="Preview" class="img-thumbnail" style="max-height:48px; max-width:60px;">
+          <img src="" alt="Preview" class="img-thumbnail" style="max-height:48px; max-width:60px; cursor:pointer;">
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary btn-upload-image w-100" title="Upload Image">
           <i class="ri-camera-line"></i>
@@ -267,6 +260,21 @@ $challanId     = $challan['id'] ?? 0;
     </td>
   </tr>
 </template>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Line Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" alt="Line Image" class="img-fluid rounded">
+      </div>
+    </div>
+  </div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('vendorScripts') ?>
@@ -283,9 +291,7 @@ $challanId     = $challan['id'] ?? 0;
     var lineIndex = 0;
     var challanType = '<?= esc($challanType) ?>';
     var baseUrl = '<?= base_url() ?>';
-    var taxRate = <?= (float)($default_tax_rate ?? 0.00) ?>; // Value from controller
-
-    $('#tax-rate-display').text(taxRate);
+    var goldRates = <?= json_encode($gold_rates ?? []) ?>;
 
     // Existing lines data from server (JSON)
     var existingLines = <?= json_encode($challanLines) ?>;
@@ -318,14 +324,10 @@ $challanId     = $challan['id'] ?? 0;
       // Store historical prices if available
       var historicalPrices = {};
       if (lineData && lineData.process_prices) {
-        // process_prices can be array of objects or object
         if (Array.isArray(lineData.process_prices)) {
           lineData.process_prices.forEach(function(pp) {
             if (pp.process_id) historicalPrices[pp.process_id] = parseFloat(pp.rate);
           });
-        } else {
-          // Handle if it comes as object (unlikely given PHP side, but safe)
-          // ...
         }
       }
       $row.data('historical-prices', historicalPrices);
@@ -339,6 +341,11 @@ $challanId     = $challan['id'] ?? 0;
         if (lineData.rate) $row.find('.line-rate').val(parseFloat(lineData.rate).toFixed(2));
         if (lineData.amount) $row.find('.line-amount').val(parseFloat(lineData.amount).toFixed(2));
         if (lineData.product_name) $row.find('.line-product-name').val(lineData.product_name);
+
+        // Restore gold adjustment values
+        if (lineData.current_gold_price) $row.find('.line-current-gold-price').val(lineData.current_gold_price);
+        if (lineData.adjusted_gold_weight) $row.find('.line-adjusted-gold-weight').val(lineData.adjusted_gold_weight);
+        if (lineData.gold_adjustment_amount) $row.find('.line-gold-adjustment-amount').val(lineData.gold_adjustment_amount);
 
         // Show existing image if available
         if (lineData.image_path) {
@@ -384,7 +391,6 @@ $challanId     = $challan['id'] ?? 0;
 
       lineIndex++;
       $('#no-lines-msg').addClass('d-none');
-      renumberLines();
 
       // Calculate amounts to populate hidden process_prices input
       if (lineData) {
@@ -407,24 +413,108 @@ $challanId     = $challan['id'] ?? 0;
     // Remove Line
     $(document).on('click', '.btn-remove-line', function() {
       var $row = $(this).closest('.line-row');
+      // Remove associated gold adjustment info row if exists
+      $row.next('.gold-adjustment-info').remove();
       $row.find('.line-product, .line-process').select2('destroy');
       $row.remove();
-      renumberLines();
       recalculateTotals();
       if ($('#linesBody .line-row').length === 0) {
         $('#no-lines-msg').removeClass('d-none');
       }
     });
 
+    // =========================================================================
+    // IMAGE UPLOAD PER LINE
+    // =========================================================================
+
+    $(document).on('click', '.btn-upload-image', function() {
+      $(this).closest('.line-image-wrapper').find('.line-image-input').trigger('click');
+    });
+
+    $(document).on('change', '.line-image-input', function() {
+      var $wrapper = $(this).closest('.line-image-wrapper');
+      var file = this.files[0];
+
+      if (file) {
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file.');
+          this.value = '';
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Image size must be less than 5MB.');
+          this.value = '';
+          return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          $wrapper.find('.line-image-preview img').attr('src', e.target.result);
+          $wrapper.find('.line-image-preview').removeClass('d-none');
+          $wrapper.find('.btn-upload-image').addClass('d-none');
+          $wrapper.find('.btn-remove-image').removeClass('d-none');
+          // Clear existing image since we have a new one
+          $wrapper.find('.line-existing-image').val('');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    $(document).on('click', '.btn-remove-image', function() {
+      var $wrapper = $(this).closest('.line-image-wrapper');
+      $wrapper.find('.line-image-input').val('');
+      $wrapper.find('.line-existing-image').val('');
+      $wrapper.find('.line-image-preview').addClass('d-none');
+      $wrapper.find('.line-image-preview img').attr('src', '');
+      $wrapper.find('.btn-upload-image').removeClass('d-none');
+      $(this).addClass('d-none');
+    });
+
+    // Click to view image in modal
+    $(document).on('click', '.line-image-preview img', function() {
+      var src = $(this).attr('src');
+      if (src) {
+        $('#modalImage').attr('src', src);
+        new bootstrap.Modal(document.getElementById('imageModal')).show();
+      }
+    });
+
+    // =========================================================================
+    // AMOUNT CALCULATION
+    // =========================================================================
+
+    $(document).on('change', '.line-process', function() {
+      var $row = $(this).closest('.line-row');
+      calculateLineAmount($row);
+    });
+
+    $(document).on('input change', '.line-qty, .line-rate, .line-weight, .line-gold-weight, .line-purity', function() {
+      var $row = $(this).closest('.line-row');
+      calculateLineAmount($row);
+    });
+
+    // Set product_name hidden field when product is selected
+    $(document).on('change', '.line-product', function() {
+      var $row = $(this).closest('.line-row');
+      var names = [];
+      $(this).find(':selected').each(function() {
+        names.push($(this).data('name') || $(this).text().trim());
+      });
+      $row.find('.line-product-name').val(names.join(', '));
+    });
+
     function calculateLineAmount($row) {
       var quantity = parseInt($row.find('.line-qty').val()) || 1;
       var weight = parseFloat($row.find('.line-weight').val()) || 0;
+      var goldWeight = parseFloat($row.find('.line-gold-weight').val()) || 0;
+      var purity = $row.find('.line-purity').val() || '';
       var $processSelect = $row.find('.line-process');
       var selectedProcesses = $processSelect.val() || [];
       var historicalPrices = $row.data('historical-prices') || {};
 
       var totalRate = 0;
-      var usedPrices = {}; // To store what we actually used
+      var processPricesArray = [];
 
       selectedProcesses.forEach(function(processId) {
         processId = parseInt(processId);
@@ -440,59 +530,104 @@ $challanId     = $challan['id'] ?? 0;
         }
 
         totalRate += rate;
-        usedPrices[processId] = rate;
+        processPricesArray.push({
+          process_id: processId,
+          process_name: $processSelect.find('option[value="' + processId + '"]').data('name') || '',
+          rate: rate
+        });
       });
 
-      // Update the hidden input for process_prices
-      // We need to format it as the backend expects: array of objects {process_id, rate} or just map?
-      // Backend ChallanCalculationService expects array of objects in 'process_prices' key inside lineData
-      // Or ChallanController parseLinesFromPost decodes it.
-      // Let's create an array of {process_id: id, rate: rate}
-      var processPricesArray = [];
-      for (var pid in usedPrices) {
-        processPricesArray.push({
-          process_id: pid,
-          rate: usedPrices[pid]
-        });
-      }
+      // Store process prices
       $row.find('.line-process-prices').val(JSON.stringify(processPricesArray));
 
-
-      var manualRate = parseFloat($row.find('.line-rate').val()) || 0;
-
+      // Update rate field
       if (totalRate > 0) {
         $row.find('.line-rate').val(totalRate.toFixed(2));
-      } else if (manualRate > 0) {
-        totalRate = manualRate;
+      } else if (selectedProcesses.length === 0) {
+        // Reset rate when no processes selected
+        $row.find('.line-rate').val('0.00');
+        totalRate = 0;
+      } else {
+        totalRate = parseFloat($row.find('.line-rate').val()) || 0;
       }
 
-      // Amount = weight × rate (if weight > 0), otherwise qty × rate
-      var amount = 0;
+      // Base Amount = weight × rate (if weight > 0), otherwise qty × rate
+      var baseAmount = 0;
       if (weight > 0) {
-        amount = weight * totalRate;
+        baseAmount = weight * totalRate;
       } else {
-        amount = quantity * totalRate;
+        baseAmount = quantity * totalRate;
       }
-      $row.find('.line-amount').val(amount.toFixed(2));
+
+      // Gold adjustment calculation
+      // Gold Difference = gold_weight - weight (e.g. 1.5 - 1.0 = 0.5)
+      // Gold Adjustment = gold_difference × rate_per_gram (e.g. 0.5 × 15000 = 7500)
+      // Final Amount = base_amount + gold_adjustment (e.g. 10000 + 7500 = 17500)
+      var currentGoldPrice = 0;
+      var adjustedGoldWeight = 0;
+      var goldAdjustmentAmount = 0;
+
+      if (goldWeight > 0 && purity && goldRates[purity]) {
+        currentGoldPrice = parseFloat(goldRates[purity]);
+        adjustedGoldWeight = goldWeight - weight; // gold difference
+        goldAdjustmentAmount = adjustedGoldWeight * currentGoldPrice;
+      }
+
+      var finalAmount = baseAmount + goldAdjustmentAmount;
+
+      // Store gold adjustment values in hidden fields
+      $row.find('.line-current-gold-price').val(currentGoldPrice.toFixed(2));
+      $row.find('.line-adjusted-gold-weight').val(adjustedGoldWeight.toFixed(3));
+      $row.find('.line-gold-adjustment-amount').val(goldAdjustmentAmount.toFixed(2));
+
+      $row.find('.line-amount').val(finalAmount.toFixed(2));
+
+      // Show/hide gold adjustment info below the row
+      var $infoRow = $row.next('.gold-adjustment-info');
+      if (goldAdjustmentAmount !== 0) {
+        var sign = goldAdjustmentAmount > 0 ? '+' : '';
+        var infoHtml = '<td colspan="10" class="py-1 ps-3 bg-light border-0">' +
+          '<small class="text-muted">' +
+          '<i class="ri-information-line me-1"></i>' +
+          'Gold Adj: Wt Diff = <strong>' + adjustedGoldWeight.toFixed(3) + 'g</strong>' +
+          ' × Rate ₹' + currentGoldPrice.toLocaleString('en-IN', {
+            minimumFractionDigits: 2
+          }) +
+          ' = <strong class="' + (goldAdjustmentAmount > 0 ? 'text-success' : 'text-danger') + '">' +
+          sign + '₹' + goldAdjustmentAmount.toLocaleString('en-IN', {
+            minimumFractionDigits: 2
+          }) +
+          '</strong>' +
+          ' | Base ₹' + baseAmount.toLocaleString('en-IN', {
+            minimumFractionDigits: 2
+          }) +
+          ' → Final ₹' + finalAmount.toLocaleString('en-IN', {
+            minimumFractionDigits: 2
+          }) +
+          '</small></td>';
+
+        if ($infoRow.length) {
+          $infoRow.html(infoHtml);
+        } else {
+          $row.after('<tr class="gold-adjustment-info">' + infoHtml + '</tr>');
+        }
+      } else {
+        if ($infoRow.length) $infoRow.remove();
+      }
 
       recalculateTotals();
     }
 
     function recalculateTotals() {
-      var subtotal = 0;
+      var total = 0;
       var totalWeight = 0;
 
       $('#linesBody .line-row').each(function() {
-        subtotal += parseFloat($(this).find('.line-amount').val()) || 0;
+        total += parseFloat($(this).find('.line-amount').val()) || 0;
         totalWeight += parseFloat($(this).find('.line-weight').val()) || 0;
       });
 
-      var tax = subtotal * (taxRate / 100);
-      var total = subtotal + tax;
-
       $('#total-weight').text(totalWeight.toFixed(3));
-      $('#total-subtotal').text(formatIndianNumber(subtotal));
-      $('#total-tax').text(formatIndianNumber(tax));
       $('#total-amount').text(formatIndianNumber(total));
     }
 

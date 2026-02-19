@@ -218,7 +218,6 @@ if ($customerType === 'Account') {
             <table class="table table-bordered table-hover mb-0">
               <thead class="table-light">
                 <tr>
-                  <th style="width:45px">#</th>
                   <th>Products</th>
                   <th>Processes</th>
                   <th class="text-center" style="width:60px">Qty</th>
@@ -227,12 +226,12 @@ if ($customerType === 'Account') {
                   <th class="text-center" style="width:70px">Purity</th>
                   <th class="text-end" style="width:95px">Rate</th>
                   <th class="text-end" style="width:110px">Amount</th>
+                  <th class="text-center" style="width:80px">Image</th>
                 </tr>
               </thead>
               <tbody>
                 <?php foreach ($lines as $i => $line): ?>
                   <tr>
-                    <td class="text-center"><?= $line['line_number'] ?? ($i + 1) ?></td>
                     <!-- Products -->
                     <td>
                       <?php
@@ -282,11 +281,39 @@ if ($customerType === 'Account') {
                     </td>
                     <td class="text-end">₹ <?= number_format((float)($line['rate'] ?? 0), 2) ?></td>
                     <td class="text-end fw-semibold">₹ <?= number_format((float)($line['amount'] ?? 0), 2) ?></td>
+                    <td class="text-center">
+                      <?php if (!empty($line['image_path'])): ?>
+                        <img src="<?= base_url($line['image_path']) ?>" alt="Line Image"
+                          class="img-thumbnail line-image-thumb" style="max-height:40px; max-width:50px; cursor:pointer;"
+                          data-full-src="<?= base_url($line['image_path']) ?>">
+                      <?php else: ?>
+                        <span class="text-muted">—</span>
+                      <?php endif; ?>
+                    </td>
                   </tr>
+                  <?php
+                  $goldAdj = (float)($line['gold_adjustment_amount'] ?? 0);
+                  if ($goldAdj != 0):
+                    $adjWeight = number_format((float)($line['adjusted_gold_weight'] ?? 0), 3);
+                    $goldPrice = number_format((float)($line['current_gold_price'] ?? 0), 2);
+                    $sign = $goldAdj > 0 ? '+' : '';
+                  ?>
+                    <tr>
+                      <td colspan="9" class="py-1 ps-3 bg-light border-0">
+                        <small class="text-muted">
+                          <i class="ri-information-line me-1"></i>
+                          Gold Adj: Wt Diff = <strong><?= $adjWeight ?>g</strong>
+                          × Rate ₹<?= $goldPrice ?>
+                          = <strong class="<?= $goldAdj > 0 ? 'text-success' : 'text-danger' ?>">
+                            <?= $sign ?>₹<?= number_format($goldAdj, 2) ?>
+                          </strong>
+                        </small>
+                      </td>
+                    </tr>
+                  <?php endif; ?>
                   <?php if (!empty($line['line_notes'])): ?>
                     <tr>
-                      <td></td>
-                      <td colspan="8">
+                      <td colspan="9">
                         <small class="text-muted"><i class="ri-sticky-note-line me-1"></i><?= esc($line['line_notes']) ?></small>
                       </td>
                     </tr>
@@ -369,14 +396,6 @@ if ($customerType === 'Account') {
             <tr>
               <td class="text-muted">Total Weight</td>
               <td class="text-end fw-semibold"><?= number_format((float)($challan['total_weight'] ?? 0), 3) ?> g</td>
-            </tr>
-            <tr>
-              <td class="text-muted">Subtotal</td>
-              <td class="text-end">₹ <?= number_format((float)($challan['subtotal_amount'] ?? 0), 2) ?></td>
-            </tr>
-            <tr>
-              <td class="text-muted">Tax</td>
-              <td class="text-end">₹ <?= number_format((float)($challan['tax_amount'] ?? 0), 2) ?></td>
             </tr>
             <tr class="border-top">
               <td class="fw-bold fs-5">Total</td>
@@ -484,6 +503,21 @@ if ($customerType === 'Account') {
         <button type="button" class="btn btn-primary" id="btn-confirm-status">
           <i class="ri-check-line me-1"></i> Confirm
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image View Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Line Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" alt="Line Image" class="img-fluid rounded">
       </div>
     </div>
   </div>
@@ -596,6 +630,17 @@ if ($customerType === 'Account') {
           pendingStatus = null;
         }
       });
+    });
+
+    // =========================================================================
+    // IMAGE MODAL
+    // =========================================================================
+    $(document).on('click', '.line-image-thumb', function() {
+      var fullSrc = $(this).data('full-src');
+      if (fullSrc) {
+        $('#modalImage').attr('src', fullSrc);
+        new bootstrap.Modal(document.getElementById('imageModal')).show();
+      }
     });
 
   });

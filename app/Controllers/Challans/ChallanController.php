@@ -12,7 +12,9 @@ use App\Models\ProcessModel;
 use App\Models\CompanyModel;
 use App\Models\ChallanModel;
 use App\Models\ChallanLineModel;
+use App\Models\GoldRateModel;
 use App\Services\Audit\AuditService;
+use App\Services\FileUploadService;
 use Exception;
 
 /**
@@ -48,6 +50,8 @@ class ChallanController extends BaseController
   protected CashCustomerModel $cashCustomerModel;
   protected ProductModel $productModel;
   protected ProcessModel $processModel;
+  protected GoldRateModel $goldRateModel;
+  protected FileUploadService $fileUploadService;
 
   public function __construct()
   {
@@ -60,6 +64,7 @@ class ChallanController extends BaseController
     $processModel     = new ProcessModel();
     $productModel     = new ProductModel();
     $auditService     = new AuditService();
+    $goldRateModel    = new GoldRateModel();
 
     $calculationService = new ChallanCalculationService(
       $processModel,
@@ -81,6 +86,8 @@ class ChallanController extends BaseController
     $this->cashCustomerModel  = $cashCustomerModel;
     $this->productModel       = $productModel;
     $this->processModel       = $processModel;
+    $this->goldRateModel      = $goldRateModel;
+    $this->fileUploadService  = new FileUploadService();
   }
 
     // =========================================================================
@@ -153,18 +160,24 @@ class ChallanController extends BaseController
     // Removed CashCustomerModel instantiation as it's no longer used in create view
     $productModel      = new ProductModel();
     $processModel      = new ProcessModel();
-    $calculationService = new ChallanCalculationService(new ProcessModel(), new CompanyModel()); // Re-instantiate with dependencies
 
-    // Get default tax rate
-    $defaultTaxRate = $calculationService->getTaxRate();
+    // Get gold rates for all purities
+    $companyId = session()->get('company_id');
+    $goldRates = [];
+    foreach (['24K', '22K', '18K', '14K'] as $purity) {
+      $rate = $this->goldRateModel->getLatestRate((int)$companyId, $purity);
+      if ($rate !== null) {
+        $goldRates[$purity] = $rate;
+      }
+    }
 
     $data = [
       'challan_type'   => $type,
       'accounts'       => $accountModel->where('is_active', 1)->findAll(),
-      // 'cash_customers' => $cashCustomerModel->findAll(), // Removed
       'products'       => $productModel->where('is_active', 1)->findAll(),
       'processes'      => $processModel->where('process_type', $type)->where('is_active', 1)->findAll(),
-      'default_tax_rate' => $defaultTaxRate, // Pass to view
+      'default_tax_rate' => 0.00,
+      'gold_rates'     => $goldRates,
       'pageTitle'      => "Create {$type} Challan",
     ];
 
@@ -195,6 +208,10 @@ class ChallanController extends BaseController
 
     // Parse lines from form input
     $lines = $this->parseLinesFromPost();
+
+    // Handle line image uploads
+    $lines = $this->handleLineImageUploads($lines);
+
     if (!empty($lines)) {
       $data['lines'] = $lines;
     }
@@ -268,10 +285,15 @@ class ChallanController extends BaseController
 
     $challanType = $challan['challan_type'] ?? 'Rhodium';
 
-    // Use stored tax rate if available, otherwise default
-    $taxRate = isset($challan['tax_percent']) && is_numeric($challan['tax_percent'])
-      ? (float)$challan['tax_percent']
-      : $this->calculationService->getTaxRate();
+    // Get gold rates for all purities
+    $companyId = session()->get('company_id');
+    $goldRates = [];
+    foreach (['24K', '22K', '18K', '14K'] as $purity) {
+      $rate = $this->goldRateModel->getLatestRate((int)$companyId, $purity);
+      if ($rate !== null) {
+        $goldRates[$purity] = $rate;
+      }
+    }
 
     return view('challans/edit', [
       'challan'        => $challan,
@@ -279,7 +301,8 @@ class ChallanController extends BaseController
       'cash_customers' => $this->cashCustomerModel->getActiveCashCustomers(),
       'products'       => $this->productModel->getActiveProducts(),
       'processes'      => $this->processModel->getActiveProcesses($challanType),
-      'default_tax_rate' => $taxRate,
+      'default_tax_rate' => 0.00,
+      'gold_rates'     => $goldRates,
       'pageTitle'      => "Edit Challan: {$challan['challan_number']}",
     ]);
   }
@@ -299,6 +322,9 @@ class ChallanController extends BaseController
 
     // Parse lines from form
     $lines = $this->parseLinesFromPost();
+
+    // Handle line image uploads
+    $lines = $this->handleLineImageUploads($lines);
 
     try {
       // Update challan header
@@ -683,7 +709,10 @@ class ChallanController extends BaseController
         'amount'        => (float)($rawLine['amount'] ?? 0.00),
         'gold_weight'   => isset($rawLine['gold_weight']) ? (float)$rawLine['gold_weight'] : null,
         'gold_purity'   => $rawLine['gold_purity'] ?? null,
-        'image_path'    => $rawLine['image_path'] ?? null,
+        'current_gold_price' => isset($rawLine['current_gold_price']) ? (float)$rawLine['current_gold_price'] : null,
+        'adjusted_gold_weight' => isset($rawLine['adjusted_gold_weight']) ? (float)$rawLine['adjusted_gold_weight'] : null,
+        'gold_adjustment_amount' => isset($rawLine['gold_adjustment_amount']) ? (float)$rawLine['gold_adjustment_amount'] : null,
+        'image_path'    => $rawLine['existing_image'] ?? ($rawLine['image_path'] ?? null),
         'line_notes'    => $rawLine['line_notes'] ?? null,
       ];
 
@@ -731,5 +760,58 @@ class ChallanController extends BaseController
     }
 
     return [];
+  }
+
+  /**
+   * Handle line image uploads from form submission.
+   *
+   * Processes the line_images[] file inputs and stores them,
+   * updating the corresponding line data with the saved image_path.
+   *
+   * @param array $lines Parsed line data
+   * @return array Updated line data with image paths
+   */
+  private function handleLineImageUploads(array $lines): array
+  {
+    $uploadedFiles = $this->request->getFileMultiple('line_images');
+
+    if (empty($uploadedFiles)) {
+      // Try indexed approach: line_images[0], line_images[1], etc.
+      $rawFiles = $this->request->getFiles();
+      if (isset($rawFiles['line_images']) && is_array($rawFiles['line_images'])) {
+        $uploadedFiles = $rawFiles['line_images'];
+      }
+    }
+
+    if (empty($uploadedFiles)) {
+      return $lines;
+    }
+
+    // Map uploaded files to line indices
+    foreach ($uploadedFiles as $index => $file) {
+      if (!$file instanceof \CodeIgniter\HTTP\Files\UploadedFile) {
+        continue;
+      }
+
+      if (!$file->isValid() || $file->hasMoved()) {
+        continue;
+      }
+
+      // Find the corresponding line by index
+      if (isset($lines[$index])) {
+        try {
+          $fileName = $this->fileUploadService->uploadFile(
+            $file,
+            'uploads/challan_images',
+            ['jpg', 'jpeg', 'png', 'gif', 'webp']
+          );
+          $lines[$index]['image_path'] = 'uploads/challan_images/' . $fileName;
+        } catch (Exception $e) {
+          log_message('warning', "Line #{$index} image upload failed: " . $e->getMessage());
+        }
+      }
+    }
+
+    return $lines;
   }
 }

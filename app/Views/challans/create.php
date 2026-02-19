@@ -101,10 +101,9 @@
         <table class="table table-bordered mb-0" id="linesTable">
           <thead class="table-light">
             <tr>
-              <th style="width:45px">#</th>
               <th style="width:180px">Product</th>
               <th style="width:180px">Processes</th>
-              <th style="width:80px">Qty</th>
+              <th style="width:70px">Qty</th>
               <th style="width:100px">Weight (g)</th>
               <th style="width:100px">Rate (₹)</th>
               <th style="width:110px">Amount (₹)</th>
@@ -135,14 +134,6 @@
               <tr>
                 <td class="text-muted">Total Weight:</td>
                 <td class="text-end fw-semibold"><span id="total-weight">0.000</span> g</td>
-              </tr>
-              <tr>
-                <td class="text-muted">Subtotal:</td>
-                <td class="text-end fw-semibold">₹ <span id="total-subtotal">0.00</span></td>
-              </tr>
-              <tr>
-                <td class="text-muted">Tax (<span id="tax-rate-display">0</span>%):</td>
-                <td class="text-end fw-semibold">₹ <span id="total-tax">0.00</span></td>
               </tr>
               <tr class="border-top">
                 <td class="fw-bold fs-5">Total:</td>
@@ -178,7 +169,6 @@
 <!-- ================================================================== -->
 <template id="line-row-template">
   <tr class="line-row" data-line-index="__INDEX__">
-    <td class="text-center align-middle line-number">__NUM__</td>
     <td>
       <select class="form-select form-select-sm line-product" name="lines[__INDEX__][product_ids][]" multiple>
         <?php foreach ($products as $product): ?>
@@ -199,6 +189,7 @@
           </option>
         <?php endforeach; ?>
       </select>
+      <input type="hidden" class="line-process-prices" name="lines[__INDEX__][process_prices]" value="">
     </td>
     <td>
       <input type="number" class="form-control form-control-sm line-qty"
@@ -221,8 +212,9 @@
       <div class="line-image-wrapper">
         <input type="file" class="d-none line-image-input"
           name="line_images[__INDEX__]" accept="image/*">
+        <input type="hidden" class="line-existing-image" name="lines[__INDEX__][existing_image]" value="">
         <div class="line-image-preview d-none mb-1">
-          <img src="" alt="Preview" class="img-thumbnail" style="max-height:48px; max-width:60px;">
+          <img src="" alt="Preview" class="img-thumbnail" style="max-height:48px; max-width:60px; cursor:pointer;">
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary btn-upload-image w-100" title="Upload Image">
           <i class="ri-camera-line"></i>
@@ -239,6 +231,21 @@
     </td>
   </tr>
 </template>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Line Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" alt="Line Image" class="img-fluid rounded">
+      </div>
+    </div>
+  </div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('vendorScripts') ?>
@@ -255,7 +262,6 @@
     var lineIndex = 0;
     var challanType = '<?= esc($challan_type) ?>';
     var baseUrl = '<?= base_url() ?>';
-    var taxRate = 0;
 
     // Initialize Select2 on account dropdown
     $('#account_id').select2({
@@ -301,7 +307,6 @@
 
       // Hide "no lines" message
       $('#no-lines-msg').addClass('d-none');
-      renumberLines();
     }
 
     // Remove Line
@@ -312,7 +317,6 @@
       $row.find('.line-product, .line-process').select2('destroy');
       $row.remove();
 
-      renumberLines();
       recalculateTotals();
 
       // Show "no lines" message if empty
@@ -320,13 +324,6 @@
         $('#no-lines-msg').removeClass('d-none');
       }
     });
-
-    // Renumber lines
-    function renumberLines() {
-      $('#linesBody .line-row').each(function(i) {
-        $(this).find('.line-number').text(i + 1);
-      });
-    }
 
     // =========================================================================
     // IMAGE UPLOAD PER LINE
@@ -372,10 +369,20 @@
     $(document).on('click', '.btn-remove-image', function() {
       var $wrapper = $(this).closest('.line-image-wrapper');
       $wrapper.find('.line-image-input').val('');
+      $wrapper.find('.line-existing-image').val('');
       $wrapper.find('.line-image-preview').addClass('d-none');
       $wrapper.find('.line-image-preview img').attr('src', '');
       $wrapper.find('.btn-upload-image').removeClass('d-none');
       $(this).addClass('d-none');
+    });
+
+    // Click to view image in modal
+    $(document).on('click', '.line-image-preview img', function() {
+      var src = $(this).attr('src');
+      if (src) {
+        $('#modalImage').attr('src', src);
+        new bootstrap.Modal(document.getElementById('imageModal')).show();
+      }
     });
 
     // =========================================================================
@@ -411,20 +418,31 @@
 
       // Sum rates from selected processes
       var totalRate = 0;
+      var processPricesArray = [];
+
       selectedProcesses.forEach(function(processId) {
         var $option = $processSelect.find('option[value="' + processId + '"]');
         var rate = parseFloat($option.data('rate')) || 0;
         totalRate += rate;
+        processPricesArray.push({
+          process_id: processId,
+          process_name: $option.data('name') || '',
+          rate: rate
+        });
       });
 
-      // If no processes selected, check manual rate
-      var manualRate = parseFloat($row.find('.line-rate').val()) || 0;
+      // Store process prices
+      $row.find('.line-process-prices').val(JSON.stringify(processPricesArray));
 
+      // Update rate field
       if (totalRate > 0) {
-        // Process-based calculation
         $row.find('.line-rate').val(totalRate.toFixed(2));
-      } else if (manualRate > 0) {
-        totalRate = manualRate;
+      } else if (selectedProcesses.length === 0) {
+        // Reset rate when no processes selected
+        $row.find('.line-rate').val('0.00');
+        totalRate = 0;
+      } else {
+        totalRate = parseFloat($row.find('.line-rate').val()) || 0;
       }
 
       // Amount = weight × rate (if weight > 0), otherwise qty × rate
@@ -434,29 +452,25 @@
       } else {
         amount = quantity * totalRate;
       }
+
       $row.find('.line-amount').val(amount.toFixed(2));
 
       recalculateTotals();
     }
 
     function recalculateTotals() {
-      var subtotal = 0;
+      var total = 0;
       var totalWeight = 0;
 
       $('#linesBody .line-row').each(function() {
         var amount = parseFloat($(this).find('.line-amount').val()) || 0;
         var weight = parseFloat($(this).find('.line-weight').val()) || 0;
 
-        subtotal += amount;
+        total += amount;
         totalWeight += weight;
       });
 
-      var tax = subtotal * (taxRate / 100);
-      var total = subtotal + tax;
-
       $('#total-weight').text(totalWeight.toFixed(3));
-      $('#total-subtotal').text(formatIndianNumber(subtotal));
-      $('#total-tax').text(formatIndianNumber(tax));
       $('#total-amount').text(formatIndianNumber(total));
     }
 
@@ -466,12 +480,6 @@
         maximumFractionDigits: 2
       });
     }
-
-    // =========================================================================
-    // TAX RATE
-    // =========================================================================
-    taxRate = <?= (float)($default_tax_rate ?? 0.00) ?>; // Value from controller
-    $('#tax-rate-display').text(taxRate);
 
     // =========================================================================
     // FORM VALIDATION & SUBMISSION
@@ -529,7 +537,7 @@
   /* Select2 in table cells */
   #linesTable .select2-container {
     width: 100% !important;
-    min-width: 150px;
+    min-width: 140px;
   }
 
   #linesTable .select2-container--bootstrap-5 .select2-selection {

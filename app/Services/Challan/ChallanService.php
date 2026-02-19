@@ -163,12 +163,14 @@ class ChallanService
 
       // 8. Audit log
       $this->auditService->log(
+        'Challan',
         'CHALLAN_CREATE',
-        "Created Challan: {$data['challan_number']} ({$data['challan_type']})",
+        'Challan',
+        $challanId,
+        null,
         [
-          'company_id'  => $companyId,
-          'user_id'     => $userId,
-          'challan_id'  => $challanId,
+          'company_id'     => $companyId,
+          'user_id'        => $userId,
           'challan_number' => $data['challan_number'],
           'challan_type'   => $data['challan_type'],
           'customer_type'  => $data['customer_type'],
@@ -270,15 +272,12 @@ class ChallanService
 
     // 7. Audit log
     $this->auditService->log(
+      'Challan',
       'CHALLAN_UPDATE',
-      "Updated Challan: {$challan['challan_number']}",
-      [
-        'company_id'  => $companyId,
-        'user_id'     => $userId,
-        'challan_id'  => $id,
-        'before'      => $beforeData,
-        'changes'     => $updateData,
-      ]
+      'Challan',
+      $id,
+      $beforeData,
+      $updateData
     );
 
     $db->transComplete();
@@ -335,14 +334,12 @@ class ChallanService
 
     // 4. Audit log
     $this->auditService->log(
+      'Challan',
       'CHALLAN_DELETE',
-      "Deleted Challan: {$challan['challan_number']} ({$challan['challan_type']})",
-      [
-        'company_id'  => $companyId,
-        'user_id'     => $userId,
-        'challan_id'  => $id,
-        'challan_data' => $challan,
-      ]
+      'Challan',
+      $id,
+      $challan,
+      null
     );
 
     $db->transComplete();
@@ -554,13 +551,15 @@ class ChallanService
 
     // Audit
     $this->auditService->log(
+      'Challan',
       'CHALLAN_LINE_ADD',
-      "Added line #{$lineData['line_number']} to Challan: {$challan['challan_number']}",
+      'ChallanLine',
+      $lineId,
+      null,
       [
-        'company_id' => $companyId,
-        'user_id'    => $session->get('user_id'),
-        'challan_id' => $challanId,
-        'line_id'    => $lineId,
+        'challan_id'  => $challanId,
+        'line_number' => $lineData['line_number'],
+        'line_data'   => $lineData,
       ]
     );
 
@@ -615,15 +614,12 @@ class ChallanService
     $this->recalculateTotals($challanId);
 
     $this->auditService->log(
+      'Challan',
       'CHALLAN_LINE_UPDATE',
-      "Updated line #{$line['line_number']} in Challan: {$challan['challan_number']}",
-      [
-        'company_id' => $companyId,
-        'user_id'    => $session->get('user_id'),
-        'challan_id' => $challanId,
-        'line_id'    => $lineId,
-        'changes'    => $lineData,
-      ]
+      'ChallanLine',
+      $lineId,
+      $line,
+      $lineData
     );
 
     $db->transComplete();
@@ -678,15 +674,12 @@ class ChallanService
     $this->recalculateTotals($challanId);
 
     $this->auditService->log(
+      'Challan',
       'CHALLAN_LINE_DELETE',
-      "Deleted line #{$line['line_number']} from Challan: {$challan['challan_number']}",
-      [
-        'company_id' => $companyId,
-        'user_id'    => $session->get('user_id'),
-        'challan_id' => $challanId,
-        'line_id'    => $lineId,
-        'line_data'  => $line,
-      ]
+      'ChallanLine',
+      $lineId,
+      $line,
+      null
     );
 
     $db->transComplete();
@@ -729,13 +722,14 @@ class ChallanService
     $this->recalculateTotals($challanId);
 
     $this->auditService->log(
+      'Challan',
       'CHALLAN_LINES_REPLACE',
-      "Replaced all lines in Challan: {$challan['challan_number']}",
+      'Challan',
+      $challanId,
+      null,
       [
-        'company_id' => $companyId,
-        'user_id'    => $session->get('user_id'),
-        'challan_id' => $challanId,
-        'line_count' => count($lines),
+        'challan_number' => $challan['challan_number'],
+        'line_count'     => count($lines),
       ]
     );
 
@@ -792,15 +786,12 @@ class ChallanService
 
     // 4. Audit
     $this->auditService->log(
+      'Challan',
       'CHALLAN_STATUS_CHANGE',
-      "Challan {$challan['challan_number']}: {$currentStatus} → {$newStatus}",
-      [
-        'company_id'    => $companyId,
-        'user_id'       => $userId,
-        'challan_id'    => $id,
-        'from_status'   => $currentStatus,
-        'to_status'     => $newStatus,
-      ]
+      'Challan',
+      $id,
+      ['status' => $currentStatus],
+      ['status' => $newStatus]
     );
 
     $db->transComplete();
@@ -820,6 +811,7 @@ class ChallanService
    * Recalculate challan totals from its line items.
    *
    * Aggregates amounts from challan_lines and updates the challan record.
+   * No tax is applied at challan level — tax is applied at invoice level only.
    *
    * @param int $challanId
    * @return bool
@@ -827,25 +819,16 @@ class ChallanService
   public function recalculateTotals(int $challanId): bool
   {
     $lineTotals = $this->challanLineModel->getTotalsForChallan($challanId);
-    $challan    = $this->challanModel->find($challanId);
 
-    // Use stored tax_percent if valid, otherwise fetch company default
-    if (isset($challan['tax_percent']) && is_numeric($challan['tax_percent'])) {
-      $taxRate = (float)$challan['tax_percent'];
-    } else {
-      $taxRate = $this->calculationService->getTaxRate();
-    }
-
-    // Use ChallanCalculationService for tax-aware totals
-    $subtotal  = (float)$lineTotals['total_amount'];
-    $taxAmount = round($subtotal * ($taxRate / 100), 2);
+    // No tax at challan level
+    $subtotal = (float)$lineTotals['total_amount'];
 
     $totals = [
       'total_weight'    => $lineTotals['total_gold_weight'],
       'subtotal_amount' => $subtotal,
-      'tax_amount'      => $taxAmount,
-      'total_amount'    => round($subtotal + $taxAmount, 2),
-      'tax_percent'     => $taxRate,
+      'tax_amount'      => 0.00,
+      'total_amount'    => $subtotal,
+      'tax_percent'     => 0.00,
     ];
 
     return $this->challanModel->updateTotals($challanId, $totals);
@@ -885,13 +868,14 @@ class ChallanService
     $this->challanModel->markAsInvoiced($challanId, $invoiceId);
 
     $this->auditService->log(
+      'Challan',
       'CHALLAN_INVOICED',
-      "Challan {$challan['challan_number']} converted to Invoice #{$invoiceId}",
+      'Challan',
+      $challanId,
+      null,
       [
-        'company_id' => $companyId,
-        'user_id'    => $userId,
-        'challan_id' => $challanId,
-        'invoice_id' => $invoiceId,
+        'challan_number' => $challan['challan_number'],
+        'invoice_id'     => $invoiceId,
       ]
     );
 

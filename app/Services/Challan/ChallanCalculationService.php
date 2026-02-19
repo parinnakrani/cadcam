@@ -239,19 +239,13 @@ class ChallanCalculationService
     $subtotal    = round($subtotal, 2);
     $totalWeight = round($totalWeight, 3);
 
-    // Tax calculation
-    // Use provided rate, or fetch default if null
-    $appliedTaxRate = ($taxRate !== null) ? $taxRate : $this->getTaxRate();
-
-    $taxAmount = round($subtotal * ($appliedTaxRate / 100), 2);
-    $total     = round($subtotal + $taxAmount, 2);
-
+    // No tax for challans — tax is applied only at invoice level
     return [
       'subtotal_amount' => $subtotal,
-      'tax_amount'      => $taxAmount,
-      'total_amount'    => $total,
+      'tax_amount'      => 0.00,
+      'total_amount'    => $subtotal,
       'total_weight'    => $totalWeight,
-      'tax_percent'     => $appliedTaxRate, // Return the rate used
+      'tax_percent'     => 0.00,
     ];
   }
 

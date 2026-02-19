@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 15, 2026 at 02:12 PM
+-- Generation Time: Feb 18, 2026 at 07:46 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -101,11 +101,11 @@ CREATE TABLE `account_groups` (
 
 CREATE TABLE `audit_logs` (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `company_id` int(10) UNSIGNED NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
-  `module` varchar(50) NOT NULL,
-  `action_type` enum('create','update','delete','view','print','export','login','logout') NOT NULL,
-  `record_type` varchar(50) DEFAULT NULL,
+  `company_id` int(10) UNSIGNED DEFAULT NULL,
+  `user_id` int(10) UNSIGNED DEFAULT NULL,
+  `module` varchar(100) DEFAULT NULL,
+  `action_type` enum('create','update','delete','view','login','logout','print','export','switch_company','access_denied') DEFAULT NULL,
+  `record_type` varchar(100) DEFAULT NULL,
   `record_id` int(10) UNSIGNED DEFAULT NULL,
   `before_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`before_data`)),
   `after_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`after_data`)),
@@ -113,6 +113,16 @@ CREATE TABLE `audit_logs` (
   `user_agent` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `audit_logs`
+--
+
+INSERT INTO `audit_logs` (`id`, `company_id`, `user_id`, `module`, `action_type`, `record_type`, `record_id`, `before_data`, `after_data`, `ip_address`, `user_agent`, `created_at`) VALUES
+(3, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-15 19:08:36'),
+(4, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-18 18:33:21'),
+(5, NULL, NULL, 'Challan', '', 'Challan', 6, NULL, '{\"company_id\":\"1\",\"user_id\":\"2\",\"challan_number\":\"CH-0008\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-18 18:38:33'),
+(6, NULL, NULL, 'Challan', '', 'Challan', 7, NULL, '{\"company_id\":\"1\",\"user_id\":\"2\",\"challan_number\":\"CH-0009\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-18 18:43:58');
 
 -- --------------------------------------------------------
 
@@ -191,7 +201,9 @@ INSERT INTO `challans` (`id`, `company_id`, `challan_number`, `challan_date`, `c
 (1, 1, 'CH-0003', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Invoiced', 0.000, 66.00, NULL, 11.88, 77.88, 1, 21, 'Notes here', '0000-00-00', 2, 0, '2026-02-11 19:30:20', '2026-02-14 11:03:07'),
 (2, 1, 'CH-0004', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Invoiced', 0.000, 252.50, 18.00, 45.45, 297.95, 1, 21, '', '0000-00-00', 2, 0, '2026-02-11 20:44:56', '2026-02-14 11:03:07'),
 (3, 1, 'CH-0005', '2026-02-12', 'Rhodium', 'Account', 3, NULL, 'Completed', 0.000, 85.00, 18.00, 15.30, 100.30, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-11 20:48:10', '2026-02-14 10:15:37'),
-(4, 1, 'CH-0006', '2026-02-14', 'Rhodium', 'Account', 3, NULL, 'Completed', 0.000, 300.00, 18.00, 54.00, 354.00, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-14 09:50:21', '2026-02-14 10:09:19');
+(4, 1, 'CH-0006', '2026-02-14', 'Rhodium', 'Account', 3, NULL, 'Completed', 0.000, 300.00, 18.00, 54.00, 354.00, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-14 09:50:21', '2026-02-14 10:09:19'),
+(6, 1, 'CH-0008', '2026-02-19', 'Rhodium', 'Account', 3, NULL, 'Draft', 0.000, 25.00, 18.00, 4.50, 29.50, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-18 18:38:33', '2026-02-18 18:38:33'),
+(7, 1, 'CH-0009', '2026-02-20', 'Rhodium', 'Account', 3, NULL, 'Draft', 0.000, 115.00, 18.00, 20.70, 135.70, 0, NULL, 'Here is your notes', '2026-02-28', 2, 0, '2026-02-18 18:43:58', '2026-02-18 18:43:58');
 
 -- --------------------------------------------------------
 
@@ -230,7 +242,10 @@ INSERT INTO `challan_lines` (`id`, `challan_id`, `line_number`, `product_ids`, `
 (7, 2, 1, '[\"2\"]', 'Pendant', '[\"3\"]', '[]', 1, 2.000, 20.00, 40.00, NULL, NULL, NULL, NULL, NULL, '2026-02-11 20:44:56', '2026-02-11 20:44:56'),
 (8, 2, 2, '[\"1\",\"4\"]', 'Ring, Necklace', '[\"1\",\"2\"]', '[]', 1, 2.500, 85.00, 212.50, NULL, NULL, NULL, NULL, NULL, '2026-02-11 20:44:56', '2026-02-11 20:44:56'),
 (9, 3, 1, '[\"2\",\"3\"]', 'Pendant, Earring', '[\"1\",\"2\"]', '[]', 1, 1.000, 85.00, 85.00, NULL, NULL, NULL, NULL, NULL, '2026-02-11 20:48:10', '2026-02-11 20:48:10'),
-(10, 4, 1, '[\"2\"]', 'Pendant', '[\"1\"]', '[]', 1, 5.000, 60.00, 300.00, NULL, NULL, NULL, NULL, NULL, '2026-02-14 09:50:21', '2026-02-14 09:50:21');
+(10, 4, 1, '[\"2\"]', 'Pendant', '[\"1\"]', '[]', 1, 5.000, 60.00, 300.00, NULL, NULL, NULL, NULL, NULL, '2026-02-14 09:50:21', '2026-02-14 09:50:21'),
+(12, 6, 1, '[\"1\"]', 'Ring', '[\"2\"]', '[]', 1, 1.000, 25.00, 25.00, NULL, NULL, NULL, NULL, NULL, '2026-02-18 18:38:33', '2026-02-18 18:38:33'),
+(13, 7, 1, '[\"2\",\"3\"]', 'Pendant, Earring', '[\"1\",\"2\"]', '[]', 1, 1.000, 85.00, 85.00, NULL, NULL, NULL, NULL, NULL, '2026-02-18 18:43:58', '2026-02-18 18:43:58'),
+(14, 7, 2, '[\"4\"]', 'Necklace', '[\"3\"]', '[]', 1, 1.500, 20.00, 30.00, NULL, NULL, NULL, NULL, NULL, '2026-02-18 18:43:58', '2026-02-18 18:43:58');
 
 -- --------------------------------------------------------
 
@@ -274,7 +289,7 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `company_name`, `business_legal_name`, `business_type`, `address_line1`, `address_line2`, `city`, `state_id`, `pincode`, `contact_person_name`, `contact_email`, `contact_phone`, `gst_number`, `pan_number`, `company_logo`, `invoice_prefix`, `challan_prefix`, `default_tax_rate`, `minimum_wax_price`, `financial_year_start_month`, `date_format`, `timezone`, `status`, `last_invoice_number`, `last_challan_number`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(1, 'System Administrator', 'System Administrator', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'admin@gmail.com', '9999999999', NULL, NULL, NULL, 'SYS-', 'CH-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 6, 6, '2026-02-08 16:31:03', '2026-02-14 11:03:07', 0);
+(1, 'System Administrator', 'System Administrator', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'admin@gmail.com', '9999999999', NULL, NULL, NULL, 'SYS-', 'CH-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 6, 9, '2026-02-08 16:31:03', '2026-02-18 18:43:58', 0);
 
 -- --------------------------------------------------------
 
@@ -515,7 +530,10 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (29, '2026-01-01-000014', 'App\\Database\\Migrations\\CreateInvoicesTable', 'default', 'App', 1771071301, 11),
 (30, '2026-01-01-000015', 'App\\Database\\Migrations\\CreateInvoiceLinesTable', 'default', 'App', 1771071301, 11),
 (31, '2026-01-01-000016', 'App\\Database\\Migrations\\CreatePaymentsTable', 'default', 'App', 1771071327, 12),
-(32, '2026-02-14-000001', 'App\\Database\\Migrations\\ModifyDeliveriesTable', 'default', 'App', 1771074966, 13);
+(32, '2026-02-14-000001', 'App\\Database\\Migrations\\ModifyDeliveriesTable', 'default', 'App', 1771074966, 13),
+(33, '2026-01-01-000017', 'App\\Database\\Migrations\\CreateLedgerEntriesTable', 'default', 'App', 1771163014, 14),
+(34, '2026-01-01-000019', 'App\\Database\\Migrations\\CreateAuditLogsTable', 'default', 'App', 1771173026, 15),
+(35, '2026-02-16-000001', 'App\\Database\\Migrations\\MakeAuditFKNullable', 'default', 'App', 1771182410, 16);
 
 -- --------------------------------------------------------
 
@@ -727,7 +745,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `company_id`, `username`, `email`, `password_hash`, `full_name`, `mobile_number`, `remember_token`, `remember_expires_at`, `profile_photo`, `adhar_card_number`, `date_of_joining`, `employment_status`, `failed_login_attempts`, `last_login_at`, `last_login_ip`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(2, 1, 'superadmin', 'admin@gmail.com', '$2y$10$3lD2hiugSlildxvjTeH9bue.5rQEqtidB6krrpytoJk4hpXfKZ/WC', 'System Administrator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-14 06:36:12', NULL, '2026-02-08 16:31:03', '2026-02-14 06:36:12', 0),
+(2, 1, 'superadmin', 'admin@gmail.com', '$2y$10$3lD2hiugSlildxvjTeH9bue.5rQEqtidB6krrpytoJk4hpXfKZ/WC', 'System Administrator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-18 18:33:21', NULL, '2026-02-08 16:31:03', '2026-02-18 18:33:21', 0),
 (4, 1, 'parinpatel', 'parinwork@gmail.com', '$2y$10$TBdnobbaIGwuvdZuPhT5yu7U1hVKWCcVbpSpmwMNhINEdFYkUsiNa', 'Parin Patel', '9586969009', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-10 20:12:17', NULL, '2026-02-10 20:11:17', '2026-02-10 20:12:17', 0),
 (5, 1, 'parindelivery', 'parindelivery@gmail.com', '$2y$10$JVSHEEiKOf62a3cxPmxjL.WmzMc.yCkRfH.oo/96cxRztNIcFiLA.', 'Parin Delivery', '9586969119', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-14 13:22:58', NULL, '2026-02-14 13:22:23', '2026-02-14 13:22:58', 0);
 
@@ -1007,7 +1025,7 @@ ALTER TABLE `account_groups`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `cash_customers`
@@ -1025,7 +1043,7 @@ ALTER TABLE `challans`
 -- AUTO_INCREMENT for table `challan_lines`
 --
 ALTER TABLE `challan_lines`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `companies`
@@ -1073,7 +1091,7 @@ ALTER TABLE `ledger_entries`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `payments`
