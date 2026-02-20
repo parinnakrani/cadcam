@@ -41,16 +41,8 @@ class GoldRateService
       throw new \Exception("Company ID not found in session.");
     }
 
-    // Validate: date must be <= today
-    $today = date('Y-m-d');
-    if ($data['rate_date'] > $today) {
-      throw new \Exception("Cannot enter future dated gold rates.");
-    }
-
-    // Validate: duplicate entry check
-    if ($this->goldRateModel->checkRateExists($companyId, $data['rate_date'], $data['metal_type'])) {
-      throw new \Exception("Rate already entered for {$data['metal_type']} on {$data['rate_date']}. Please update existing rate.");
-    }
+    // Note: Multiple entries per day per metal type are allowed.
+    // The most recent entry (by created_at) is used as the active rate.
 
     // Prepare data with company_id
     $insertData = [

@@ -108,7 +108,7 @@ class DeliveryService
     }
 
     // 5. Audit Log
-    $this->auditService->logAction('delivery.assign', $deliveryId, "INV-{$invoiceId}", "Assigned delivery to User ID {$assignedToUserId}");
+    $this->auditService->log('Delivery', 'create', 'Delivery', $deliveryId, null, ['invoice_id' => $invoiceId, 'assigned_to' => $assignedToUserId]);
 
     return $deliveryId;
   }
@@ -135,7 +135,7 @@ class DeliveryService
       'delivery_status' => 'In Transit'
     ]);
 
-    $this->auditService->logAction('delivery.start', $deliveryId, "", "Delivery started (In Transit)");
+    $this->auditService->log('Delivery', 'update', 'Delivery', $deliveryId, ['delivery_status' => 'Assigned'], ['delivery_status' => 'In Transit']);
 
     return true;
   }
@@ -176,7 +176,7 @@ class DeliveryService
         throw new Exception("Transaction failed while marking delivery as complete.");
       }
 
-      $this->auditService->logAction('delivery.complete', $deliveryId, "", "Delivery marked as Delivered.");
+      $this->auditService->log('Delivery', 'update', 'Delivery', $deliveryId, ['delivery_status' => 'In Transit'], ['delivery_status' => 'Delivered']);
 
       return true;
     } catch (Exception $e) {
@@ -204,7 +204,7 @@ class DeliveryService
 
     $this->deliveryModel->markAsFailed($deliveryId, $reason);
 
-    $this->auditService->logAction('delivery.failed', $deliveryId, "", "Delivery marked as Failed. Reason: {$reason}");
+    $this->auditService->log('Delivery', 'update', 'Delivery', $deliveryId, ['delivery_status' => 'In Transit'], ['delivery_status' => 'Failed', 'failed_reason' => $reason]);
 
     return true;
   }

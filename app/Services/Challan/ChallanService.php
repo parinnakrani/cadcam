@@ -828,7 +828,7 @@ class ChallanService
     $subtotal = (float)$lineTotals['total_amount'];
 
     $totals = [
-      'total_weight'    => $lineTotals['total_gold_weight'],
+      'total_weight'    => $lineTotals['total_weight'],   // sum of challan_lines.weight
       'subtotal_amount' => $subtotal,
       'tax_amount'      => 0.00,
       'total_amount'    => $subtotal,

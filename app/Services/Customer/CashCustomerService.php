@@ -108,7 +108,7 @@ class CashCustomerService
       throw new \Exception('Failed to create customer: ' . implode(', ', $this->cashCustomerModel->errors()));
     }
 
-    $this->auditService->logCrud('cash_customer', 'create', $customerId, null, $data);
+    $this->auditService->log('Customer', 'create', 'CashCustomer', $customerId, null, $data);
 
     $this->db->transComplete();
 
@@ -157,7 +157,7 @@ class CashCustomerService
       throw new \Exception('Update failed: ' . implode(', ', $this->cashCustomerModel->errors()));
     }
 
-    $this->auditService->logCrud('cash_customer', 'update', $id, $existing, $data);
+    $this->auditService->log('Customer', 'update', 'CashCustomer', $id, $existing, $data);
 
     $this->db->transComplete();
 
@@ -186,7 +186,7 @@ class CashCustomerService
 
     $this->cashCustomerModel->delete($id);
 
-    $this->auditService->logCrud('cash_customer', 'delete', $id, $existing, null);
+    $this->auditService->log('Customer', 'delete', 'CashCustomer', $id, $existing, null);
 
     $this->db->transComplete();
 
@@ -229,7 +229,7 @@ class CashCustomerService
 
       // Audit Log
       $auditData = ['primary_id' => $primaryId, 'secondary_id' => $secondaryId];
-      $this->auditService->logCrud('cash_customer', 'merge', $primaryId, null, $auditData);
+      $this->auditService->log('Customer', 'update', 'CashCustomer', $primaryId, null, $auditData);
 
       $this->db->transComplete();
 

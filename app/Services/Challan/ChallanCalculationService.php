@@ -213,7 +213,7 @@ class ChallanCalculationService
    * - subtotal_amount  = sum of all line amounts
    * - tax_amount       = subtotal × (company tax rate / 100)
    * - total_amount     = subtotal + tax
-   * - total_weight     = sum of all gold_weight values
+   * - total_weight     = sum of all line weight values (NOT gold_weight)
    *
    * @param array $lines Array of line data arrays (each containing amounts)
    * @param float|null $taxRate Optional tax rate override. If null, fetches company default.
@@ -231,9 +231,10 @@ class ChallanCalculationService
         $subtotal += (float)$line['amount'];
       }
 
-      if (isset($line['gold_weight']) && $line['gold_weight'] !== null) {
-        $totalWeight += (float)$line['gold_weight'];
-      }
+      // Per-line rule: use gold_weight if set and > 0, else fall back to weight
+      $lineGoldWeight = isset($line['gold_weight']) ? (float)$line['gold_weight'] : 0.0;
+      $lineWeight     = (float)($line['weight'] ?? 0.0);
+      $totalWeight   += ($lineGoldWeight > 0) ? $lineGoldWeight : $lineWeight;
     }
 
     $subtotal    = round($subtotal, 2);
