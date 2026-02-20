@@ -127,19 +127,9 @@ class PaymentService
         'updated_by' => $userId
       ]);
 
-      // 6. Create Ledger Entry
-      // Credit the customer (Liability/Income usually, but here referencing customer account)
-      // If it's an Account customer, we credit their account (reducing their balance)
+      // 6. Create Ledger Entry for Account customers
       if ($invoice['account_id']) {
-        $this->ledgerService->createPaymentLedgerEntry(
-          $invoiceId,
-          $companyId,
-          (int)$invoice['account_id'],
-          null,
-          $paymentAmount,
-          'Credit',
-          "Payment received for Invoice #{$invoice['invoice_number']} via {$data['payment_mode']}"
-        );
+        $this->ledgerService->createPaymentLedgerEntry($paymentId, $paymentData);
       }
 
       // 7. Audit Log

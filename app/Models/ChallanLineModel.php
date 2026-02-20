@@ -405,18 +405,19 @@ class ChallanLineModel extends Model
   {
     $result = $this->db->table($this->table)
       ->selectSum('amount', 'total_amount')
-      ->selectSum('weight', 'total_weight')
-      ->selectSum('gold_weight', 'total_gold_weight')
       ->selectSum('quantity', 'total_quantity')
+      ->selectSum('gold_weight', 'total_gold_weight')
+      // Per-line: use gold_weight if > 0, otherwise fall back to weight
+      ->select('SUM(IF(gold_weight > 0, gold_weight, weight)) AS effective_total_weight', false)
       ->where('challan_id', $challanId)
       ->get()
       ->getRowArray();
 
     return [
-      'total_amount'      => (float)($result['total_amount'] ?? 0.00),
-      'total_weight'      => (float)($result['total_weight'] ?? 0.000),
+      'total_amount'      => (float)($result['total_amount']      ?? 0.00),
+      'total_weight'      => (float)($result['effective_total_weight'] ?? 0.000),
       'total_gold_weight' => (float)($result['total_gold_weight'] ?? 0.000),
-      'total_quantity'    => (int)($result['total_quantity'] ?? 0),
+      'total_quantity'    => (int)($result['total_quantity']    ?? 0),
     ];
   }
 
