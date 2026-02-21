@@ -645,7 +645,7 @@ class InvoiceController extends BaseController
    * GET /invoices/{id}/print
    * 
    * @param int $id Invoice ID
-   * @return ResponseInterface
+   * @return string|ResponseInterface
    */
   public function print(int $id)
   {

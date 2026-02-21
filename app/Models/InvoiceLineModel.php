@@ -29,29 +29,23 @@ class InvoiceLineModel extends Model
   protected $allowedFields = [
     'invoice_id',
     'line_number',
-    'challan_line_id',
     'source_challan_id',
     'source_challan_line_id',
-    'products_json',
     'product_ids',
     'product_name',
-    'processes_json',
     'process_ids',
     'process_prices',
     'quantity',
     'weight',
+    'rate',
+    'amount',
     'gold_weight',
     'gold_fine_weight',
     'gold_purity',
     'original_gold_weight',
     'adjusted_gold_weight',
     'gold_adjustment_amount',
-    'unit_price',
-    'rate',
-    'amount',
-    'description',
     'line_notes',
-    'hsn_code'
   ];
 
   protected $useTimestamps = true;
@@ -59,10 +53,10 @@ class InvoiceLineModel extends Model
   protected $updatedField  = 'updated_at';
 
   // Automatic JSON casting for JSON fields
+  // Note: $casts only works on Entity objects in CI4, not plain array models.
+  // JSON decoding is handled manually in getLinesByInvoiceId() consumers.
   protected $casts = [
-    'products_json'   => 'json',
     'product_ids'     => 'json',
-    'processes_json'  => 'json',
     'process_ids'     => 'json',
     'process_prices'  => 'json',
     'quantity'        => 'integer',
@@ -203,10 +197,10 @@ class InvoiceLineModel extends Model
    */
   public function getNextLineNumber(int $invoiceId): int
   {
+    // invoice_lines has NO is_deleted column — no soft-delete filter needed
     $builder = $this->db->table($this->table);
     $builder->selectMax('line_number', 'max_line_number');
     $builder->where('invoice_id', $invoiceId);
-    $builder->where('is_deleted', 0);
 
     $result = $builder->get()->getRowArray();
     $maxLineNumber = (int) ($result['max_line_number'] ?? 0);
@@ -314,7 +308,7 @@ class InvoiceLineModel extends Model
         'line_number'            => $lineNumber,
         'source_challan_id'      => $challanId,
         'source_challan_line_id' => $challanLine['id'],
-        'challan_line_id'        => $challanLine['id'],
+        // Note: 'challan_line_id' does NOT exist in invoice_lines table — removed
         'product_ids'            => $challanLine['product_ids'],
         'product_name'           => $challanLine['product_name'],
         'process_ids'            => $challanLine['process_ids'],
@@ -327,8 +321,6 @@ class InvoiceLineModel extends Model
         'gold_fine_weight'       => $challanLine['gold_fine_weight'],
         'gold_purity'            => $challanLine['gold_purity'],
         'line_notes'             => $challanLine['line_notes'],
-        // New fields
-        // New fields
         'original_gold_weight'   => $challanLine['gold_weight'] ?? 0.000,
         'adjusted_gold_weight'   => $challanLine['gold_weight'] ?? 0.000,
       ];

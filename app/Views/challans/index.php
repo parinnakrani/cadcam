@@ -118,32 +118,27 @@
       <div class="card-body">
         <!-- Filters -->
         <div class="row mb-4 g-3">
-          <div class="col-md-2">
-            <label class="form-label" for="filter_type">Challan Type</label>
-            <select id="filter_type" class="form-select form-select-sm">
-              <option value="">All Types</option>
-              <option value="Rhodium" <?= (($filters['challan_type'] ?? '') === 'Rhodium') ? 'selected' : '' ?>>Rhodium</option>
-              <option value="Meena" <?= (($filters['challan_type'] ?? '') === 'Meena') ? 'selected' : '' ?>>Meena</option>
-              <option value="Wax" <?= (($filters['challan_type'] ?? '') === 'Wax') ? 'selected' : '' ?>>Wax</option>
+          <div class="col-md-3">
+            <label class="form-label" for="filter_account">Account</label>
+            <select id="filter_account" class="form-select form-select-sm">
+              <option value="">All Accounts</option>
+              <?php foreach ($accounts as $acc): ?>
+                <option value="<?= esc($acc['id']) ?>"
+                  <?= (($filters['account_id'] ?? '') == $acc['id']) ? 'selected' : '' ?>>
+                  <?= esc($acc['account_name']) ?>
+                </option>
+              <?php endforeach; ?>
             </select>
           </div>
           <div class="col-md-2">
             <label class="form-label" for="filter_status">Status</label>
             <select id="filter_status" class="form-select form-select-sm">
               <option value="">All Statuses</option>
-              <option value="Draft" <?= (($filters['status'] ?? '') === 'Draft') ? 'selected' : '' ?>>Draft</option>
-              <option value="Pending" <?= (($filters['status'] ?? '') === 'Pending') ? 'selected' : '' ?>>Pending</option>
+              <option value="Draft" <?= (($filters['status'] ?? '') === 'Draft')       ? 'selected' : '' ?>>Draft</option>
+              <option value="Pending" <?= (($filters['status'] ?? '') === 'Pending')     ? 'selected' : '' ?>>Pending</option>
               <option value="In Progress" <?= (($filters['status'] ?? '') === 'In Progress') ? 'selected' : '' ?>>In Progress</option>
-              <option value="Completed" <?= (($filters['status'] ?? '') === 'Completed') ? 'selected' : '' ?>>Completed</option>
-              <option value="Invoiced" <?= (($filters['status'] ?? '') === 'Invoiced') ? 'selected' : '' ?>>Invoiced</option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label" for="filter_customer_type">Customer Type</label>
-            <select id="filter_customer_type" class="form-select form-select-sm">
-              <option value="">All Customers</option>
-              <option value="Account" <?= (($filters['customer_type'] ?? '') === 'Account') ? 'selected' : '' ?>>Account</option>
-              <option value="Cash" <?= (($filters['customer_type'] ?? '') === 'Cash') ? 'selected' : '' ?>>Cash</option>
+              <option value="Completed" <?= (($filters['status'] ?? '') === 'Completed')   ? 'selected' : '' ?>>Completed</option>
+              <option value="Invoiced" <?= (($filters['status'] ?? '') === 'Invoiced')    ? 'selected' : '' ?>>Invoiced</option>
             </select>
           </div>
           <div class="col-md-2">
@@ -287,9 +282,8 @@
           'X-Requested-With': 'XMLHttpRequest'
         },
         data: function(d) {
-          d.challan_type = $('#filter_type').val();
+          d.account_id = $('#filter_account').val();
           d.challan_status = $('#filter_status').val();
-          d.customer_type = $('#filter_customer_type').val();
           d.from_date = $('#filter_from_date').val();
           d.to_date = $('#filter_to_date').val();
         },
@@ -409,7 +403,8 @@
       data.forEach(function(row) {
         if (row.challan_status === 'Draft') draft++;
         else if (row.challan_status === 'Pending') {
-          /* nothing? Pending count? */ } else if (row.challan_status === 'In Progress') progress++;
+          /* nothing? Pending count? */
+        } else if (row.challan_status === 'In Progress') progress++;
         else if (row.challan_status === 'Completed') completed++;
       });
 
@@ -434,9 +429,8 @@
     });
 
     $('#btn-reset').on('click', function() {
-      $('#filter_type').val('');
+      $('#filter_account').val('');
       $('#filter_status').val('');
-      $('#filter_customer_type').val('');
       $('#filter_from_date').val('');
       $('#filter_to_date').val('');
       table.ajax.reload();

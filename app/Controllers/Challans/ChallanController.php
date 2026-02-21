@@ -108,13 +108,10 @@ class ChallanController extends BaseController
     }
 
     $filters = [
-      'challan_type'  => $this->request->getGet('challan_type'),
-      'status'        => $this->request->getGet('challan_status'),
-      'customer_type' => $this->request->getGet('customer_type'),
-      'date_from'     => $this->request->getGet('from_date'),
-      'date_to'       => $this->request->getGet('to_date'),
-      'account_id'    => $this->request->getGet('account_id'),
-      'cash_customer_id' => $this->request->getGet('cash_customer_id'),
+      'status'     => $this->request->getGet('challan_status'),
+      'date_from'  => $this->request->getGet('from_date'),
+      'date_to'    => $this->request->getGet('to_date'),
+      'account_id' => $this->request->getGet('account_id'),
     ];
 
     // Remove empty/null filters
@@ -127,10 +124,17 @@ class ChallanController extends BaseController
 
     $challans = $this->challanService->getChallans($filters);
 
+    // Load active accounts for the Account filter dropdown
+    $accounts = $this->accountModel
+      ->where('is_active', 1)
+      ->orderBy('account_name', 'ASC')
+      ->findAll();
+
     return view('challans/index', [
-      'challans'    => $challans,
-      'filters'     => $filters,
-      'pageTitle'   => 'Challans',
+      'challans'  => $challans,
+      'filters'   => $filters,
+      'accounts'  => $accounts,
+      'pageTitle' => 'Challans',
     ]);
   }
 
