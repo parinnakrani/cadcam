@@ -109,7 +109,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
                   data-state-id="<?= $account['billing_state_id'] ?? '' ?>"
                   data-address="<?= esc($account['billing_address'] ?? '') ?>"
                   <?= (isset($invoice['account_id']) && $invoice['account_id'] == $account['id']) ? 'selected' : '' ?>>
-                  <?= esc($account['customer_name']) ?>
+                  <?= esc($account['account_name']) ?>
                 </option>
               <?php endforeach; ?>
             <?php endif; ?>
