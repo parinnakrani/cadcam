@@ -3,6 +3,10 @@
 <?= $this->section('title') ?>Edit Role<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php
+$isSystemRole = !empty($role['is_system_role']);
+$rolePerms = $rolePermissions ?? [];
+?>
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
     <h5 class="mb-0">Edit Role: <?= esc($role['role_name']) ?></h5>
@@ -11,7 +15,10 @@
     </a>
   </div>
   <div class="card-body">
-    <!-- Errors -->
+    <!-- Alerts -->
+    <?php if (session()->getFlashdata('message')) : ?>
+      <div class="alert alert-success"><?= session()->getFlashdata('message') ?></div>
+    <?php endif ?>
     <?php if (session()->getFlashdata('error')) : ?>
       <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
     <?php endif ?>
@@ -25,40 +32,111 @@
       </div>
     <?php endif ?>
 
+    <?php if ($isSystemRole) : ?>
+      <div class="alert alert-warning">
+        <i class="ri-shield-line me-1"></i>
+        This is a system role. Permissions are read-only.
+      </div>
+    <?php endif ?>
+
     <form action="<?= base_url('roles/' . $role['id']) ?>" method="POST">
       <?= csrf_field() ?>
-      <input type="hidden" name="_method" value="POST"> <!-- Consistent update method -->
 
       <div class="row">
         <!-- Basic Info -->
         <div class="col-md-6 mb-3">
           <label class="form-label">Role Name <span class="text-danger">*</span></label>
-          <input type="text" name="role_name" class="form-control" value="<?= old('role_name', $role['role_name']) ?>" required>
+          <input type="text" name="role_name" class="form-control"
+            value="<?= old('role_name', $role['role_name']) ?>"
+            <?= $isSystemRole ? 'readonly' : '' ?> required>
         </div>
 
         <div class="col-md-6 mb-3">
           <label class="form-label">Description</label>
-          <textarea name="role_description" class="form-control" rows="1"><?= old('role_description', $role['role_description']) ?></textarea>
+          <textarea name="role_description" class="form-control" rows="1"
+            <?= $isSystemRole ? 'readonly' : '' ?>><?= old('role_description', $role['role_description']) ?></textarea>
         </div>
 
         <!-- Permissions -->
         <div class="col-12 mt-4">
-          <h6 class="mb-3">Permissions</h6>
-          <div class="row">
-            <?php foreach ($permissions as $module => $modulePerms) : ?>
-              <div class="col-md-4 mb-4">
-                <div class="card shadow-none border">
-                  <div class="card-header bg-light py-2">
-                    <h6 class="mb-0 text-uppercase small fw-bold"><?= esc($module) ?></h6>
-                  </div>
-                  <div class="card-body pt-3 pb-1">
-                    <?php foreach ($modulePerms as $key => $label) : ?>
-                      <div class="form-check mb-2">
-                        <input class="form-check-input permission-check" type="checkbox" name="permissions[]" value="<?= $key ?>" id="perm_<?= str_replace('.', '_', $key) ?>"
-                          <?= in_array($key, old('permissions', $rolePermissions)) ? 'checked' : '' ?>>
-                        <label class="form-check-label" for="perm_<?= str_replace('.', '_', $key) ?>">
-                          <?= esc($label) ?>
-                        </label>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Permissions</h6>
+            <?php if (!$isSystemRole) : ?>
+              <div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="selectAll">Select All</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAll">Deselect All</button>
+              </div>
+            <?php endif ?>
+          </div>
+
+          <div class="accordion" id="permissionsAccordion">
+            <?php
+            $oldPermissions = old('permissions', $rolePerms);
+            foreach ($permissions as $module => $subModules) :
+              $moduleId = 'module_' . preg_replace('/[^a-zA-Z0-9]/', '_', $module);
+              $moduleLabel = ucwords(str_replace('_', ' ', $module));
+            ?>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="heading_<?= $moduleId ?>">
+                  <button class="accordion-button collapsed" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapse_<?= $moduleId ?>"
+                    aria-expanded="false" aria-controls="collapse_<?= $moduleId ?>">
+                    <div class="d-flex align-items-center w-100">
+                      <?php if (!$isSystemRole) : ?>
+                        <div class="form-check me-3" onclick="event.stopPropagation();">
+                          <input class="form-check-input module-check" type="checkbox"
+                            id="check_<?= $moduleId ?>"
+                            data-module="<?= $moduleId ?>">
+                        </div>
+                      <?php endif ?>
+                      <strong><?= esc($moduleLabel) ?></strong>
+                      <span class="badge bg-label-primary ms-2 module-count" data-module="<?= $moduleId ?>">0 / 0</span>
+                    </div>
+                  </button>
+                </h2>
+                <div id="collapse_<?= $moduleId ?>" class="accordion-collapse collapse"
+                  aria-labelledby="heading_<?= $moduleId ?>" data-bs-parent="#permissionsAccordion">
+                  <div class="accordion-body">
+                    <?php foreach ($subModules as $subModule => $actions) :
+                      $subId = $moduleId . '_' . preg_replace('/[^a-zA-Z0-9]/', '_', $subModule);
+                      $subLabel = ucwords(str_replace('_', ' ', $subModule));
+                    ?>
+                      <div class="card shadow-none border mb-3">
+                        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                          <div class="form-check mb-0">
+                            <?php if (!$isSystemRole) : ?>
+                              <input class="form-check-input submodule-check" type="checkbox"
+                                id="check_<?= $subId ?>"
+                                data-module="<?= $moduleId ?>"
+                                data-submodule="<?= $subId ?>">
+                            <?php endif ?>
+                            <label class="form-check-label fw-semibold" for="check_<?= $subId ?>">
+                              <?= esc($subLabel) ?>
+                            </label>
+                          </div>
+                          <span class="badge bg-label-info sub-count" data-submodule="<?= $subId ?>">0 / <?= count($actions) ?></span>
+                        </div>
+                        <div class="card-body pt-3 pb-1">
+                          <div class="row">
+                            <?php foreach ($actions as $actionData) : ?>
+                              <div class="col-md-3 col-sm-4 col-6 mb-2">
+                                <div class="form-check">
+                                  <input class="form-check-input permission-check" type="checkbox"
+                                    name="permissions[]"
+                                    value="<?= $actionData['permission'] ?>"
+                                    id="perm_<?= str_replace('.', '_', $actionData['permission']) ?>"
+                                    data-module="<?= $moduleId ?>"
+                                    data-submodule="<?= $subId ?>"
+                                    <?= in_array($actionData['permission'], $oldPermissions) ? 'checked' : '' ?>
+                                    <?= $isSystemRole ? 'disabled' : '' ?>>
+                                  <label class="form-check-label" for="perm_<?= str_replace('.', '_', $actionData['permission']) ?>">
+                                    <?= esc(ucwords(str_replace('_', ' ', $actionData['action']))) ?>
+                                  </label>
+                                </div>
+                              </div>
+                            <?php endforeach ?>
+                          </div>
+                        </div>
                       </div>
                     <?php endforeach ?>
                   </div>
@@ -68,11 +146,106 @@
           </div>
         </div>
 
-        <div class="col-12 mt-4">
-          <button type="submit" class="btn btn-primary">Update Role</button>
-        </div>
+        <?php if (!$isSystemRole) : ?>
+          <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-primary">Update Role</button>
+          </div>
+        <?php endif ?>
       </div>
     </form>
   </div>
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('pageScripts') ?>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const allPermChecks = document.querySelectorAll('.permission-check');
+    const allSubChecks = document.querySelectorAll('.submodule-check');
+    const allModChecks = document.querySelectorAll('.module-check');
+
+    function updateCounts() {
+      allSubChecks.forEach(subCheck => {
+        const subId = subCheck.dataset.submodule;
+        const perms = document.querySelectorAll(`.permission-check[data-submodule="${subId}"]`);
+        const checked = document.querySelectorAll(`.permission-check[data-submodule="${subId}"]:checked`);
+        const badge = document.querySelector(`.sub-count[data-submodule="${subId}"]`);
+        if (badge) badge.textContent = `${checked.length} / ${perms.length}`;
+        subCheck.checked = perms.length > 0 && checked.length === perms.length;
+        subCheck.indeterminate = checked.length > 0 && checked.length < perms.length;
+      });
+
+      allModChecks.forEach(modCheck => {
+        const modId = modCheck.dataset.module;
+        const perms = document.querySelectorAll(`.permission-check[data-module="${modId}"]`);
+        const checked = document.querySelectorAll(`.permission-check[data-module="${modId}"]:checked`);
+        const badge = document.querySelector(`.module-count[data-module="${modId}"]`);
+        if (badge) badge.textContent = `${checked.length} / ${perms.length}`;
+        modCheck.checked = perms.length > 0 && checked.length === perms.length;
+        modCheck.indeterminate = checked.length > 0 && checked.length < perms.length;
+      });
+    }
+
+    // For edit view without module-check (system roles), just update counts
+    function updateCountsOnly() {
+      document.querySelectorAll('.module-count').forEach(badge => {
+        const modId = badge.dataset.module;
+        const perms = document.querySelectorAll(`.permission-check[data-module="${modId}"]`);
+        const checked = document.querySelectorAll(`.permission-check[data-module="${modId}"]:checked`);
+        badge.textContent = `${checked.length} / ${perms.length}`;
+      });
+
+      document.querySelectorAll('.sub-count').forEach(badge => {
+        const subId = badge.dataset.submodule;
+        const perms = document.querySelectorAll(`.permission-check[data-submodule="${subId}"]`);
+        const checked = document.querySelectorAll(`.permission-check[data-submodule="${subId}"]:checked`);
+        badge.textContent = `${checked.length} / ${perms.length}`;
+      });
+    }
+
+    allPermChecks.forEach(check => {
+      check.addEventListener('change', function() {
+        if (allModChecks.length > 0) updateCounts();
+        else updateCountsOnly();
+      });
+    });
+
+    allSubChecks.forEach(subCheck => {
+      subCheck.addEventListener('change', function() {
+        const subId = this.dataset.submodule;
+        document.querySelectorAll(`.permission-check[data-submodule="${subId}"]`).forEach(p => {
+          p.checked = subCheck.checked;
+        });
+        if (allModChecks.length > 0) updateCounts();
+        else updateCountsOnly();
+      });
+    });
+
+    allModChecks.forEach(modCheck => {
+      modCheck.addEventListener('change', function() {
+        const modId = this.dataset.module;
+        document.querySelectorAll(`.permission-check[data-module="${modId}"]`).forEach(p => {
+          p.checked = modCheck.checked;
+        });
+        updateCounts();
+      });
+    });
+
+    document.getElementById('selectAll')?.addEventListener('click', function() {
+      allPermChecks.forEach(p => p.checked = true);
+      if (allModChecks.length > 0) updateCounts();
+      else updateCountsOnly();
+    });
+
+    document.getElementById('deselectAll')?.addEventListener('click', function() {
+      allPermChecks.forEach(p => p.checked = false);
+      if (allModChecks.length > 0) updateCounts();
+      else updateCountsOnly();
+    });
+
+    // Initial
+    if (allModChecks.length > 0) updateCounts();
+    else updateCountsOnly();
+  });
+</script>
 <?= $this->endSection() ?>

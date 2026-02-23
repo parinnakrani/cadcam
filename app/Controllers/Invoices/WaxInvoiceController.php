@@ -30,11 +30,7 @@ class WaxInvoiceController extends InvoiceController
   public function index()
   {
     // Check permission
-    if (!can('invoice.view')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to view invoices'
-      ]);
-    }
+    $this->gate('invoices.wax.list');
 
     try {
       // Get filters from request
@@ -101,11 +97,17 @@ class WaxInvoiceController extends InvoiceController
       }
 
       // Load view
-      return view('invoices/index', [
+      $data = [
         'invoices' => $invoices,
         'filters' => $filters,
         'invoice_type' => $this->invoiceType
-      ]);
+      ];
+
+      if ($this->permissions) {
+        $data['action_flags'] = $this->permissions->getActionFlags('invoices', 'wax');
+      }
+
+      return $this->render('invoices/index', $data);
     } catch (\Exception $e) {
       log_message('error', 'Wax invoice listing error: ' . $e->getMessage());
 
@@ -129,9 +131,7 @@ class WaxInvoiceController extends InvoiceController
   public function create()
   {
     // Check permission
-    if (!can('invoice.create')) {
-      return redirect()->back()->with('error', 'You do not have permission to create invoices');
-    }
+    $this->gate('invoices.wax.create');
 
     try {
       // Load dropdowns - both Account and Cash customers for Wax invoices
@@ -157,7 +157,7 @@ class WaxInvoiceController extends InvoiceController
         'default_tax_rate' => $this->taxService->getTaxRate($companyId),
       ];
 
-      return view('invoices/create', $data);
+      return $this->render('invoices/create', $data);
     } catch (\Exception $e) {
       log_message('error', 'Wax invoice create form error: ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to load invoice creation form: ' . $e->getMessage());
@@ -178,7 +178,7 @@ class WaxInvoiceController extends InvoiceController
 
     // Call parent store method
     // Check permission
-    if (!can('invoice.create')) {
+    if (!can('invoices.wax.create')) {
       return $this->response->setStatusCode(403)->setJSON([
         'error' => 'You do not have permission to create invoices'
       ]);
@@ -253,11 +253,20 @@ class WaxInvoiceController extends InvoiceController
   public function edit(int $id)
   {
     // Check permission
-    if (!can('invoice.edit')) {
-      return redirect()->to('/wax-invoices')->with('error', 'You do not have permission to edit invoices');
-    }
-
     try {
+      // Get invoice
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return redirect()->to('/wax-invoices')->with('error', 'Invoice not found');
+      }
+
+      // Ensure it is a Wax Invoice
+      if ($invoice['invoice_type'] !== $this->invoiceType) {
+        return redirect()->to('/wax-invoices')->with('error', 'Invalid invoice type');
+      }
+
+      $this->gate('invoices.wax.edit');
       // Get invoice
       $invoice = $this->invoiceService->getInvoiceById($id);
 
@@ -299,7 +308,7 @@ class WaxInvoiceController extends InvoiceController
           ->findAll(),
       ];
 
-      return view('invoices/edit', $data);
+      return $this->render('invoices/edit', $data);
     } catch (\Exception $e) {
       log_message('error', 'Wax invoice edit form error: ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to load invoice edit form');
@@ -317,13 +326,23 @@ class WaxInvoiceController extends InvoiceController
   public function update(int $id)
   {
     // Check permission
-    if (!can('invoice.edit')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to edit invoices'
-      ]);
-    }
-
     try {
+      // Get invoice first to check its type
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return $this->response->setStatusCode(404)->setJSON(['error' => 'Invoice not found']);
+      }
+
+      if ($invoice['invoice_type'] !== $this->invoiceType) {
+        return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid invoice type']);
+      }
+
+      if (!can("invoices.wax.edit")) {
+        return $this->response->setStatusCode(403)->setJSON([
+          'error' => 'You do not have permission to edit this invoice'
+        ]);
+      }
       // Get POST data
       $invoiceData = [
         'invoice_date'      => $this->request->getPost('invoice_date'),
@@ -386,13 +405,23 @@ class WaxInvoiceController extends InvoiceController
   public function delete(int $id)
   {
     // Check permission
-    if (!can('invoice.delete')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to delete invoices'
-      ]);
-    }
-
     try {
+      // Get invoice first to check its type
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return $this->response->setStatusCode(404)->setJSON(['error' => 'Invoice not found']);
+      }
+
+      if ($invoice['invoice_type'] !== $this->invoiceType) {
+        return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid invoice type']);
+      }
+
+      if (!can("invoices.wax.delete")) {
+        return $this->response->setStatusCode(403)->setJSON([
+          'error' => 'You do not have permission to delete this invoice'
+        ]);
+      }
       // Delete invoice
       $this->invoiceService->deleteInvoice($id);
 
@@ -433,10 +462,6 @@ class WaxInvoiceController extends InvoiceController
   public function show(int $id)
   {
     // Check permission
-    if (!can('invoice.view')) {
-      return redirect()->back()->with('error', 'You do not have permission to view invoices');
-    }
-
     try {
       // Get invoice with lines
       $invoice = $this->invoiceService->getInvoiceById($id);
@@ -450,10 +475,14 @@ class WaxInvoiceController extends InvoiceController
         return redirect()->to('/wax-invoices')->with('error', 'Invalid invoice type');
       }
 
-      // Load view
-      return view('invoices/show', [
+      $this->gate('invoices.wax.view');
+      $data = [
         'invoice' => $invoice,
-      ]);
+      ];
+      if ($this->permissions) {
+        $data['action_flags'] = $this->permissions->getActionFlags('invoices', 'wax');
+      }
+      return $this->render('invoices/show', $data);
     } catch (\Exception $e) {
       log_message('error', 'Invoice show error: ' . $e->getMessage());
       return redirect()->to('/wax-invoices')->with('error', 'Failed to load invoice');

@@ -1,4 +1,5 @@
 # SERVICES ARCHITECTURE
+
 ## Gold Manufacturing & Billing ERP System
 
 ---
@@ -6,6 +7,7 @@
 ## SERVICES OVERVIEW
 
 ### Design Principles
+
 1. **Single Responsibility:** Each service handles one domain
 2. **Business Logic in Services:** Controllers are thin, services are fat
 3. **Transaction Management:** Services manage DB transactions
@@ -19,10 +21,12 @@
 ## SERVICE CATALOG
 
 ### 1. AuthService
+
 **Location:** `app/Services/Auth/AuthService.php`  
 **Responsibility:** User authentication and session management
 
 **Public Methods:**
+
 - `login(string $username, string $password): array|false`
   - Validate credentials
   - Check failed login attempts
@@ -51,16 +55,19 @@
   - Reset failed_login_attempts to 0
 
 **Dependencies:**
+
 - UserModel
 - AuditService
 
 ---
 
 ### 2. PermissionService
+
 **Location:** `app/Services/Auth/PermissionService.php`  
 **Responsibility:** Permission management and authorization
 
 **Public Methods:**
+
 - `getUserPermissions(int $userId): array`
   - Get all permissions from user's roles
   - Merge permissions (additive)
@@ -82,6 +89,7 @@
   - Clear cached permissions (after role change)
 
 **Dependencies:**
+
 - UserModel
 - RoleModel
 - Session library
@@ -89,10 +97,12 @@
 ---
 
 ### 3. CompanyService
+
 **Location:** `app/Services/Company/CompanyService.php`  
 **Responsibility:** Company management and configuration
 
 **Public Methods:**
+
 - `createCompany(array $data): int`
   - Validate company data
   - Check unique company name
@@ -123,6 +133,7 @@
   - Get all settings as key-value array
 
 **Dependencies:**
+
 - CompanyModel
 - CompanySettingModel
 - AuditService
@@ -130,10 +141,12 @@
 ---
 
 ### 4. UserService
+
 **Location:** `app/Services/User/UserService.php`  
 **Responsibility:** User account management
 
 **Public Methods:**
+
 - `createUser(array $data): int`
   - Validate user data
   - Check unique username, email
@@ -174,6 +187,7 @@
   - Return valid or not
 
 **Dependencies:**
+
 - UserModel
 - UserRoleModel
 - PermissionService
@@ -182,10 +196,12 @@
 ---
 
 ### 5. RoleService
+
 **Location:** `app/Services/User/RoleService.php`  
 **Responsibility:** Role and permission management
 
 **Public Methods:**
+
 - `createRole(array $data): int`
   - Validate role data
   - Validate permissions array
@@ -217,6 +233,7 @@
   - Return success
 
 **Dependencies:**
+
 - RoleModel
 - UserRoleModel
 - PermissionService
@@ -225,10 +242,12 @@
 ---
 
 ### 6. GoldRateService
+
 **Location:** `app/Services/Master/GoldRateService.php`  
 **Responsibility:** Gold rate management
 
 **Public Methods:**
+
 - `createRate(array $data): int`
   - Validate rate data
   - Check rate within range (1000-100000)
@@ -265,6 +284,7 @@
   - Log alert sent
 
 **Dependencies:**
+
 - GoldRateModel
 - Cache library
 - AuditService
@@ -272,10 +292,12 @@
 ---
 
 ### 7. ProductService
+
 **Location:** `app/Services/Master/ProductService.php`  
 **Responsibility:** Product catalog management
 
 **Public Methods:**
+
 - `createProduct(array $data): int`
   - Validate product data
   - Check unique product code
@@ -303,6 +325,7 @@
   - Return array of Product entities
 
 **Dependencies:**
+
 - ProductModel
 - FileUploadService
 - AuditService
@@ -310,10 +333,12 @@
 ---
 
 ### 8. ProcessService
+
 **Location:** `app/Services/Master/ProcessService.php`  
 **Responsibility:** Manufacturing process management
 
 **Public Methods:**
+
 - `createProcess(array $data): int`
   - Validate process data
   - Check unique process code
@@ -342,16 +367,19 @@
   - Return array of Process entities
 
 **Dependencies:**
+
 - ProcessModel
 - AuditService
 
 ---
 
 ### 9. AccountService
+
 **Location:** `app/Services/Customer/AccountService.php`  
 **Responsibility:** Account customer management
 
 **Public Methods:**
+
 - `createAccount(array $data): int`
   - Validate account data
   - Generate account code if not provided
@@ -383,6 +411,7 @@
   - Return code
 
 **Dependencies:**
+
 - AccountModel
 - LedgerService
 - AuditService
@@ -390,10 +419,12 @@
 ---
 
 ### 10. CashCustomerService
+
 **Location:** `app/Services/Customer/CashCustomerService.php`  
 **Responsibility:** Cash customer management and deduplication
 
 **Public Methods:**
+
 - `findOrCreate(string $name, string $mobile): int`
   - Normalize name (trim, lower, collapse spaces)
   - Check if customer exists (name + mobile + company_id)
@@ -417,16 +448,19 @@
   - Return invoice summaries
 
 **Dependencies:**
+
 - CashCustomerModel
 - AuditService
 
 ---
 
 ### 11. ChallanService
+
 **Location:** `app/Services/Challan/ChallanService.php`  
 **Responsibility:** Challan lifecycle management
 
 **Public Methods:**
+
 - `createChallan(array $data): int`
   - Validate challan data
   - Call NumberingService.getNextChallanNumber()
@@ -477,6 +511,7 @@
   - Return success
 
 **Dependencies:**
+
 - ChallanModel
 - ChallanLineModel
 - ChallanCalculationService
@@ -487,10 +522,12 @@
 ---
 
 ### 12. ChallanCalculationService
+
 **Location:** `app/Services/Challan/ChallanCalculationService.php`  
 **Responsibility:** Challan amount calculations
 
 **Public Methods:**
+
 - `calculateLineRate(array $processIds): float`
   - Fetch process prices
   - SUM all prices
@@ -513,16 +550,19 @@
   - Return total
 
 **Dependencies:**
+
 - ProcessModel
 - ChallanLineModel
 
 ---
 
 ### 13. ChallanValidationService
+
 **Location:** `app/Services/Challan/ChallanValidationService.php`  
 **Responsibility:** Challan business rule validation
 
 **Public Methods:**
+
 - `validateChallanData(array $data): array|bool`
   - Validate all challan fields
   - Validate account_id OR cash_customer_id (XOR)
@@ -548,16 +588,19 @@
   - Return true/false
 
 **Dependencies:**
+
 - ChallanModel
 - PermissionService
 
 ---
 
 ### 14. InvoiceService
+
 **Location:** `app/Services/Invoice/InvoiceService.php`  
 **Responsibility:** Invoice lifecycle management (CRITICAL)
 
 **Public Methods:**
+
 - `createInvoiceFromChallans(array $challanIds, array $invoiceData): int`
   - **Start Transaction**
   - Validate challans (approved, not invoiced)
@@ -624,6 +667,7 @@
   - Return success
 
 **Dependencies:**
+
 - InvoiceModel
 - InvoiceLineModel
 - ChallanModel
@@ -636,10 +680,12 @@
 ---
 
 ### 15. InvoiceCalculationService
+
 **Location:** `app/Services/Invoice/InvoiceCalculationService.php`  
 **Responsibility:** Invoice amount calculations
 
 **Public Methods:**
+
 - `calculateLineAmount(float $rate, float $weight): float`
   - IF weight > 0: amount = weight × rate
   - ELSE: amount = rate
@@ -658,16 +704,19 @@
   - Return: ['subtotal', 'tax_amount', 'cgst', 'sgst', 'igst', 'grand_total']
 
 **Dependencies:**
+
 - InvoiceLineModel
 - TaxCalculationService
 
 ---
 
 ### 16. TaxCalculationService
+
 **Location:** `app/Services/Invoice/TaxCalculationService.php`  
 **Responsibility:** Tax calculations (GST CGST/SGST/IGST)
 
 **Public Methods:**
+
 - `calculateTaxFromInclusive(float $amount, float $taxRate): array`
   - tax_amount = amount × taxRate / (100 + taxRate)
   - subtotal = amount - tax_amount
@@ -694,15 +743,18 @@
   - Return: ['subtotal', 'tax_amount', 'cgst', 'sgst', 'igst']
 
 **Dependencies:**
+
 - None (pure calculation logic)
 
 ---
 
 ### 17. InvoiceValidationService
+
 **Location:** `app/Services/Invoice/InvoiceValidationService.php`  
 **Responsibility:** Invoice business rule validation
 
 **Public Methods:**
+
 - `validateInvoiceData(array $data): array|bool`
   - Validate invoice fields
   - Validate line items
@@ -725,22 +777,22 @@
   - Return true/false
 
 **Dependencies:**
+
 - InvoiceModel
 - ChallanModel
 
 ---
 
 ### 18. PaymentService
+
 **Location:** `app/Services/Payment/PaymentService.php`  
 **Responsibility:** Payment processing (CRITICAL)
 
 **Public Methods:**
-- `recordPayment(int $invoiceId, array $paymentData, array $goldAdjustment = null): int`
+
+- `recordPayment(int $invoiceId, array $paymentData): int`
   - **Start Transaction**
   - Validate payment amount <= invoice.amount_due
-  - IF gold adjustment provided:
-    - Call GoldAdjustmentService.applyGoldAdjustment()
-    - Invoice totals updated, adjustment ledger entry created
   - Create payment record
   - Update invoice.total_paid += payment_amount
   - Update invoice.amount_due = grand_total - total_paid
@@ -772,20 +824,22 @@
   - Return array of Payment entities
 
 **Dependencies:**
+
 - PaymentModel
 - InvoiceModel
 - PaymentValidationService
-- GoldAdjustmentService
 - LedgerService
 - AuditService
 
 ---
 
 ### 19. GoldAdjustmentService
+
 **Location:** `app/Services/Payment/GoldAdjustmentService.php`  
 **Responsibility:** Gold weight adjustment calculations and application (CRITICAL)
 
 **Public Methods:**
+
 - `calculateAdjustment(int $invoiceId, array $lineAdjustments, float $goldRate): array`
   - For each line:
     - gold_difference = new_weight - original_weight
@@ -823,6 +877,7 @@
   - Return true or throw exception
 
 **Dependencies:**
+
 - InvoiceModel
 - InvoiceLineModel
 - GoldRateService
@@ -833,10 +888,12 @@
 ---
 
 ### 20. PaymentValidationService
+
 **Location:** `app/Services/Payment/PaymentValidationService.php`  
 **Responsibility:** Payment validation
 
 **Public Methods:**
+
 - `validatePaymentData(array $data): array|bool`
   - Validate payment amount
   - Validate payment mode
@@ -850,15 +907,18 @@
   - Return true or throw exception
 
 **Dependencies:**
+
 - InvoiceModel
 
 ---
 
 ### 21. LedgerService
+
 **Location:** `app/Services/Ledger/LedgerService.php`  
 **Responsibility:** Ledger entry management (APPEND-ONLY)
 
 **Public Methods:**
+
 - `createEntry(array $data): int`
   - Validate entry data
   - Calculate balance_after
@@ -908,6 +968,7 @@
   - Return entry ID
 
 **Dependencies:**
+
 - LedgerEntryModel
 - InvoiceModel
 - PaymentModel
@@ -915,10 +976,12 @@
 ---
 
 ### 22. DeliveryService
+
 **Location:** `app/Services/Delivery/DeliveryService.php`  
 **Responsibility:** Delivery management
 
 **Public Methods:**
+
 - `assignDelivery(int $invoiceId, int $userId, Date $expectedDate): int`
   - Validate invoice paid
   - Create delivery record
@@ -946,6 +1009,7 @@
   - Return array
 
 **Dependencies:**
+
 - DeliveryModel
 - InvoiceModel
 - FileUploadService
@@ -954,10 +1018,12 @@
 ---
 
 ### 23. LedgerReportService
+
 **Location:** `app/Services/Report/LedgerReportService.php`  
 **Responsibility:** Ledger report generation
 
 **Public Methods:**
+
 - `generateAccountLedger(int $accountId, Date $fromDate, Date $toDate): array`
   - Calculate opening balance (before fromDate)
   - Fetch all ledger entries in date range
@@ -978,6 +1044,7 @@
   - Return file path
 
 **Dependencies:**
+
 - LedgerEntryModel
 - AccountModel
 - CashCustomerModel
@@ -986,10 +1053,12 @@
 ---
 
 ### 24. ReceivableReportService
+
 **Location:** `app/Services/Report/ReceivableReportService.php`  
 **Responsibility:** Receivable summary reports
 
 **Public Methods:**
+
 - `generateMonthlyReceivableSummary(Date $fromDate, Date $toDate): array`
   - For each customer (account + cash):
     - Calculate opening balance
@@ -1002,6 +1071,7 @@
   - **Heavy query - optimize with indexes**
 
 **Dependencies:**
+
 - LedgerEntryModel
 - AccountModel
 - CashCustomerModel
@@ -1009,10 +1079,12 @@
 ---
 
 ### 25. OutstandingReportService
+
 **Location:** `app/Services/Report/OutstandingReportService.php`  
 **Responsibility:** Outstanding invoice reports
 
 **Public Methods:**
+
 - `getOutstandingInvoices(array $filters = []): array`
   - Query all invoices where amount_due > 0
   - Apply filters: customer, date range
@@ -1029,15 +1101,18 @@
   - Return total
 
 **Dependencies:**
+
 - InvoiceModel
 
 ---
 
 ### 26. DashboardService
+
 **Location:** `app/Services/Report/DashboardService.php`  
 **Responsibility:** Dashboard KPI generation
 
 **Public Methods:**
+
 - `getTodaySummary(): array`
   - Count invoices created today
   - SUM invoice grand_total today
@@ -1063,6 +1138,7 @@
   - Return: [['date' => ..., 'amount' => ...], ...]
 
 **Dependencies:**
+
 - InvoiceModel
 - PaymentModel
 - OutstandingReportService
@@ -1070,10 +1146,12 @@
 ---
 
 ### 27. AuditService
+
 **Location:** `app/Services/Audit/AuditService.php`  
 **Responsibility:** Audit logging
 
 **Public Methods:**
+
 - `log(string $module, string $actionType, string $recordType, int $recordId, array $beforeData = null, array $afterData = null): int`
   - Capture current user ID
   - Capture IP address
@@ -1101,16 +1179,19 @@
   - Return array
 
 **Dependencies:**
+
 - AuditLogModel
 - Request library (for IP, user agent)
 
 ---
 
 ### 28. NumberingService
+
 **Location:** `app/Services/Common/NumberingService.php`  
 **Responsibility:** Sequential numbering for invoices and challans (CONCURRENCY-SAFE)
 
 **Public Methods:**
+
 - `getNextChallanNumber(int $companyId): string`
   - **Start Transaction with Row Lock**
   - SELECT last_challan_number FROM companies WHERE id = $companyId FOR UPDATE
@@ -1134,10 +1215,12 @@
   - **On Error: Rollback**
 
 **Dependencies:**
+
 - CompanyModel
 - Database transaction support
 
 **Critical Note:**
+
 - Uses FOR UPDATE row lock to prevent race conditions
 - Ensures sequential, gap-free numbering
 - Required for GST compliance
@@ -1145,10 +1228,12 @@
 ---
 
 ### 29. ValidationService
+
 **Location:** `app/Services/Common/ValidationService.php`  
 **Responsibility:** Reusable validation logic
 
 **Public Methods:**
+
 - `validateGST(string $gst): bool`
   - Regex: 15 chars, format check
   - Return true/false
@@ -1176,15 +1261,18 @@
   - Return true/false
 
 **Dependencies:**
+
 - None (pure validation logic)
 
 ---
 
 ### 30. FileUploadService
+
 **Location:** `app/Services/Common/FileUploadService.php`  
 **Responsibility:** File upload handling
 
 **Public Methods:**
+
 - `uploadImage(UploadedFile $file, string $destination): string`
   - Validate file type (JPG, PNG)
   - Validate file size (< 10 MB)
@@ -1205,6 +1293,7 @@
   - Return true/false
 
 **Dependencies:**
+
 - CodeIgniter File library
 
 ---
@@ -1245,6 +1334,7 @@
    - Returns success
 
 **Result:**
+
 - Invoice created with sequential number
 - Ledger entry created (debit)
 - Payment recorded
@@ -1466,9 +1556,10 @@ public function criticalOperation(array $data): int
 **Total Services:** 30  
 **Critical Services:** 10 (Invoice, Payment, Gold Adjustment, Ledger, Tax Calculation, Numbering)  
 **Transaction-Safe Services:** 8  
-**Append-Only Services:** 1 (LedgerService)  
+**Append-Only Services:** 1 (LedgerService)
 
 **Service Layers:**
+
 1. **Auth Layer:** AuthService, PermissionService
 2. **Domain Services:** Company, User, Role, GoldRate, Product, Process, Account, CashCustomer
 3. **Core Business Services:** Challan, Invoice, Payment, Delivery
@@ -1478,10 +1569,10 @@ public function criticalOperation(array $data): int
 7. **Support Services:** Audit, Numbering, Validation, FileUpload
 
 **All services follow:**
+
 - Single Responsibility Principle
 - Transaction safety for financial operations
 - Comprehensive error handling
 - Audit logging for critical operations
 - Validation before processing
 - Clear dependencies and testability
-

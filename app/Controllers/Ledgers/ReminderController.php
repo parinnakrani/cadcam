@@ -22,9 +22,7 @@ class ReminderController extends BaseController
 
   public function outstandingInvoices()
   {
-    if (!$this->hasPermission('reports.view')) {
-      return redirect()->back()->with('error', 'Permission denied.');
-    }
+    $this->gate('ledgers.reminders.all.list');
 
     $toDate = $this->request->getGet('to_date') ?? date('Y-m-d');
     $currentCompanyId = session()->get('company_id');
@@ -92,7 +90,7 @@ class ReminderController extends BaseController
       ];
     }
 
-    return view('reports/outstanding_invoices', [
+    return $this->render('reports/outstanding_invoices', [
       'invoices' => $processedInvoices,
       'toDate'   => $toDate,
       'title'    => 'Outstanding Invoices'
@@ -101,7 +99,7 @@ class ReminderController extends BaseController
 
   public function sendReminder($invoiceId)
   {
-    if (!$this->hasPermission('reports.view')) {
+    if (!can('ledgers.reminders.all.send')) {
       return $this->error('Permission denied.');
     }
 

@@ -22,9 +22,7 @@ class PaymentReportController extends BaseController
 
   public function index()
   {
-    if (!$this->hasPermission('reports.view')) {
-      return redirect()->back()->with('error', 'Permission denied.');
-    }
+    $this->gate('reports.receivables.all.list');
 
     $fromDate = $this->request->getGet('from_date') ?? date('Y-m-01');
     $toDate   = $this->request->getGet('to_date') ?? date('Y-m-d');
@@ -68,7 +66,7 @@ class PaymentReportController extends BaseController
       $modeBreakdown[$mode] += $amount;
     }
 
-    return view('reports/payment_collection', [
+    return $this->render('reports/payment_collection', [
       'payments'       => $payments,
       'fromDate'       => $fromDate,
       'toDate'         => $toDate,

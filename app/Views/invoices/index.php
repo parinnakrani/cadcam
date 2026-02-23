@@ -30,29 +30,22 @@
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="h3 mb-0">Invoices</h1>
-  <div class="btn-group">
-    <!-- Create Invoice Dropdown -->
-    <div class="btn-group" role="group">
-      <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="ri-add-circle-line"></i> Create Invoice
-      </button>
-      <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="<?= base_url('account-invoices/create') ?>">
-            <i class="ri-building-line"></i> Account Invoice
-          </a></li>
-        <li><a class="dropdown-item" href="<?= base_url('cash-invoices/create') ?>">
-            <i class="ri-bank-card-line"></i> Cash Invoice
-          </a></li>
-        <li><a class="dropdown-item" href="<?= base_url('wax-invoices/create') ?>">
-            <i class="ri-drop-line"></i> Wax Invoice
-          </a></li>
-      </ul>
-    </div>
-
-    <!-- Create from Challan Button -->
-    <a href="<?= base_url('challans?status=Approved&is_invoiced=0') ?>" class="btn btn-outline-primary">
-      <i class="ri-file-list-3-line"></i> Create from Challan
-    </a>
+  <div class="d-flex gap-2 flex-wrap">
+    <?php if ($canCreateAccount ?? false): ?>
+      <a href="<?= base_url('account-invoices/create') ?>" class="btn btn-primary">
+        <i class="ri-building-line me-1"></i> Account Invoice
+      </a>
+    <?php endif; ?>
+    <?php if ($canCreateCash ?? false): ?>
+      <a href="<?= base_url('cash-invoices/create') ?>" class="btn btn-success">
+        <i class="ri-bank-card-line me-1"></i> Cash Invoice
+      </a>
+    <?php endif; ?>
+    <?php if ($canCreateWax ?? false): ?>
+      <a href="<?= base_url('wax-invoices/create') ?>" class="btn btn-warning">
+        <i class="ri-drop-line me-1"></i> Wax Invoice
+      </a>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -232,7 +225,7 @@
                     </a>
 
                     <!-- Edit (only if not paid) -->
-                    <?php if ($invoice['total_paid'] == 0): ?>
+                    <?php if ($invoice['total_paid'] == 0 && ($action_flags['edit'] ?? false)): ?>
                       <?php
                       $editUrl = base_url("invoices/{$invoice['id']}/edit");
                       if ($invoice['invoice_type'] === 'Accounts Invoice') {
@@ -259,7 +252,7 @@
                     </a>
 
                     <!-- Delete (only if not paid) -->
-                    <?php if ($invoice['total_paid'] == 0): ?>
+                    <?php if ($invoice['total_paid'] == 0 && ($action_flags['delete'] ?? false)): ?>
                       <button type="button"
                         class="btn btn-outline-danger"
                         onclick="deleteInvoice(<?= $invoice['id'] ?>, '<?= esc($invoice['invoice_number']) ?>')"

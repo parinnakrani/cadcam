@@ -90,28 +90,23 @@
         <h5 class="mb-0">
           <i class="ri-file-list-3-line me-1"></i> Challans
         </h5>
-        <!-- Create Challan Dropdown Button -->
-        <div class="btn-group">
-          <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="ri-add-line me-1"></i> Create Challan
-          </button>
-          <ul class="dropdown-menu">
-            <li>
-              <a class="dropdown-item" href="<?= base_url('challans/create?type=Rhodium') ?>">
-                <span class="badge bg-label-primary me-2">R</span> Rhodium Challan
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="<?= base_url('challans/create?type=Meena') ?>">
-                <span class="badge bg-label-success me-2">M</span> Meena Challan
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="<?= base_url('challans/create?type=Wax') ?>">
-                <span class="badge bg-label-warning me-2">W</span> Wax Challan
-              </a>
-            </li>
-          </ul>
+        <!-- Create Challan Buttons -->
+        <div class="d-flex gap-2 flex-wrap">
+          <?php if ($canCreateRhodium ?? false): ?>
+            <a href="<?= base_url('challans/create?type=Rhodium') ?>" class="btn btn-primary">
+              <i class="ri-add-line me-1"></i> <span class="badge bg-white text-primary me-1">R</span> Rhodium Challan
+            </a>
+          <?php endif; ?>
+          <?php if ($canCreateMeena ?? false): ?>
+            <a href="<?= base_url('challans/create?type=Meena') ?>" class="btn btn-success">
+              <i class="ri-add-line me-1"></i> <span class="badge bg-white text-success me-1">M</span> Meena Challan
+            </a>
+          <?php endif; ?>
+          <?php if ($canCreateWax ?? false): ?>
+            <a href="<?= base_url('challans/create?type=Wax') ?>" class="btn btn-warning">
+              <i class="ri-add-line me-1"></i> <span class="badge bg-white text-warning me-1">W</span> Wax Challan
+            </a>
+          <?php endif; ?>
         </div>
       </div>
 
@@ -361,21 +356,35 @@
             var isInvoiced = row.invoice_generated == 1 || row.challan_status === 'Invoiced';
             var editDisabled = isInvoiced ? 'disabled' : '';
             var deleteDisabled = isInvoiced ? 'disabled' : '';
+            var canView = <?= ($action_flags['view'] ?? false) ? 'true' : 'false' ?>;
+            var canEdit = <?= ($action_flags['edit'] ?? false) ? 'true' : 'false' ?>;
+            var canDelete = <?= ($action_flags['delete'] ?? false) ? 'true' : 'false' ?>;
 
-            return '<div class="dropdown">' +
+            var html = '<div class="dropdown">' +
               '<button class="btn p-0" type="button" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>' +
-              '<div class="dropdown-menu">' +
-              '  <a class="dropdown-item" href="' + baseUrl + '/' + data + '">' +
-              '    <i class="ri-eye-line me-1"></i> View</a>' +
-              '  <a class="dropdown-item ' + editDisabled + '" href="' + baseUrl + '/' + data + '/edit">' +
-              '    <i class="ri-pencil-line me-1"></i> Edit</a>' +
-              '  <a class="dropdown-item" href="' + baseUrl + '/' + data + '/print" target="_blank">' +
-              '    <i class="ri-printer-line me-1"></i> Print</a>' +
-              '  <div class="dropdown-divider"></div>' +
-              '  <a class="dropdown-item text-danger delete-record ' + deleteDisabled + '" href="javascript:void(0);" ' +
-              '     data-id="' + data + '" data-number="' + (row.challan_number || '') + '">' +
-              '    <i class="ri-delete-bin-line me-1"></i> Delete</a>' +
-              '</div></div>';
+              '<div class="dropdown-menu">';
+
+            if (canView) {
+              html += '  <a class="dropdown-item" href="' + baseUrl + '/' + data + '">' +
+                '    <i class="ri-eye-line me-1"></i> View</a>';
+            }
+            if (canEdit) {
+              html += '  <a class="dropdown-item ' + editDisabled + '" href="' + baseUrl + '/' + data + '/edit">' +
+                '    <i class="ri-pencil-line me-1"></i> Edit</a>';
+            }
+            if (canView) { // Print requires view permission
+              html += '  <a class="dropdown-item" href="' + baseUrl + '/' + data + '/print" target="_blank">' +
+                '    <i class="ri-printer-line me-1"></i> Print</a>';
+            }
+
+            if (canDelete) {
+              html += '  <div class="dropdown-divider"></div>' +
+                '  <a class="dropdown-item text-danger delete-record ' + deleteDisabled + '" href="javascript:void(0);" ' +
+                '     data-id="' + data + '" data-number="' + (row.challan_number || '') + '">' +
+                '    <i class="ri-delete-bin-line me-1"></i> Delete</a>';
+            }
+            html += '</div></div>';
+            return html;
           }
         }
       ],

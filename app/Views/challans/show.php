@@ -128,7 +128,7 @@ if ($customerType === 'Account') {
         </div>
         <!-- Action Buttons -->
         <div class="d-flex gap-2 flex-wrap">
-          <?php if (!$isInvoiced && can('challan.edit')): ?>
+          <?php if (!$isInvoiced && ($action_flags['edit'] ?? false)): ?>
             <a href="<?= base_url('challans/' . $challanId . '/edit') ?>" class="btn btn-sm btn-outline-primary">
               <i class="ri-pencil-line me-1"></i> Edit
             </a>
@@ -138,7 +138,7 @@ if ($customerType === 'Account') {
             <i class="ri-printer-line me-1"></i> Print
           </a>
 
-          <?php if (!empty($nextStatuses) && can('challan.edit')): ?>
+          <?php if (!empty($nextStatuses) && ($action_flags['edit'] ?? false)): ?>
             <div class="btn-group">
               <button type="button" class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
                 <i class="ri-exchange-line me-1"></i> Change Status
@@ -157,7 +157,7 @@ if ($customerType === 'Account') {
             </div>
           <?php endif; ?>
 
-          <?php if (!$isInvoiced && can('challan.delete')): ?>
+          <?php if (!$isInvoiced && ($action_flags['delete'] ?? false)): ?>
             <button type="button" class="btn btn-sm btn-outline-danger" id="btn-delete-challan">
               <i class="ri-delete-bin-line me-1"></i> Delete
             </button>
@@ -453,7 +453,7 @@ if ($customerType === 'Account') {
         <a href="<?= base_url('challans') ?>" class="btn btn-outline-secondary w-100 mb-2">
           <i class="ri-arrow-left-line me-1"></i> Back to Challans
         </a>
-        <?php if ($challanStatus === 'Completed' && !$isInvoiced && can('challan.edit')): ?>
+        <?php if ($challanStatus === 'Completed' && !$isInvoiced && ($action_flags['edit'] ?? false)): ?>
           <a href="javascript:void(0);" class="btn btn-primary w-100 btn-change-status" data-status="Invoiced">
             <i class="ri-bill-line me-1"></i> Generate Invoice
           </a>

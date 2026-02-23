@@ -22,9 +22,7 @@ class ReceivableReportController extends BaseController
 
   public function index()
   {
-    if (!$this->hasPermission('reports.view')) {
-      return redirect()->back()->with('error', 'Permission denied.');
-    }
+    $this->gate('reports.receivables.all.list');
 
     // Fetch All Customers (Cannot filter by current_balance since column might be missing)
     $accounts = $this->accountModel->findAll();
@@ -94,7 +92,7 @@ class ReceivableReportController extends BaseController
       return $b['balance'] <=> $a['balance'];
     });
 
-    return view('reports/receivables/index', [
+    return $this->render('reports/receivables/index', [
       'customers' => $customers,
       'title'     => 'Customer Ledger Balances'
     ]);
@@ -102,9 +100,7 @@ class ReceivableReportController extends BaseController
 
   public function monthlySummary()
   {
-    if (!$this->hasPermission('reports.view')) {
-      return redirect()->back()->with('error', 'Permission denied.');
-    }
+    $this->gate('reports.monthly.all.list');
 
     $startMonth = $this->request->getGet('start_month') ?? date('Y-m');
     $endMonth   = $this->request->getGet('end_month') ?? date('Y-m');
@@ -274,7 +270,7 @@ class ReceivableReportController extends BaseController
       }
     }
 
-    return view('reports/receivables/monthly', [
+    return $this->render('reports/receivables/monthly', [
       'reportData' => $reportData,
       'months'     => $months,
       'startMonth' => $startMonth,

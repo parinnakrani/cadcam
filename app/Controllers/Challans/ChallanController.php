@@ -103,9 +103,7 @@ class ChallanController extends BaseController
    */
   public function index()
   {
-    if (!can('challan.view')) {
-      return redirect()->to('/dashboard')->with('error', 'Permission denied');
-    }
+    $this->gate('challans.all.list');
 
     $filters = [
       'status'     => $this->request->getGet('challan_status'),
@@ -130,12 +128,22 @@ class ChallanController extends BaseController
       ->orderBy('account_name', 'ASC')
       ->findAll();
 
-    return view('challans/index', [
+    $data = [
       'challans'  => $challans,
       'filters'   => $filters,
       'accounts'  => $accounts,
       'pageTitle' => 'Challans',
-    ]);
+    ];
+
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('challans', 'all');
+      // Per-type create flags for individual buttons
+      $data['canCreateRhodium'] = $this->permissions->canCreate('challans', 'rhodium') || $this->permissions->canCreate('challans', 'all');
+      $data['canCreateMeena']   = $this->permissions->canCreate('challans', 'meena')   || $this->permissions->canCreate('challans', 'all');
+      $data['canCreateWax']     = $this->permissions->canCreate('challans', 'wax')     || $this->permissions->canCreate('challans', 'all');
+    }
+
+    return $this->render('challans/index', $data);
   }
 
     // =========================================================================
@@ -149,16 +157,14 @@ class ChallanController extends BaseController
    */
   public function create()
   {
-    if (!can('challan.create')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
-
-    // GET /challans/create?type=Rhodium
     $type = $this->request->getGet('type') ?? 'Rhodium';
 
     if (!in_array($type, ['Rhodium', 'Meena', 'Wax'])) {
       return redirect()->to('challans')->with('error', 'Invalid challan type.');
     }
+
+    $sub = $this->resolveChallanSub($type);
+    $this->gate("challans.{$sub}.create");
 
     $accountModel      = new AccountModel();
     // Removed CashCustomerModel instantiation as it's no longer used in create view
@@ -185,7 +191,7 @@ class ChallanController extends BaseController
       'pageTitle'      => "Create {$type} Challan",
     ];
 
-    return view('challans/create', $data);
+    return $this->render('challans/create', $data);
   }
 
   /**
@@ -195,10 +201,6 @@ class ChallanController extends BaseController
    */
   public function store()
   {
-    if (!can('challan.create')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
-
     // Controller-level validation for required fields
     if (!$this->validate([
       'challan_date'  => 'required|valid_date',
@@ -207,6 +209,10 @@ class ChallanController extends BaseController
     ])) {
       return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
     }
+
+    $type = $this->request->getPost('challan_type');
+    $sub = $this->resolveChallanSub($type);
+    $this->gate("challans.{$sub}.create");
 
     $data = $this->request->getPost();
 
@@ -243,20 +249,24 @@ class ChallanController extends BaseController
    */
   public function show($id)
   {
-    if (!can('challan.view')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
-
     $challan = $this->challanService->getChallanWithLines($id);
 
     if (!$challan) {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     }
 
-    return view('challans/show', [
+    $sub = $this->resolveChallanSub($challan['challan_type']);
+    $this->gate("challans.{$sub}.view");
+    $data = [
       'challan'   => $challan,
       'pageTitle' => "Challan: {$challan['challan_number']}",
-    ]);
+    ];
+
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('challans', $sub);
+    }
+
+    return $this->render('challans/show', $data);
   }
 
     // =========================================================================
@@ -270,15 +280,15 @@ class ChallanController extends BaseController
    */
   public function edit($id)
   {
-    if (!can('challan.edit')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
-
     $challan = $this->challanService->getChallanWithLines($id);
 
     if (!$challan) {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     }
+
+    $challanType = $challan['challan_type'] ?? 'Rhodium';
+    $sub = $this->resolveChallanSub($challanType);
+    $this->gate("challans.{$sub}.edit");
 
     // Check if invoiced
     if (!empty($challan['invoice_generated']) && (int)$challan['invoice_generated'] === 1) {
@@ -299,7 +309,7 @@ class ChallanController extends BaseController
       }
     }
 
-    return view('challans/edit', [
+    return $this->render('challans/edit', [
       'challan'        => $challan,
       'accounts'       => $this->accountModel->getActiveAccounts(),
       'cash_customers' => $this->cashCustomerModel->getActiveCashCustomers(),
@@ -318,9 +328,12 @@ class ChallanController extends BaseController
    */
   public function update($id)
   {
-    if (!can('challan.edit')) {
-      return redirect()->back()->with('error', 'Permission denied');
+    $challan = $this->challanService->getChallanById($id);
+    if (!$challan) {
+      return redirect()->back()->with('error', 'Challan not found');
     }
+    $sub = $this->resolveChallanSub($challan['challan_type']);
+    $this->gate("challans.{$sub}.edit");
 
     $data = $this->request->getPost();
 
@@ -360,7 +373,16 @@ class ChallanController extends BaseController
    */
   public function delete($id)
   {
-    if (!can('challan.delete')) {
+    $challan = $this->challanService->getChallanById($id);
+    if (!$challan) {
+      return $this->response->setJSON([
+        'status'  => 'error',
+        'message' => 'Challan not found',
+      ]);
+    }
+
+    $sub = $this->resolveChallanSub($challan['challan_type']);
+    if (!can("challans.{$sub}.delete")) {
       return $this->response->setJSON([
         'status'  => 'error',
         'message' => 'Permission denied',
@@ -394,7 +416,12 @@ class ChallanController extends BaseController
    */
   public function addLine($id)
   {
-    if (!can('challan.edit')) {
+    $challan = $this->challanService->getChallanById($id);
+    if (!$challan) {
+      return $this->error('Challan not found', 404);
+    }
+    $sub = $this->resolveChallanSub($challan['challan_type']);
+    if (!can("challans.{$sub}.edit")) {
       return $this->error('Permission denied', 403);
     }
 
@@ -440,7 +467,12 @@ class ChallanController extends BaseController
    */
   public function updateLine($id, $lineId)
   {
-    if (!can('challan.edit')) {
+    $challan = $this->challanService->getChallanById($id);
+    if (!$challan) {
+      return $this->error('Challan not found', 404);
+    }
+    $sub = $this->resolveChallanSub($challan['challan_type']);
+    if (!can("challans.{$sub}.edit")) {
       return $this->error('Permission denied', 403);
     }
 
@@ -484,10 +516,6 @@ class ChallanController extends BaseController
    */
   public function deleteLine($lineId)
   {
-    if (!can('challan.edit')) {
-      return $this->error('Permission denied', 403);
-    }
-
     try {
       // Find which challan this line belongs to
       $challanLineModel = new ChallanLineModel();
@@ -498,6 +526,12 @@ class ChallanController extends BaseController
       }
 
       $challanId = (int)$line['challan_id'];
+
+      $challan = $this->challanService->getChallanById($challanId);
+      $sub = $this->resolveChallanSub($challan['challan_type']);
+      if (!can("challans.{$sub}.edit")) {
+        return $this->error('Permission denied', 403);
+      }
 
       // Delete via service (validates, deletes, resequences, recalculates)
       $this->challanService->deleteLine($challanId, (int)$lineId);
@@ -532,7 +566,12 @@ class ChallanController extends BaseController
    */
   public function changeStatus($id)
   {
-    if (!can('challan.edit')) {
+    $challan = $this->challanService->getChallanById($id);
+    if (!$challan) {
+      return $this->error('Challan not found', 404);
+    }
+    $sub = $this->resolveChallanSub($challan['challan_type']);
+    if (!can("challans.{$sub}.status_change")) {
       return $this->error('Permission denied', 403);
     }
 
@@ -567,22 +606,20 @@ class ChallanController extends BaseController
    */
   public function print($id)
   {
-    if (!can('challan.view')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
-
     $challan = $this->challanService->getChallanWithLines($id);
 
     if (!$challan) {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     }
 
-    // Render print-friendly view (no sidebar/header chrome)
-    // PDF generation can be added later via a library like Dompdf
-    return view('challans/print', [
+    $sub = $this->resolveChallanSub($challan['challan_type']);
+    $this->gate("challans.{$sub}.print");
+    $data = [
       'challan'   => $challan,
       'pageTitle' => "Print Challan: {$challan['challan_number']}",
-    ]);
+    ];
+
+    return $this->render('challans/print', $data);
   }
 
     // =========================================================================

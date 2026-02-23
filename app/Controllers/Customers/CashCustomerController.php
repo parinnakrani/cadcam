@@ -27,36 +27,36 @@ class CashCustomerController extends BaseController
 
   public function index()
   {
-    if (!can('cash_customer.view')) {
-      return redirect()->to('/dashboard')->with('error', 'Permission denied');
-    }
+    $this->gate('customers.cash_customers.all.list');
 
     if ($this->request->isAJAX()) {
       $customers = $this->cashCustomerService->getActiveCashCustomers();
       return $this->response->setJSON(['data' => $customers]);
     }
 
-    return view('customers/cash_customers/index', [
+    $data = [
       'states' => $this->stateModel->where('is_active', 1)->findAll()
-    ]);
+    ];
+
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('customers', 'cash_customers.all');
+    }
+
+    return $this->render('customers/cash_customers/index', $data);
   }
 
   public function create()
   {
-    if (!can('cash_customer.create')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.cash_customers.all.create');
 
-    return view('customers/cash_customers/create', [
+    return $this->render('customers/cash_customers/create', [
       'states' => $this->stateModel->where('is_active', 1)->findAll()
     ]);
   }
 
   public function store()
   {
-    if (!can('cash_customer.create')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.cash_customers.all.create');
 
     if (!$this->validate([
       'customer_name' => 'required|min_length[3]',
@@ -84,7 +84,8 @@ class CashCustomerController extends BaseController
 
   public function findOrCreate()
   {
-    if (!can('cash_customer.create')) {
+    if (!can('customers.cash_customers.all.create') && !can('invoices.cash.create') && !can('challans.all.create')) {
+      // Find or create can be called from invoice/challan pages too
       return $this->response->setJSON(['success' => false, 'message' => 'Permission denied']);
     }
 
@@ -105,9 +106,7 @@ class CashCustomerController extends BaseController
 
   public function show($id)
   {
-    if (!can('cash_customer.view')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.cash_customers.all.view');
 
     $customer = $this->cashCustomerService->getCashCustomerById($id);
     if (!$customer) {
@@ -120,7 +119,7 @@ class CashCustomerController extends BaseController
       $stateName = $state['state_name'] ?? '';
     }
 
-    return view('customers/cash_customers/show', [
+    return $this->render('customers/cash_customers/show', [
       'customer' => $customer,
       'state_name' => $stateName
     ]);
@@ -128,16 +127,14 @@ class CashCustomerController extends BaseController
 
   public function edit($id)
   {
-    if (!can('cash_customer.edit')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.cash_customers.all.edit');
 
     $customer = $this->cashCustomerService->getCashCustomerById($id);
     if (!$customer) {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     }
 
-    return view('customers/cash_customers/edit', [
+    return $this->render('customers/cash_customers/edit', [
       'customer' => $customer,
       'states'   => $this->stateModel->where('is_active', 1)->findAll()
     ]);
@@ -145,9 +142,7 @@ class CashCustomerController extends BaseController
 
   public function update($id)
   {
-    if (!can('cash_customer.edit')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.cash_customers.all.edit');
 
     $data = $this->request->getPost();
     $data['is_active'] = $this->request->getPost('is_active') ? 1 : 0;
@@ -162,7 +157,7 @@ class CashCustomerController extends BaseController
 
   public function delete($id)
   {
-    if (!can('cash_customer.delete')) {
+    if (!can('customers.cash_customers.all.delete')) {
       return $this->response->setJSON(['status' => 'error', 'message' => 'Permission denied']);
     }
 
@@ -177,7 +172,7 @@ class CashCustomerController extends BaseController
 
   public function search()
   {
-    if (!can('cash_customer.view')) {
+    if (!can('customers.cash_customers.all.view')) {
       return $this->response->setJSON([]);
     }
 

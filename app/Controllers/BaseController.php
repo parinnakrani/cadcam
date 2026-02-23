@@ -8,6 +8,7 @@ use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use App\Services\Auth\PermissionService;
 
 /**
  * Class BaseController
@@ -37,16 +38,14 @@ abstract class BaseController extends Controller
    */
   protected $helpers = ['permission'];
 
-  /**
-   * Be sure to declare properties for any property fetch you initialized.
-   * The creation of dynamic property is deprecated in PHP 8.2.
-   */
-  // protected $session;
-
   // Multi-tenant support
   protected ?int $companyId = null;
   protected ?int $userId = null;
   protected ?array $userData = null;
+
+  // RBAC support
+  protected ?PermissionService $permissions = null;
+  protected array $viewData = [];
 
   /**
    * @return void
@@ -56,21 +55,37 @@ abstract class BaseController extends Controller
     // Do Not Edit This Line
     parent::initController($request, $response, $logger);
 
-    // Preload any models, libraries, etc, here.
+    // Boot permissions if user is logged in
+    $session = \Config\Services::session();
+    if ($session->has('user_id')) {
+      $this->userId    = (int) $session->get('user_id');
+      $this->companyId = (int) $session->get('company_id');
 
-    // E.g.: $this->session = \Config\Services::session();
+      // Boot PermissionService
+      $this->permissions = \Config\Services::PermissionService();
+      $this->permissions->boot($this->userId);
 
-    // Initialize multi-tenant context
-    // TODO: Implement actual authentication - this is a placeholder
-    // $this->companyId = session()->get('company_id');
-    // $this->userId = session()->get('user_id');
-    // $this->userData = session()->get('user_data');
+      // Auto-inject menu data for all views
+      $this->viewData = [
+        'permissions'       => $this->permissions,
+        'invoiceMenuItems'  => $this->permissions->getInvoiceMenuItems(),
+        'challanMenuItems'  => $this->permissions->getChallanMenuItems(),
+        'masterMenuItems'   => $this->permissions->getMasterMenuItems(),
+        'customerMenuItems' => $this->permissions->getCustomerMenuItems(),
+        'reportMenuItems'   => $this->permissions->getReportMenuItems(),
+        'ledgerMenuItems'   => $this->permissions->getLedgerMenuItems(),
+      ];
+    }
   }
 
+  // ─────────────────────────────────────────────────────────
+  // PERMISSION HELPERS
+  // ─────────────────────────────────────────────────────────
+
   /**
-   * Check if user has specific permission
-   * 
-   * @param string $permission Permission identifier (e.g., 'invoice.create', 'product.delete')
+   * Check if user has specific permission.
+   *
+   * @param string $permission e.g. "invoices.account.print"
    * @return bool
    */
   protected function hasPermission(string $permission): bool
@@ -79,8 +94,64 @@ abstract class BaseController extends Controller
   }
 
   /**
+   * Gate — abort if user cannot perform the action.
+   * Shortcut for abort_if_cannot().
+   *
+   * @param string $permission
+   * @param string $redirectTo
+   * @return void
+   */
+  protected function gate(string $permission, string $redirectTo = 'dashboard'): void
+  {
+    abort_if_cannot($permission, $redirectTo);
+  }
+
+  /**
+   * Resolve invoice_type DB value to sub_module key.
+   * e.g. "Accounts Invoice" → "account"
+   */
+  protected function resolveInvoiceSub(string $invoiceType): string
+  {
+    return $this->permissions
+      ? $this->permissions->resolveInvoiceSubModule($invoiceType)
+      : 'all';
+  }
+
+  /**
+   * Resolve challan_type DB value to sub_module key.
+   * e.g. "Rhodium" → "rhodium"
+   */
+  protected function resolveChallanSub(string $challanType): string
+  {
+    return $this->permissions
+      ? $this->permissions->resolveChallanSubModule($challanType)
+      : 'all';
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // VIEW RENDERING
+  // ─────────────────────────────────────────────────────────
+
+  /**
+   * Render a view with auto-injected permission/menu data.
+   * Merges $viewData (sidebar menus, permissions) with controller-specific data.
+   *
+   * @param string $view  View path, e.g. "invoices/index"
+   * @param array  $data  Controller-specific data
+   * @return string
+   */
+  protected function render(string $view, array $data = []): string
+  {
+    return view($view, array_merge($this->viewData, $data));
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // JSON RESPONSE HELPERS
+  // ─────────────────────────────────────────────────────────
+
+  /**
    * Return JSON success response
-   * 
+   *
    * @param string $message Success message
    * @param mixed $data Optional data payload
    * @param int $status HTTP status code (default: 200)
@@ -93,7 +164,7 @@ abstract class BaseController extends Controller
 
   /**
    * Return JSON error response
-   * 
+   *
    * @param string $message Error message
    * @param int $status HTTP status code (default: 400)
    * @param mixed $errors Optional error details
@@ -117,7 +188,7 @@ abstract class BaseController extends Controller
 
   /**
    * Generic JSON response helper
-   * 
+   *
    * @param int $status HTTP status code
    * @param string $message Response message
    * @param mixed $data Optional data payload

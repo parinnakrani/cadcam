@@ -41,9 +41,7 @@ class AccountController extends BaseController
 
   public function index()
   {
-    if (!can('account.view')) { // Assuming has_permission helper
-      return redirect()->to('/dashboard')->with('error', 'Permission denied');
-    }
+    $this->gate('customers.accounts.all.list');
 
     if ($this->request->isAJAX()) {
       $filters = [
@@ -58,27 +56,29 @@ class AccountController extends BaseController
       return $this->response->setJSON(['data' => $accounts]);
     }
 
-    return view('customers/accounts/index', [
+    $data = [
       'states' => $this->stateModel->where('is_active', 1)->findAll()
-    ]);
+    ];
+
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('customers', 'accounts.all');
+    }
+
+    return $this->render('customers/accounts/index', $data);
   }
 
   public function create()
   {
-    if (!can('account.create')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.accounts.all.create');
 
-    return view('customers/accounts/create', [
+    return $this->render('customers/accounts/create', [
       'states' => $this->stateModel->where('is_active', 1)->findAll()
     ]);
   }
 
   public function store()
   {
-    if (!can('account.create')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.accounts.all.create');
 
     if (!$this->validate([
       'account_name' => 'required|min_length[3]',
@@ -106,9 +106,7 @@ class AccountController extends BaseController
 
   public function show($id)
   {
-    if (!can('account.view')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.accounts.all.view');
 
     $account = $this->accountService->getAccountById($id);
     if (!$account) {
@@ -117,7 +115,7 @@ class AccountController extends BaseController
 
     $balance = $this->accountService->getLedgerBalance($id);
 
-    return view('customers/accounts/show', [
+    return $this->render('customers/accounts/show', [
       'account' => $account,
       'balance' => $balance
     ]);
@@ -125,16 +123,14 @@ class AccountController extends BaseController
 
   public function edit($id)
   {
-    if (!can('account.edit')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.accounts.all.edit');
 
     $account = $this->accountService->getAccountById($id);
     if (!$account) {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     }
 
-    return view('customers/accounts/edit', [
+    return $this->render('customers/accounts/edit', [
       'account' => $account,
       'states'  => $this->stateModel->where('is_active', 1)->findAll()
     ]);
@@ -142,9 +138,7 @@ class AccountController extends BaseController
 
   public function update($id)
   {
-    if (!can('account.edit')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.accounts.all.edit');
 
     $data = $this->request->getPost();
     $data['is_active'] = $this->request->getPost('is_active') ? 1 : 0;
@@ -160,7 +154,7 @@ class AccountController extends BaseController
 
   public function delete($id)
   {
-    if (!can('account.delete')) {
+    if (!can('customers.accounts.all.delete')) {
       return $this->response->setJSON(['status' => 'error', 'message' => 'Permission denied']);
     }
 
@@ -175,7 +169,7 @@ class AccountController extends BaseController
 
   public function search()
   {
-    if (!can('account.view')) {
+    if (!can('customers.accounts.all.view')) {
       return $this->response->setJSON([]);
     }
 
@@ -187,9 +181,7 @@ class AccountController extends BaseController
 
   public function ledger($id)
   {
-    if (!can('account.view')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('customers.accounts.all.view_ledger');
 
     return redirect()->to('/reports/ledger/account/' . $id);
   }

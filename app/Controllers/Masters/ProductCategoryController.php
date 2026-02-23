@@ -17,167 +17,162 @@ use Exception;
  */
 class ProductCategoryController extends BaseController
 {
-    protected $categoryService;
+  protected $categoryService;
 
-    public function __construct()
-    {
-        // Manual DI
-        // Need both ProductCategoryModel and ProductModel for Service
-        $this->categoryService = new ProductCategoryService(
-            new ProductCategoryModel(),
-            new ProductModel(),
-            new AuditService()
-        );
+  public function __construct()
+  {
+    // Manual DI
+    // Need both ProductCategoryModel and ProductModel for Service
+    $this->categoryService = new ProductCategoryService(
+      new ProductCategoryModel(),
+      new ProductModel(),
+      new AuditService()
+    );
+  }
+
+  /**
+   * Display list of categories.
+   *
+   * @return string|\CodeIgniter\HTTP\ResponseInterface
+   */
+  public function index()
+  {
+    try {
+      $this->gate('masters.product_categories.all.list');
+    } catch (\CodeIgniter\Exceptions\PageNotFoundException $e) {
+      throw $e;
     }
 
-    /**
-     * Display list of categories.
-     *
-     * @return string|\CodeIgniter\HTTP\ResponseInterface
-     */
-    public function index()
-    {
-        if (!$this->hasPermission('product_category.view')) {
-            throw new PageNotFoundException("Access Denied");
-        }
+    $search = $this->request->getGet('search');
+    $categories = $this->categoryService->getActiveCategories($search);
 
-        $search = $this->request->getGet('search');
-        $categories = $this->categoryService->getActiveCategories($search);
-
-        if ($this->request->isAJAX()) {
-            return $this->response->setJSON(['data' => $categories]);
-        }
-
-        $data = [
-            'title'      => 'Product Categories',
-            'categories' => $categories,
-            'canCreate'  => $this->hasPermission('product_category.create'),
-            'canEdit'    => $this->hasPermission('product_category.edit'),
-            'canDelete'  => $this->hasPermission('product_category.delete')
-        ];
-
-        return view('Masters/ProductCategories/index', $data);
+    if ($this->request->isAJAX()) {
+      return $this->response->setJSON(['data' => $categories]);
     }
 
-    /**
-     * Show form to create a new category.
-     *
-     * @return string
-     */
-    public function create(): string
-    {
-        if (!$this->hasPermission('product_category.create')) {
-            throw new PageNotFoundException("Access Denied");
-        }
+    $data = [
+      'title'      => 'Product Categories',
+      'categories' => $categories,
+    ];
 
-        $data = [
-            'title' => 'Create Product Category'
-        ];
-
-        return view('Masters/ProductCategories/create', $data);
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('masters', 'product_categories.all');
     }
 
-    /**
-     * Store a new category.
-     *
-     * @return \CodeIgniter\HTTP\RedirectResponse
-     */
-    public function store()
-    {
-        if (!$this->hasPermission('product_category.create')) {
-            return redirect()->back()->with('error', 'Access Denied');
-        }
+    return $this->render('Masters/ProductCategories/index', $data);
+  }
 
-        try {
-            $data = $this->request->getPost();
-            
-            // Validate input basically
-            if (empty($data['category_name']) || empty($data['category_code'])) {
-                session()->setFlashdata('error', 'Category Name and Code are required.');
-                return redirect()->back()->withInput();
-            }
+  /**
+   * Show form to create a new category.
+   *
+   * @return string
+   */
+  public function create(): string
+  {
+    $this->gate('masters.product_categories.all.create');
 
-            $this->categoryService->createCategory($data);
+    $data = [
+      'title' => 'Create Product Category'
+    ];
 
-            return redirect()->to('masters/product-categories')->with('message', 'Category created successfully.');
-        } catch (Exception $e) {
-            return redirect()->back()->withInput()->with('error', $e->getMessage());
-        }
+    return $this->render('Masters/ProductCategories/create', $data);
+  }
+
+  /**
+   * Store a new category.
+   *
+   * @return \CodeIgniter\HTTP\RedirectResponse
+   */
+  public function store()
+  {
+    $this->gate('masters.product_categories.all.create');
+
+    try {
+      $data = $this->request->getPost();
+
+      // Validate input basically
+      if (empty($data['category_name']) || empty($data['category_code'])) {
+        session()->setFlashdata('error', 'Category Name and Code are required.');
+        return redirect()->back()->withInput();
+      }
+
+      $this->categoryService->createCategory($data);
+
+      return redirect()->to('masters/product-categories')->with('message', 'Category created successfully.');
+    } catch (Exception $e) {
+      return redirect()->back()->withInput()->with('error', $e->getMessage());
+    }
+  }
+
+  /**
+   * Show form to edit a category.
+   *
+   * @param int $id
+   * @return string
+   */
+  public function edit(int $id): string
+  {
+    $this->gate('masters.product_categories.all.edit');
+
+    $category = $this->categoryService->getCategoryById($id);
+
+    if (!$category) {
+      throw new PageNotFoundException("Category not found: $id");
     }
 
-    /**
-     * Show form to edit a category.
-     *
-     * @param int $id
-     * @return string
-     */
-    public function edit(int $id): string
-    {
-        if (!$this->hasPermission('product_category.edit')) {
-            throw new PageNotFoundException("Access Denied");
-        }
+    $data = [
+      'title'    => 'Edit Product Category',
+      'category' => $category
+    ];
 
-        $category = $this->categoryService->getCategoryById($id);
-        
-        if (!$category) {
-            throw new PageNotFoundException("Category not found: $id");
-        }
+    return $this->render('Masters/ProductCategories/edit', $data);
+  }
 
-        $data = [
-            'title'    => 'Edit Product Category',
-            'category' => $category
-        ];
+  /**
+   * Update an existing category.
+   *
+   * @param int $id
+   * @return \CodeIgniter\HTTP\RedirectResponse
+   */
+  public function update(int $id)
+  {
+    $this->gate('masters.product_categories.all.edit');
 
-        return view('Masters/ProductCategories/edit', $data);
+    try {
+      $data = $this->request->getPost();
+
+      // Handle checkbox for is_active. If unchecked, not sent. force 0.
+      if (!isset($data['is_active'])) {
+        $data['is_active'] = 0; // Inactive
+      }
+
+      $this->categoryService->updateCategory($id, $data);
+
+      return redirect()->to('masters/product-categories')->with('message', 'Category updated successfully.');
+    } catch (Exception $e) {
+      return redirect()->back()->withInput()->with('error', $e->getMessage());
+    }
+  }
+
+  /**
+   * Delete a category (Soft Delete).
+   *
+   * @param int $id
+   * @return \CodeIgniter\HTTP\ResponseInterface
+   */
+  public function delete(int $id)
+  {
+    if (!can('masters.product_categories.all.delete')) {
+      return $this->response->setJSON(['status' => 'error', 'message' => 'Access Denied'])->setStatusCode(403);
     }
 
-    /**
-     * Update an existing category.
-     *
-     * @param int $id
-     * @return \CodeIgniter\HTTP\RedirectResponse
-     */
-    public function update(int $id)
-    {
-        if (!$this->hasPermission('product_category.edit')) {
-            return redirect()->back()->with('error', 'Access Denied');
-        }
+    try {
+      $this->categoryService->deleteCategory($id);
+      session()->setFlashdata('message', 'Category deleted successfully.');
 
-        try {
-            $data = $this->request->getPost();
-            
-            // Handle checkbox for is_active. If unchecked, not sent. force 0.
-            if (!isset($data['is_active'])) {
-                $data['is_active'] = 0; // Inactive
-            }
-
-            $this->categoryService->updateCategory($id, $data);
-
-            return redirect()->to('masters/product-categories')->with('message', 'Category updated successfully.');
-        } catch (Exception $e) {
-            return redirect()->back()->withInput()->with('error', $e->getMessage());
-        }
+      return $this->response->setJSON(['status' => 'success', 'message' => 'Category deleted successfully.']);
+    } catch (Exception $e) {
+      return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()])->setStatusCode(400);
     }
-
-    /**
-     * Delete a category (Soft Delete).
-     *
-     * @param int $id
-     * @return \CodeIgniter\HTTP\ResponseInterface
-     */
-    public function delete(int $id)
-    {
-        if (!$this->hasPermission('product_category.delete')) {
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Access Denied'])->setStatusCode(403);
-        }
-
-        try {
-            $this->categoryService->deleteCategory($id);
-            session()->setFlashdata('message', 'Category deleted successfully.');
-            
-            return $this->response->setJSON(['status' => 'success', 'message' => 'Category deleted successfully.']);
-        } catch (Exception $e) {
-            return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()])->setStatusCode(400);
-        }
-    }
+  }
 }

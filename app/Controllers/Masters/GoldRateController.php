@@ -27,9 +27,7 @@ class GoldRateController extends BaseController
    */
   public function index(): string
   {
-    if (!$this->hasPermission('masters.manage')) {
-      throw new PageNotFoundException("Access Denied");
-    }
+    $this->gate('masters.gold_rates.all.list');
 
     // Check if today's rate is entered for standard 22K/24K
     // Usually, we check major metal types.
@@ -57,7 +55,11 @@ class GoldRateController extends BaseController
       'isEnteredSilver' => $isEnteredSilver
     ];
 
-    return view('GoldRates/index', $data);
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('masters', 'gold_rates.all');
+    }
+
+    return $this->render('GoldRates/index', $data);
   }
 
   /**
@@ -67,9 +69,7 @@ class GoldRateController extends BaseController
    */
   public function create(): string
   {
-    if (!$this->hasPermission('masters.manage')) {
-      throw new PageNotFoundException("Access Denied");
-    }
+    $this->gate('masters.gold_rates.all.create');
 
     // Read ?metal= query param to pre-select the dropdown
     // Whitelist to prevent any injection
@@ -83,7 +83,7 @@ class GoldRateController extends BaseController
       'selectedMetal' => $selectedMetal,
     ];
 
-    return view('GoldRates/create', $data);
+    return $this->render('GoldRates/create', $data);
   }
 
   /**
@@ -93,9 +93,7 @@ class GoldRateController extends BaseController
    */
   public function store()
   {
-    if (!$this->hasPermission('masters.manage')) {
-      return redirect()->back()->with('error', 'Access Denied');
-    }
+    $this->gate('masters.gold_rates.all.create');
 
     $rules = [
       'rate_date'     => 'required|valid_date',
@@ -125,9 +123,7 @@ class GoldRateController extends BaseController
    */
   public function edit(int $id): string
   {
-    if (!$this->hasPermission('masters.manage')) {
-      throw new PageNotFoundException("Access Denied");
-    }
+    $this->gate('masters.gold_rates.all.edit');
 
     // We need to fetch the rate data manually or via model through service?
     // Service doesn't have getRateById extended. 
@@ -158,7 +154,7 @@ class GoldRateController extends BaseController
       'rate'  => $rate
     ];
 
-    return view('GoldRates/edit', $data);
+    return $this->render('GoldRates/edit', $data);
   }
 
   /**
@@ -169,9 +165,7 @@ class GoldRateController extends BaseController
    */
   public function update(int $id)
   {
-    if (!$this->hasPermission('masters.manage')) {
-      return redirect()->back()->with('error', 'Access Denied');
-    }
+    $this->gate('masters.gold_rates.all.edit');
 
     $rules = [
       'rate_per_gram' => 'required|decimal|greater_than[0]',
@@ -201,9 +195,7 @@ class GoldRateController extends BaseController
    */
   public function history(): string
   {
-    if (!$this->hasPermission('masters.manage')) {
-      throw new PageNotFoundException("Access Denied");
-    }
+    $this->gate('masters.gold_rates.all.list');
 
     $fromDate = $this->request->getGet('from_date') ?? date('Y-m-d', strtotime('-30 days'));
     $toDate = $this->request->getGet('to_date') ?? date('Y-m-d');
@@ -236,6 +228,10 @@ class GoldRateController extends BaseController
       'chartData' => $chartData
     ];
 
-    return view('GoldRates/history', $data); // Using separate history view as requested
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('masters', 'gold_rates.all');
+    }
+
+    return $this->render('GoldRates/history', $data); // Using separate history view as requested
   }
 }

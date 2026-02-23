@@ -29,9 +29,7 @@ class PaymentController extends BaseController
    */
   public function index()
   {
-    if (!can('payment.view')) {
-      return redirect()->to('/dashboard')->with('error', 'Permission denied');
-    }
+    $this->gate('payments.all.list');
 
     try {
       // Get filters
@@ -86,7 +84,11 @@ class PaymentController extends BaseController
         'filters'  => $filters
       ];
 
-      return view('payments/index', $data);
+      if ($this->permissions) {
+        $data['action_flags'] = $this->permissions->getActionFlags('payments', 'all');
+      }
+
+      return $this->render('payments/index', $data);
     } catch (Exception $e) {
       log_message('error', '[PaymentController::index] ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to load payments.');
@@ -100,9 +102,7 @@ class PaymentController extends BaseController
    */
   public function create()
   {
-    if (!can('payment.create')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('payments.all.create');
 
     try {
       $invoiceId = $this->request->getGet('invoice_id');
@@ -119,7 +119,7 @@ class PaymentController extends BaseController
         ->orderBy('invoice_date', 'DESC') // Most recent first
         ->findAll();
 
-      return view('payments/create', [
+      return $this->render('payments/create', [
         'invoices' => $invoices,
         'selected_invoice_id' => $invoiceId,
         'payment_modes' => ['Cash', 'Cheque', 'Bank Transfer', 'UPI', 'Card', 'Other']
@@ -137,9 +137,7 @@ class PaymentController extends BaseController
    */
   public function store()
   {
-    if (!can('payment.create')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('payments.all.create');
 
     if (!$this->validate([
       'invoice_id' => 'required|integer',
@@ -169,9 +167,7 @@ class PaymentController extends BaseController
    */
   public function show($id)
   {
-    if (!can('payment.view')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('payments.all.view');
 
     try {
       $payment = $this->paymentService->getPaymentById($id);
@@ -180,7 +176,11 @@ class PaymentController extends BaseController
         return redirect()->to('/payments')->with('error', 'Payment not found.');
       }
 
-      return view('payments/show', ['payment' => $payment]);
+      $data = ['payment' => $payment];
+      if ($this->permissions) {
+        $data['action_flags'] = $this->permissions->getActionFlags('payments', 'all');
+      }
+      return $this->render('payments/show', $data);
     } catch (Exception $e) {
       log_message('error', '[PaymentController::show] ' . $e->getMessage());
       return redirect()->to('/payments')->with('error', 'Failed to load payment details.');
@@ -194,7 +194,7 @@ class PaymentController extends BaseController
    */
   public function delete($id)
   {
-    if (!can('payment.delete')) {
+    if (!can('payments.all.delete')) {
       return $this->response->setJSON(['status' => 'error', 'message' => 'Permission denied'])->setStatusCode(403);
     }
 

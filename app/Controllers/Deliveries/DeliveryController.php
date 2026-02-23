@@ -30,8 +30,8 @@ class DeliveryController extends BaseController
    */
   public function index()
   {
-    if (!can('deliveries.view')) {
-      return redirect()->back()->with('error', 'Permission denied');
+    if (!can('deliveries.all.list') && !can('deliveries.assigned.list')) {
+      return redirect()->to(base_url('dashboard'))->with('error', 'Unauthorized access.');
     }
 
     if ($this->request->isAJAX()) {
@@ -57,9 +57,19 @@ class DeliveryController extends BaseController
       return $this->response->setJSON(['data' => $builder->get()->getResultArray()]);
     }
 
-    return view('deliveries/index', [
+    $data = [
       'title' => 'Deliveries'
-    ]);
+    ];
+
+    if ($this->permissions) {
+      // Assuming 'all' encompasses the basic actions of 'assigned' as well for UI flags
+      $data['action_flags'] = array_merge(
+        $this->permissions->getActionFlags('deliveries', 'assigned'),
+        $this->permissions->getActionFlags('deliveries', 'all')
+      );
+    }
+
+    return $this->render('deliveries/index', $data);
   }
 
   /**
@@ -69,6 +79,10 @@ class DeliveryController extends BaseController
   {
     // Simple permission check implies role
     // Or check specifically
+
+    if (!can('deliveries.assigned.list')) {
+      return redirect()->back()->with('error', 'Permission denied');
+    }
 
     $userId = session()->get('user_id');
     $dashboard = $this->deliveryService->getMyDashboard($userId);
@@ -83,12 +97,18 @@ class DeliveryController extends BaseController
       ->limit(50)
       ->findAll();
 
-    return view('deliveries/my_deliveries', [
+    $data = [
       'title' => 'My Deliveries',
       'dashboard' => $dashboard,
       'active' => $activeDeliveries,
       'history' => $history
-    ]);
+    ];
+
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('deliveries', 'assigned');
+    }
+
+    return $this->render('deliveries/my_deliveries', $data);
   }
 
   /**
@@ -96,9 +116,7 @@ class DeliveryController extends BaseController
    */
   public function create()
   {
-    if (!can('deliveries.manage')) {
-      return redirect()->back()->with('error', 'Permission denied');
-    }
+    $this->gate('deliveries.all.create');
 
     $companyId = session()->get('company_id');
 
@@ -115,7 +133,7 @@ class DeliveryController extends BaseController
       ->where('users.is_deleted', 0)
       ->get()->getResultArray();
 
-    return view('deliveries/create', [
+    return $this->render('deliveries/create', [
       'title' => 'Assign Delivery',
       'invoices' => $invoices,
       'users' => $deliveryUsers
@@ -127,7 +145,7 @@ class DeliveryController extends BaseController
    */
   public function store()
   {
-    if (!can('deliveries.manage')) {
+    if (!can('deliveries.all.create')) {
       return $this->failForbidden();
     }
 
@@ -167,8 +185,10 @@ class DeliveryController extends BaseController
 
       // Security check
       $userId = session()->get('user_id');
-      if ($delivery['assigned_to'] != $userId && !can('deliveries.manage')) {
-        throw new \Exception('You are not authorized to start this delivery');
+      if ($delivery['assigned_to'] != $userId) {
+        $this->gate('deliveries.all.start');
+      } else {
+        $this->gate('deliveries.assigned.start');
       }
 
       $this->deliveryService->startDelivery($id);
@@ -195,8 +215,10 @@ class DeliveryController extends BaseController
 
       // Security check
       $userId = session()->get('user_id');
-      if ($delivery['assigned_to'] != $userId && !can('deliveries.manage')) {
-        throw new \Exception('You are not authorized to complete this delivery');
+      if ($delivery['assigned_to'] != $userId) {
+        $this->gate('deliveries.all.complete');
+      } else {
+        $this->gate('deliveries.assigned.complete');
       }
 
       $this->deliveryService->markDelivered($id, $file);
@@ -223,8 +245,10 @@ class DeliveryController extends BaseController
 
       // Security check
       $userId = session()->get('user_id');
-      if ($delivery['assigned_to'] != $userId && !can('deliveries.manage')) {
-        throw new \Exception('You are not authorized to fail this delivery');
+      if ($delivery['assigned_to'] != $userId) {
+        $this->gate('deliveries.all.fail');
+      } else {
+        $this->gate('deliveries.assigned.fail');
       }
 
       $this->deliveryService->markFailed($id, $reason);
@@ -239,11 +263,18 @@ class DeliveryController extends BaseController
    */
   public function show($id)
   {
-    // Permission check: 'deliveries.view' OR 'deliveries.view_assigned' if assigned to user
+    // Permission check: 'deliveries.all.view' OR 'deliveries.assigned.view' if assigned to user
     $delivery = $this->deliveryModel->find($id);
 
     if (!$delivery) {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+    }
+
+    $userId = session()->get('user_id');
+    if ($delivery['assigned_to'] != $userId) {
+      $this->gate('deliveries.all.view');
+    } else {
+      $this->gate('deliveries.assigned.view');
     }
 
     // Details with invoice
@@ -251,11 +282,18 @@ class DeliveryController extends BaseController
 
     $assignedUser = $this->db->table('users')->select('full_name')->where('id', $delivery['assigned_to'])->get()->getRow();
 
-    return view('deliveries/show', [
+    $data = [
       'title' => 'Delivery Details',
       'delivery' => $delivery,
       'invoice' => $invoice,
       'assigned_user_name' => $assignedUser ? $assignedUser->full_name : 'Unknown'
-    ]);
+    ];
+
+    if ($this->permissions) {
+      $sub = ($delivery['assigned_to'] == $userId) ? 'assigned' : 'all';
+      $data['action_flags'] = $this->permissions->getActionFlags('deliveries', $sub);
+    }
+
+    return $this->render('deliveries/show', $data);
   }
 }

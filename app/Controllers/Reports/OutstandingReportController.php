@@ -126,7 +126,7 @@ class OutstandingReportController extends BaseController
       ];
     }
 
-    return view('reports/outstanding/aging', [
+    return $this->render('reports/outstanding/aging', [
       'buckets' => $buckets,
       'toDate'  => $toDate,
       'title'   => 'Aging Report of Outstanding Invoices'

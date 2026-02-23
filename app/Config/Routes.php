@@ -21,12 +21,12 @@ $routes->get('switch-company/(:num)', 'Home::switchCompany/$1', ['filter' => 'au
 
 // User Management Routes
 $routes->group('users', ['namespace' => 'App\Controllers\Users', 'filter' => 'auth'], function ($routes) {
-  $routes->get('/', 'UserController::index');
+  $routes->get('/', 'UserController::index', ['filter' => 'permission:users.all.list']);
   $routes->get('create', 'UserController::create');
   $routes->post('create', 'UserController::store');
   $routes->get('(:num)/edit', 'UserController::edit/$1');
   $routes->post('(:num)', 'UserController::update/$1');
-  $routes->get('(:num)/delete', 'UserController::delete/$1'); // Ideally POST/DELETE, fallback for GET link
+  $routes->get('(:num)/delete', 'UserController::delete/$1');
   $routes->delete('(:num)', 'UserController::delete/$1');
   $routes->get('(:num)/password', 'UserController::changePassword/$1');
   $routes->post('(:num)/password', 'UserController::updatePassword/$1');
@@ -34,12 +34,12 @@ $routes->group('users', ['namespace' => 'App\Controllers\Users', 'filter' => 'au
 
 // Role Management Routes
 $routes->group('roles', ['namespace' => 'App\Controllers\Users', 'filter' => 'auth'], function ($routes) {
-  $routes->get('/', 'RoleController::index');
+  $routes->get('/', 'RoleController::index', ['filter' => 'permission:roles.all.list']);
   $routes->get('create', 'RoleController::create');
   $routes->post('create', 'RoleController::store');
   $routes->get('(:num)/edit', 'RoleController::edit/$1');
   $routes->post('(:num)', 'RoleController::update/$1');
-  $routes->get('(:num)/delete', 'RoleController::delete/$1'); // Fallback
+  $routes->get('(:num)/delete', 'RoleController::delete/$1');
   $routes->delete('(:num)', 'RoleController::delete/$1');
   $routes->get('(:num)/permissions', 'RoleController::permissions/$1');
   $routes->post('(:num)/permissions', 'RoleController::updatePermissions/$1');
@@ -56,7 +56,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api', 'filter' => 'auth']
 $routes->group('masters', ['namespace' => 'App\Controllers\Masters', 'filter' => 'auth'], function ($routes) {
   // Gold Rates
   $routes->group('gold-rates', function ($routes) {
-    $routes->get('/', 'GoldRateController::index');
+    $routes->get('/', 'GoldRateController::index', ['filter' => 'permission:masters.gold_rates.list']);
     $routes->get('create', 'GoldRateController::create');
     $routes->post('store', 'GoldRateController::store');
     $routes->get('edit/(:num)', 'GoldRateController::edit/$1');
@@ -67,14 +67,14 @@ $routes->group('masters', ['namespace' => 'App\Controllers\Masters', 'filter' =>
 
 // PRODUCT CATEGORY ROUTES
 $routes->group('masters', ['filter' => 'auth'], function ($routes) {
-  $routes->group('product-categories', ['filter' => 'permission:product_category'], function ($routes) {
-    $routes->get('/', 'Masters\ProductCategoryController::index');
+  $routes->group('product-categories', function ($routes) {
+    $routes->get('/', 'Masters\ProductCategoryController::index', ['filter' => 'permission:masters.product_categories.list']);
     $routes->get('create', 'Masters\ProductCategoryController::create');
-    $routes->post('store', 'Masters\ProductCategoryController::store'); // Match View
+    $routes->post('store', 'Masters\ProductCategoryController::store');
     $routes->post('/', 'Masters\ProductCategoryController::store');
     $routes->get('(:num)', 'Masters\ProductCategoryController::show/$1');
     $routes->get('(:num)/edit', 'Masters\ProductCategoryController::edit/$1');
-    $routes->get('edit/(:num)', 'Masters\ProductCategoryController::edit/$1'); // Match View link
+    $routes->get('edit/(:num)', 'Masters\ProductCategoryController::edit/$1');
     $routes->post('(:num)', 'Masters\ProductCategoryController::update/$1');
     $routes->delete('(:num)', 'Masters\ProductCategoryController::delete/$1');
     $routes->post('update/(:num)', 'Masters\ProductCategoryController::update/$1');
@@ -82,8 +82,8 @@ $routes->group('masters', ['filter' => 'auth'], function ($routes) {
   });
 
   // PRODUCT ROUTES
-  $routes->group('products', ['filter' => 'permission:product'], function ($routes) {
-    $routes->get('/', 'Masters\ProductController::index');
+  $routes->group('products', function ($routes) {
+    $routes->get('/', 'Masters\ProductController::index', ['filter' => 'permission:masters.products.list']);
     $routes->get('create', 'Masters\ProductController::create');
     $routes->post('store', 'Masters\ProductController::store');
     $routes->post('/', 'Masters\ProductController::store');
@@ -96,8 +96,8 @@ $routes->group('masters', ['filter' => 'auth'], function ($routes) {
   });
 
   // PROCESS ROUTES
-  $routes->group('processes', ['filter' => 'permission:process'], function ($routes) {
-    $routes->get('/', 'Masters\ProcessController::index');
+  $routes->group('processes', function ($routes) {
+    $routes->get('/', 'Masters\ProcessController::index', ['filter' => 'permission:masters.processes.list']);
     $routes->get('create', 'Masters\ProcessController::create');
     $routes->post('store', 'Masters\ProcessController::store');
     $routes->post('/', 'Masters\ProcessController::store');
@@ -113,8 +113,8 @@ $routes->group('masters', ['filter' => 'auth'], function ($routes) {
 // CUSTOMER ROUTES
 $routes->group('customers', ['filter' => 'auth'], function ($routes) {
   // Accounts
-  $routes->group('accounts', ['filter' => 'permission:account'], function ($routes) {
-    $routes->get('/', 'Customers\AccountController::index');
+  $routes->group('accounts', function ($routes) {
+    $routes->get('/', 'Customers\AccountController::index', ['filter' => 'permission:customers.accounts.list']);
     $routes->get('create', 'Customers\AccountController::create');
     $routes->post('/', 'Customers\AccountController::store');
     $routes->get('search', 'Customers\AccountController::search');
@@ -126,8 +126,8 @@ $routes->group('customers', ['filter' => 'auth'], function ($routes) {
   });
 
   // Cash Customers
-  $routes->group('cash-customers', ['filter' => 'permission:cash_customer'], function ($routes) {
-    $routes->get('/', 'Customers\CashCustomerController::index');
+  $routes->group('cash-customers', function ($routes) {
+    $routes->get('/', 'Customers\CashCustomerController::index', ['filter' => 'permission:customers.cash_customers.list']);
     $routes->get('create', 'Customers\CashCustomerController::create');
     $routes->post('/', 'Customers\CashCustomerController::store');
     $routes->post('find-or-create', 'Customers\CashCustomerController::findOrCreate');
@@ -141,47 +141,45 @@ $routes->group('customers', ['filter' => 'auth'], function ($routes) {
 
 // CHALLAN ROUTES
 $routes->group('challans', ['filter' => 'auth'], function ($routes) {
-  $routes->group('', ['filter' => 'permission:challan'], function ($routes) {
-    // List & Search
-    $routes->get('/', 'Challans\ChallanController::index');
-    $routes->get('search', 'Challans\ChallanController::search');
+  // List & Search
+  $routes->get('/', 'Challans\ChallanController::index', ['filter' => 'permission:challans.all.list']);
+  $routes->get('search', 'Challans\ChallanController::search');
 
-    // Create
-    $routes->get('create', 'Challans\ChallanController::create');
-    $routes->post('/', 'Challans\ChallanController::store');
+  // Create
+  $routes->get('create', 'Challans\ChallanController::create');
+  $routes->post('/', 'Challans\ChallanController::store');
 
-    // AJAX: Calculate line (preview, no save)
-    $routes->post('calculate-line', 'Challans\ChallanController::calculateLine');
+  // AJAX: Calculate line (preview, no save)
+  $routes->post('calculate-line', 'Challans\ChallanController::calculateLine');
 
-    // AJAX: Get processes by challan type
-    $routes->get('processes', 'Challans\ChallanController::getProcessesByType');
+  // AJAX: Get processes by challan type
+  $routes->get('processes', 'Challans\ChallanController::getProcessesByType');
 
-    // AJAX: Delete line (by line ID, not challan ID)
-    $routes->delete('lines/(:num)', 'Challans\ChallanController::deleteLine/$1');
+  // AJAX: Delete line (by line ID, not challan ID)
+  $routes->delete('lines/(:num)', 'Challans\ChallanController::deleteLine/$1');
 
-    // Show / Edit / Update / Delete (by challan ID)
-    $routes->get('(:num)', 'Challans\ChallanController::show/$1');
-    $routes->get('(:num)/edit', 'Challans\ChallanController::edit/$1');
-    $routes->post('(:num)', 'Challans\ChallanController::update/$1');
-    $routes->delete('(:num)', 'Challans\ChallanController::delete/$1');
+  // Show / Edit / Update / Delete (by challan ID)
+  $routes->get('(:num)', 'Challans\ChallanController::show/$1');
+  $routes->get('(:num)/edit', 'Challans\ChallanController::edit/$1');
+  $routes->post('(:num)', 'Challans\ChallanController::update/$1');
+  $routes->delete('(:num)', 'Challans\ChallanController::delete/$1');
 
-    // AJAX: Line management
-    $routes->post('(:num)/add-line', 'Challans\ChallanController::addLine/$1');
-    $routes->post('(:num)/update-line/(:num)', 'Challans\ChallanController::updateLine/$1/$2');
+  // AJAX: Line management
+  $routes->post('(:num)/add-line', 'Challans\ChallanController::addLine/$1');
+  $routes->post('(:num)/update-line/(:num)', 'Challans\ChallanController::updateLine/$1/$2');
 
-    // AJAX: Status change
-    $routes->post('(:num)/change-status', 'Challans\ChallanController::changeStatus/$1');
+  // AJAX: Status change
+  $routes->post('(:num)/change-status', 'Challans\ChallanController::changeStatus/$1');
 
-    // Print
-    $routes->get('(:num)/print', 'Challans\ChallanController::print/$1');
-  });
+  // Print
+  $routes->get('(:num)/print', 'Challans\ChallanController::print/$1');
 });
 
 // INVOICE ROUTES
 $routes->group('', ['filter' => 'auth'], function ($routes) {
-  // Base Invoice Routes
-  $routes->group('invoices', ['namespace' => 'App\Controllers\Invoices', 'filter' => 'permission:invoice'], function ($routes) {
-    $routes->get('/', 'InvoiceController::index');
+  // Base Invoice Routes (All Invoices)
+  $routes->group('invoices', ['namespace' => 'App\Controllers\Invoices'], function ($routes) {
+    $routes->get('/', 'InvoiceController::index', ['filter' => 'permission:invoices.all.list']);
 
     // Create invoice (standalone)
     $routes->get('create', 'InvoiceController::create');
@@ -206,8 +204,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
   });
 
   // Account Invoice Routes
-  $routes->group('account-invoices', ['namespace' => 'App\Controllers\Invoices', 'filter' => 'permission:invoice'], function ($routes) {
-    $routes->get('/', 'AccountInvoiceController::index');
+  $routes->group('account-invoices', ['namespace' => 'App\Controllers\Invoices'], function ($routes) {
+    $routes->get('/', 'AccountInvoiceController::index', ['filter' => 'permission:invoices.account.list']);
     $routes->get('create', 'AccountInvoiceController::create');
     $routes->post('/', 'AccountInvoiceController::store');
     $routes->post('store-from-challans', 'AccountInvoiceController::storeFromChallans');
@@ -223,8 +221,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
   });
 
   // Cash Invoice Routes
-  $routes->group('cash-invoices', ['namespace' => 'App\Controllers\Invoices', 'filter' => 'permission:invoice'], function ($routes) {
-    $routes->get('/', 'CashInvoiceController::index');
+  $routes->group('cash-invoices', ['namespace' => 'App\Controllers\Invoices'], function ($routes) {
+    $routes->get('/', 'CashInvoiceController::index', ['filter' => 'permission:invoices.cash.list']);
     $routes->get('create', 'CashInvoiceController::create');
     $routes->post('/', 'CashInvoiceController::store');
 
@@ -239,8 +237,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
   });
 
   // Wax Invoice Routes
-  $routes->group('wax-invoices', ['namespace' => 'App\Controllers\Invoices', 'filter' => 'permission:invoice'], function ($routes) {
-    $routes->get('/', 'WaxInvoiceController::index');
+  $routes->group('wax-invoices', ['namespace' => 'App\Controllers\Invoices'], function ($routes) {
+    $routes->get('/', 'WaxInvoiceController::index', ['filter' => 'permission:invoices.wax.list']);
     $routes->get('create', 'WaxInvoiceController::create');
     $routes->post('/', 'WaxInvoiceController::store');
 
@@ -257,7 +255,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
 // PAYMENT ROUTES
 $routes->group('payments', ['namespace' => 'App\Controllers\Payments', 'filter' => 'auth'], function ($routes) {
-  $routes->get('/', 'PaymentController::index');
+  $routes->get('/', 'PaymentController::index', ['filter' => 'permission:payments.all.list']);
   $routes->get('create', 'PaymentController::create');
   $routes->post('/', 'PaymentController::store');
   $routes->get('(:num)', 'PaymentController::show/$1');
@@ -267,8 +265,8 @@ $routes->group('payments', ['namespace' => 'App\Controllers\Payments', 'filter' 
 // LEDGER & REMINDER ROUTES
 $routes->group('ledgers', ['namespace' => 'App\Controllers\Ledgers', 'filter' => 'auth'], function ($routes) {
   // Ledger List (Index)
-  $routes->get('accounts', 'LedgerController::accountsLedger');
-  $routes->get('cash-customers', 'LedgerController::cashCustomersLedger');
+  $routes->get('accounts', 'LedgerController::accountsLedger', ['filter' => 'permission:ledgers.accounts.list']);
+  $routes->get('cash-customers', 'LedgerController::cashCustomersLedger', ['filter' => 'permission:ledgers.cash_customers.list']);
 
   // Ledger Detail
   $routes->get('account/(:num)', 'LedgerController::accountLedger/$1');
@@ -279,43 +277,29 @@ $routes->group('ledgers', ['namespace' => 'App\Controllers\Ledgers', 'filter' =>
 
   // Reminders
   $routes->group('reminders', function ($routes) {
-    $routes->get('outstanding', 'ReminderController::outstandingInvoices');
+    $routes->get('outstanding', 'ReminderController::outstandingInvoices', ['filter' => 'permission:ledgers.reminders.list']);
     $routes->post('send/(:num)', 'ReminderController::sendReminder/$1');
   });
 });
 
 // REPORT ROUTES
 $routes->group('reports', ['namespace' => 'App\Controllers\Reports', 'filter' => 'auth'], function ($routes) {
-  // Outstanding Report (OutstandingReportController)
+  // Outstanding Report
   $routes->group('outstanding', function ($routes) {
-    $routes->get('/', 'OutstandingReportController::index');
-    $routes->get('aging', 'OutstandingReportController::agingReport');
+    $routes->get('/', 'OutstandingReportController::index', ['filter' => 'permission:reports.outstanding.list']);
+    $routes->get('aging', 'OutstandingReportController::agingReport', ['filter' => 'permission:reports.aging.list']);
   });
 
-  // Ledger (Note: LedgerController is in Ledgers namespace, alias here for consistency)
-  $routes->group('ledger', ['namespace' => 'App\Controllers\Ledgers'], function ($routes) {
-    // We link 'reports/receivables' to LedgerController index or new ReceivableReportController
-    // Task 8 says ReceivableReportController.
-    // Let's assume ReceivableReportController exists or we use LedgerController for now.
-    // Existing sidebar points to reports/receivables.
-  });
-
-  // Receivables (ReceivableReportController)
-  // If ReceivableReportController is not yet made, we might fallback to LedgerController or create it?
-  // User Prompt says "Complete Reports Module". I should make sure ReceivableReportController exists if I route to it.
-  // I recall LedgerController handles most of this. Let's check if ReceivableReportController exists.
-  // I will add the route, assuming I will use LedgerController if Receivable doesn't exist, OR I will create ReceivableReportController.
-  // Let's use specific controllers.
-
-  $routes->get('receivables', 'ReceivableReportController::index');
-  $routes->get('receivables/monthly', 'ReceivableReportController::monthlySummary');
+  // Receivables
+  $routes->get('receivables', 'ReceivableReportController::index', ['filter' => 'permission:reports.receivables.list']);
+  $routes->get('receivables/monthly', 'ReceivableReportController::monthlySummary', ['filter' => 'permission:reports.monthly.list']);
 });
 
 
 // DELIVERY ROUTES
 $routes->group('deliveries', ['filter' => 'auth'], function ($routes) {
   // Admin / Manager Routes
-  $routes->get('/', 'Deliveries\DeliveryController::index');
+  $routes->get('/', 'Deliveries\DeliveryController::index', ['filter' => 'permission:deliveries.all.list']);
   $routes->get('create', 'Deliveries\DeliveryController::create');
   $routes->post('/', 'Deliveries\DeliveryController::store');
 
@@ -331,7 +315,7 @@ $routes->get('my-deliveries', 'Deliveries\DeliveryController::myDeliveries', ['f
 
 // AUDIT LOG ROUTES
 $routes->group('audit-logs', ['namespace' => 'App\Controllers\Audit', 'filter' => 'auth'], function ($routes) {
-    $routes->get('/', 'AuditLogController::index');
-    $routes->get('record/(:alpha)/(:num)', 'AuditLogController::recordAuditTrail//');
-    $routes->get('user/(:num)', 'AuditLogController::userActivity/');
+  $routes->get('/', 'AuditLogController::index', ['filter' => 'permission:audit.logs.list']);
+  $routes->get('record/(:alpha)/(:num)', 'AuditLogController::recordAuditTrail//');
+  $routes->get('user/(:num)', 'AuditLogController::userActivity/');
 });

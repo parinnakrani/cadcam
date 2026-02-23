@@ -18,9 +18,11 @@ FILE: app/Views/payments/index.php
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="h3 mb-0">Payments</h1>
-  <a href="<?= base_url('payments/create') ?>" class="btn btn-primary">
-    <i class="ri-add-circle-line"></i> Record Payment
-  </a>
+  <?php if ($action_flags['create'] ?? false): ?>
+    <a href="<?= base_url('payments/create') ?>" class="btn btn-primary">
+      <i class="ri-add-circle-line"></i> Record Payment
+    </a>
+  <?php endif; ?>
 </div>
 
 <!-- Filters -->
@@ -120,12 +122,16 @@ FILE: app/Views/payments/index.php
                 </td>
                 <td class="text-center">
                   <div class="btn-group btn-group-sm">
-                    <a href="<?= base_url('payments/' . $payment['id']) ?>" class="btn btn-outline-primary" title="View">
-                      <i class="ri-eye-line"></i>
-                    </a>
-                    <button type="button" class="btn btn-outline-danger" onclick="deletePayment(<?= $payment['id'] ?>)" title="Delete">
-                      <i class="ri-delete-bin-line"></i>
-                    </button>
+                    <?php if ($action_flags['view'] ?? false): ?>
+                      <a href="<?= base_url('payments/' . $payment['id']) ?>" class="btn btn-outline-primary" title="View">
+                        <i class="ri-eye-line"></i>
+                      </a>
+                    <?php endif; ?>
+                    <?php if ($action_flags['delete'] ?? false): ?>
+                      <button type="button" class="btn btn-outline-danger" onclick="deletePayment(<?= $payment['id'] ?>)" title="Delete">
+                        <i class="ri-delete-bin-line"></i>
+                      </button>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>

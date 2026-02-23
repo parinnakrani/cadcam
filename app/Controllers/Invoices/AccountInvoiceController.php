@@ -31,11 +31,7 @@ class AccountInvoiceController extends InvoiceController
   public function index()
   {
     // Check permission
-    if (!can('invoice.view')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to view invoices'
-      ]);
-    }
+    $this->gate('invoices.account.list');
 
     try {
       // Get filters from request
@@ -93,11 +89,17 @@ class AccountInvoiceController extends InvoiceController
       }
 
       // Load view
-      return view('invoices/index', [
+      $data = [
         'invoices' => $invoices,
         'filters' => $filters,
         'invoice_type' => $this->invoiceType
-      ]);
+      ];
+
+      if ($this->permissions) {
+        $data['action_flags'] = $this->permissions->getActionFlags('invoices', 'account');
+      }
+
+      return $this->render('invoices/index', $data);
     } catch (\Exception $e) {
       log_message('error', 'Account invoice listing error: ' . $e->getMessage());
 
@@ -121,9 +123,7 @@ class AccountInvoiceController extends InvoiceController
   public function create()
   {
     // Check permission
-    if (!can('invoice.create')) {
-      return redirect()->back()->with('error', 'You do not have permission to create invoices');
-    }
+    $this->gate('invoices.account.create');
 
     try {
       $companyId = session()->get('company_id');
@@ -143,7 +143,7 @@ class AccountInvoiceController extends InvoiceController
       }
 
       // Load Selection View
-      return view('invoices/account/select_challans', [
+      return $this->render('invoices/account/select_challans', [
         'accounts' => $this->accountModel->where('company_id', $companyId)->where('is_deleted', 0)->orderBy('account_name', 'ASC')->findAll(),
         'selected_account_id' => $accountId,
         'challans' => $pendingChallans
@@ -167,7 +167,7 @@ class AccountInvoiceController extends InvoiceController
     $_POST['invoice_type'] = $this->invoiceType;
 
     // Check permission
-    if (!can('invoice.create')) {
+    if (!can('invoices.account.create')) {
       return $this->response->setStatusCode(403)->setJSON([
         'error' => 'You do not have permission to create invoices'
       ]);
@@ -242,11 +242,20 @@ class AccountInvoiceController extends InvoiceController
   public function edit(int $id)
   {
     // Check permission
-    if (!can('invoice.edit')) {
-      return redirect()->to('/account-invoices')->with('error', 'You do not have permission to edit invoices');
-    }
-
     try {
+      // Get invoice
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return redirect()->to('/account-invoices')->with('error', 'Invoice not found');
+      }
+
+      // Ensure it is an Account Invoice
+      if ($invoice['invoice_type'] !== $this->invoiceType) {
+        return redirect()->to('/account-invoices')->with('error', 'Invalid invoice type');
+      }
+
+      $this->gate('invoices.account.edit');
       // Get invoice
       $invoice = $this->invoiceService->getInvoiceById($id);
 
@@ -286,7 +295,7 @@ class AccountInvoiceController extends InvoiceController
           ->findAll(),
       ];
 
-      return view('invoices/edit', $data);
+      return $this->render('invoices/edit', $data);
     } catch (\Exception $e) {
       log_message('error', 'Account invoice edit form error: ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to load invoice edit form');
@@ -304,13 +313,23 @@ class AccountInvoiceController extends InvoiceController
   public function update(int $id)
   {
     // Check permission
-    if (!can('invoice.edit')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to edit invoices'
-      ]);
-    }
-
     try {
+      // Get invoice first to check its type
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return $this->response->setStatusCode(404)->setJSON(['error' => 'Invoice not found']);
+      }
+
+      if ($invoice['invoice_type'] !== $this->invoiceType) {
+        return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid invoice type']);
+      }
+
+      if (!can("invoices.account.edit")) {
+        return $this->response->setStatusCode(403)->setJSON([
+          'error' => 'You do not have permission to edit this invoice'
+        ]);
+      }
       // Get POST data
       $invoiceData = [
         'invoice_date'      => $this->request->getPost('invoice_date'),
@@ -373,13 +392,23 @@ class AccountInvoiceController extends InvoiceController
   public function delete(int $id)
   {
     // Check permission
-    if (!can('invoice.delete')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to delete invoices'
-      ]);
-    }
-
     try {
+      // Get invoice first to check its type
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return $this->response->setStatusCode(404)->setJSON(['error' => 'Invoice not found']);
+      }
+
+      if ($invoice['invoice_type'] !== $this->invoiceType) {
+        return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid invoice type']);
+      }
+
+      if (!can("invoices.account.delete")) {
+        return $this->response->setStatusCode(403)->setJSON([
+          'error' => 'You do not have permission to delete this invoice'
+        ]);
+      }
       // Delete invoice
       $this->invoiceService->deleteInvoice($id);
 
@@ -416,7 +445,7 @@ class AccountInvoiceController extends InvoiceController
    */
   public function storeFromChallans()
   {
-    if (!can('invoice.create')) {
+    if (!can('invoices.account.create')) {
       return redirect()->back()->with('error', 'You do not have permission to create invoices');
     }
 
@@ -586,10 +615,6 @@ class AccountInvoiceController extends InvoiceController
   public function show(int $id)
   {
     // Check permission
-    if (!can('invoice.view')) {
-      return redirect()->back()->with('error', 'You do not have permission to view invoices');
-    }
-
     try {
       // Get invoice with lines
       $invoice = $this->invoiceService->getInvoiceById($id);
@@ -603,10 +628,16 @@ class AccountInvoiceController extends InvoiceController
         return redirect()->to('/account-invoices')->with('error', 'Invalid invoice type');
       }
 
+      $this->gate('invoices.account.view');
+
       // Load view
-      return view('invoices/show', [
+      $data = [
         'invoice' => $invoice,
-      ]);
+      ];
+      if ($this->permissions) {
+        $data['action_flags'] = $this->permissions->getActionFlags('invoices', 'account');
+      }
+      return $this->render('invoices/show', $data);
     } catch (\Exception $e) {
       log_message('error', 'Invoice show error: ' . $e->getMessage());
       return redirect()->to('/account-invoices')->with('error', 'Failed to load invoice');

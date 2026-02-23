@@ -86,11 +86,14 @@ class InvoiceController extends BaseController
    */
   public function index()
   {
-    // Check permission
-    if (!can('invoice.view')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to view invoices'
-      ]);
+    // We want the generic invoices list view. If they have ANY invoice list permission, let them in.
+    if (!can_any('invoices') || (!can('invoices.all.list') && !can('invoices.account.list') && !can('invoices.cash.list') && !can('invoices.wax.list'))) {
+      if ($this->request->isAJAX() || $this->request->is('json')) {
+        return $this->response->setStatusCode(403)->setJSON([
+          'error' => 'You do not have permission to view invoices'
+        ]);
+      }
+      return redirect()->back()->with('error', 'You do not have permission to view invoices');
     }
 
     try {
@@ -151,10 +154,25 @@ class InvoiceController extends BaseController
         ]);
       }
 
+      // Action flags for the view (we provide the parent 'invoices' and generic sub-module)
+      $actionFlags = [];
+      if ($this->permissions) {
+        $actionFlags = $this->permissions->getActionFlags('invoices', 'all');
+      }
+
+      // Per-type create flags for individual buttons
+      $canCreateAccount = $this->permissions ? ($this->permissions->canCreate('invoices', 'account') || $this->permissions->canCreate('invoices', 'all')) : false;
+      $canCreateCash    = $this->permissions ? ($this->permissions->canCreate('invoices', 'cash')    || $this->permissions->canCreate('invoices', 'all')) : false;
+      $canCreateWax     = $this->permissions ? ($this->permissions->canCreate('invoices', 'wax')     || $this->permissions->canCreate('invoices', 'all')) : false;
+
       // Load view
-      return view('invoices/index', [
-        'invoices' => $invoices,
-        'filters' => $filters
+      return $this->render('invoices/index', [
+        'invoices'         => $invoices,
+        'filters'          => $filters,
+        'action_flags'     => $actionFlags,
+        'canCreateAccount' => $canCreateAccount,
+        'canCreateCash'    => $canCreateCash,
+        'canCreateWax'     => $canCreateWax,
       ]);
     } catch (Exception $e) {
       log_message('error', 'Invoice listing error: ' . $e->getMessage());
@@ -178,8 +196,7 @@ class InvoiceController extends BaseController
    */
   public function create()
   {
-    // Check permission
-    if (!can('invoice.create')) {
+    if (!can('invoices.account.create') && !can('invoices.cash.create') && !can('invoices.wax.create')) {
       return redirect()->back()->with('error', 'You do not have permission to create invoices');
     }
 
@@ -206,7 +223,7 @@ class InvoiceController extends BaseController
         'default_tax_rate' => $this->taxService->getTaxRate($companyId),
       ];
 
-      return view('invoices/create', $data);
+      return $this->render('invoices/create', $data);
     } catch (Exception $e) {
       log_message('error', 'Invoice create form error: ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to load invoice creation form');
@@ -223,8 +240,7 @@ class InvoiceController extends BaseController
    */
   public function createFromChallan(int $challanId)
   {
-    // Check permission
-    if (!can('invoice.create')) {
+    if (!can('invoices.account.create') && !can('invoices.cash.create') && !can('invoices.wax.create')) {
       return redirect()->back()->with('error', 'You do not have permission to create invoices');
     }
 
@@ -268,7 +284,7 @@ class InvoiceController extends BaseController
         'default_tax_rate' => $this->taxService->getTaxRate($companyId),
       ];
 
-      return view('invoices/create_from_challan', $data);
+      return $this->render('invoices/create_from_challan', $data);
     } catch (Exception $e) {
       log_message('error', 'Create from challan error: ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to load challan data');
@@ -284,10 +300,12 @@ class InvoiceController extends BaseController
    */
   public function store()
   {
-    // Check permission
-    if (!can('invoice.create')) {
+    $invoiceType = $this->request->getPost('invoice_type');
+    $sub = $this->resolveInvoiceSub($invoiceType);
+
+    if (!can("invoices.{$sub}.create")) {
       return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to create invoices'
+        'error' => 'You do not have permission to create this type of invoice'
       ]);
     }
 
@@ -358,10 +376,10 @@ class InvoiceController extends BaseController
    */
   public function storeFromChallan()
   {
-    // Check permission
-    if (!can('invoice.create')) {
+    if (!can('invoices.account.create') && !can('invoices.cash.create') && !can('invoices.wax.create')) {
       return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to create invoices'
+        'status'  => 'error',
+        'message' => 'You do not have permission to create an invoice'
       ]);
     }
 
@@ -448,10 +466,14 @@ class InvoiceController extends BaseController
       }
 
       // Load view
-      return view('invoices/show', [
+      $data = [
         'invoice' => $invoice,
         // 'payments' => $payments ?? []
-      ]);
+      ];
+      if ($this->permissions) {
+        $data['action_flags'] = $this->permissions->getActionFlags('invoices', $sub ?? 'all');
+      }
+      return $this->render('invoices/show', $data);
     } catch (Exception $e) {
       log_message('error', 'Invoice show error: ' . $e->getMessage());
 
@@ -475,11 +497,7 @@ class InvoiceController extends BaseController
    */
   public function edit(int $id)
   {
-    // Check permission
-    if (!can('invoice.edit')) {
-      return redirect()->back()->with('error', 'You do not have permission to edit invoices');
-    }
-
+    // Permission check will happen after we get the invoice type
     try {
       // Get invoice
       $invoice = $this->invoiceService->getInvoiceById($id);
@@ -487,6 +505,9 @@ class InvoiceController extends BaseController
       if (!$invoice) {
         return redirect()->to('/invoices')->with('error', 'Invoice not found');
       }
+
+      $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
+      $this->gate("invoices.{$sub}.edit");
 
       // Check if paid
       if ($invoice['total_paid'] > 0) {
@@ -516,7 +537,7 @@ class InvoiceController extends BaseController
           ->findAll(),
       ];
 
-      return view('invoices/edit', $data);
+      return $this->render('invoices/edit', $data);
     } catch (Exception $e) {
       log_message('error', 'Invoice edit form error: ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to load invoice edit form');
@@ -533,14 +554,20 @@ class InvoiceController extends BaseController
    */
   public function update(int $id)
   {
-    // Check permission
-    if (!can('invoice.edit')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to edit invoices'
-      ]);
-    }
-
     try {
+      // Get invoice first to check its type
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return $this->response->setStatusCode(404)->setJSON(['error' => 'Invoice not found']);
+      }
+
+      $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
+      if (!can("invoices.{$sub}.edit")) {
+        return $this->response->setStatusCode(403)->setJSON([
+          'error' => 'You do not have permission to edit this invoice'
+        ]);
+      }
       // Get POST data
       $invoiceData = [
         'invoice_date'      => $this->request->getPost('invoice_date'),
@@ -602,14 +629,20 @@ class InvoiceController extends BaseController
    */
   public function delete(int $id)
   {
-    // Check permission
-    if (!can('invoice.delete')) {
-      return $this->response->setStatusCode(403)->setJSON([
-        'error' => 'You do not have permission to delete invoices'
-      ]);
-    }
-
     try {
+      // Get invoice first to check its type
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return $this->response->setStatusCode(404)->setJSON(['error' => 'Invoice not found']);
+      }
+
+      $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
+      if (!can("invoices.{$sub}.delete")) {
+        return $this->response->setStatusCode(403)->setJSON([
+          'error' => 'You do not have permission to delete this invoice'
+        ]);
+      }
       // Delete invoice
       $this->invoiceService->deleteInvoice($id);
 
@@ -649,11 +682,7 @@ class InvoiceController extends BaseController
    */
   public function print(int $id)
   {
-    // Check permission
-    if (!can('invoice.view')) {
-      return redirect()->back()->with('error', 'You do not have permission to view invoices');
-    }
-
+    // Check permission happens after we load the invoice
     try {
       // Get invoice with lines
       $invoice = $this->invoiceService->getInvoiceById($id);
@@ -662,8 +691,11 @@ class InvoiceController extends BaseController
         return redirect()->to('/invoices')->with('error', 'Invoice not found');
       }
 
+      $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
+      $this->gate("invoices.{$sub}.print");
+
       // Render printable HTML view
-      return view('invoices/print', ['invoice' => $invoice]);
+      return $this->render('invoices/print', ['invoice' => $invoice]);
     } catch (Exception $e) {
       log_message('error', 'Invoice print error: ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to generate printable invoice: ' . $e->getMessage());

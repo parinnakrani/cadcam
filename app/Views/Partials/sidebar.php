@@ -37,8 +37,24 @@
 
   <div class="menu-inner-shadow"></div>
 
+  <?php
+  // ─── Get PermissionService and build all menu arrays once ───
+  $permSvc = service('PermissionService');
+  if ($permSvc) {
+    $masterMenuItems   = $permSvc->getMasterMenuItems();
+    $customerMenuItems = $permSvc->getCustomerMenuItems();
+    $challanMenuItems  = $permSvc->getChallanMenuItems();
+    $invoiceMenuItems  = $permSvc->getInvoiceMenuItems();
+    $reportMenuItems   = $permSvc->getReportMenuItems();
+    $ledgerMenuItems   = $permSvc->getLedgerMenuItems();
+  } else {
+    $masterMenuItems = $customerMenuItems = $challanMenuItems = [];
+    $invoiceMenuItems = $reportMenuItems = $ledgerMenuItems = [];
+  }
+  ?>
+
   <ul class="menu-inner py-1">
-    <!-- Dashboards -->
+    <!-- Dashboard -->
     <li class="menu-item active">
       <a href="<?= base_url('dashboard') ?>" class="menu-link">
         <i class="menu-icon tf-icons ri-home-smile-line"></i>
@@ -52,45 +68,42 @@
     </li>
 
     <!-- Users -->
-    <li class="menu-item">
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons ri-user-line"></i>
-        <div data-i18n="Users">Users</div>
-      </a>
-      <ul class="menu-sub">
-        <li class="menu-item">
-          <a href="<?= base_url('users') ?>" class="menu-link">
-            <div data-i18n="List">List</div>
-          </a>
-        </li>
-      </ul>
-    </li>
+    <?php if (can_any('users')): ?>
+      <li class="menu-item">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon tf-icons ri-user-line"></i>
+          <div data-i18n="Users">Users</div>
+        </a>
+        <ul class="menu-sub">
+          <li class="menu-item">
+            <a href="<?= base_url('users') ?>" class="menu-link">
+              <div data-i18n="List">List</div>
+            </a>
+          </li>
+        </ul>
+      </li>
+    <?php endif; ?>
 
     <!-- Roles & Permissions -->
-    <li class="menu-item">
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons ri-lock-2-line"></i>
-        <div data-i18n="Roles & Permissions">Roles & Permissions</div>
-      </a>
-      <ul class="menu-sub">
-        <li class="menu-item">
-          <a href="<?= base_url('roles') ?>" class="menu-link">
-            <div data-i18n="Roles">Roles</div>
-          </a>
-        </li>
-      </ul>
-    </li>
+    <?php if (can_any('roles')): ?>
+      <li class="menu-item">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon tf-icons ri-lock-2-line"></i>
+          <div data-i18n="Roles & Permissions">Roles & Permissions</div>
+        </a>
+        <ul class="menu-sub">
+          <li class="menu-item">
+            <a href="<?= base_url('roles') ?>" class="menu-link">
+              <div data-i18n="Roles">Roles</div>
+            </a>
+          </li>
+        </ul>
+      </li>
+    <?php endif; ?>
 
 
-    <!-- Masters -->
-    <?php
-    $canGoldRate       = can('gold_rate.view');
-    $canProductCategory = can('product_category.view');
-    $canProduct        = can('product.view');
-    $canProcess        = can('process.view');
-
-    // Check if any masters permission is granted
-    if ($canGoldRate || $canProductCategory || $canProduct || $canProcess):
+    <!-- Masters (dynamic) -->
+    <?php if (!empty($masterMenuItems)):
       $isMastersActive = (strpos(uri_string(), 'masters') === 0);
     ?>
       <li class="menu-header mt-5">
@@ -102,48 +115,19 @@
           <div data-i18n="Masters">Masters</div>
         </a>
         <ul class="menu-sub">
-          <?php if ($canGoldRate): ?>
-            <li class="menu-item <?= (strpos(uri_string(), 'masters/gold-rates') === 0) ? 'active' : '' ?>">
-              <a href="<?= base_url('masters/gold-rates') ?>" class="menu-link">
-                <div data-i18n="Gold Rates">Gold Rates</div>
+          <?php foreach ($masterMenuItems as $item): ?>
+            <li class="menu-item <?= (strpos(uri_string(), $item['url']) === 0) ? 'active' : '' ?>">
+              <a href="<?= base_url($item['url']) ?>" class="menu-link">
+                <div><?= esc($item['label']) ?></div>
               </a>
             </li>
-          <?php endif; ?>
-
-          <?php if ($canProductCategory): ?>
-            <li class="menu-item <?= (strpos(uri_string(), 'masters/product-categories') === 0) ? 'active' : '' ?>">
-              <a href="<?= base_url('masters/product-categories') ?>" class="menu-link">
-                <div data-i18n="Product Categories">Product Categories</div>
-              </a>
-            </li>
-          <?php endif; ?>
-
-          <?php if ($canProduct): ?>
-            <li class="menu-item <?= (strpos(uri_string(), 'masters/products') === 0) ? 'active' : '' ?>">
-              <a href="<?= base_url('masters/products') ?>" class="menu-link">
-                <div data-i18n="Products">Products</div>
-              </a>
-            </li>
-          <?php endif; ?>
-
-          <?php if ($canProcess): ?>
-            <li class="menu-item <?= (strpos(uri_string(), 'masters/processes') === 0) ? 'active' : '' ?>">
-              <a href="<?= base_url('masters/processes') ?>" class="menu-link">
-                <div data-i18n="Processes">Processes</div>
-              </a>
-            </li>
-          <?php endif; ?>
+          <?php endforeach; ?>
         </ul>
       </li>
     <?php endif; ?>
 
-    <!-- Customers -->
-    <?php
-    $canAccount      = can('account.view');
-    $canCashCustomer = can('cash_customer.view');
-
-    // Check if any customer permission is granted
-    if ($canAccount || $canCashCustomer):
+    <!-- Customers (dynamic) -->
+    <?php if (!empty($customerMenuItems)):
       $isCustomersActive = (strpos(uri_string(), 'customers') === 0);
     ?>
       <li class="menu-item <?= $isCustomersActive ? 'active open' : '' ?>">
@@ -152,29 +136,19 @@
           <div data-i18n="Customers">Customers</div>
         </a>
         <ul class="menu-sub">
-          <?php if ($canAccount): ?>
-            <li class="menu-item <?= (strpos(uri_string(), 'customers/accounts') === 0) ? 'active' : '' ?>">
-              <a href="<?= base_url('customers/accounts') ?>" class="menu-link">
-                <div data-i18n="Account Customers">Account Customers</div>
+          <?php foreach ($customerMenuItems as $item): ?>
+            <li class="menu-item <?= (strpos(uri_string(), $item['url']) === 0) ? 'active' : '' ?>">
+              <a href="<?= base_url($item['url']) ?>" class="menu-link">
+                <div><?= esc($item['label']) ?></div>
               </a>
             </li>
-          <?php endif; ?>
-
-          <?php if ($canCashCustomer): ?>
-            <li class="menu-item <?= (strpos(uri_string(), 'customers/cash-customers') === 0) ? 'active' : '' ?>">
-              <a href="<?= base_url('customers/cash-customers') ?>" class="menu-link">
-                <div data-i18n="Cash Customers">Cash Customers</div>
-              </a>
-            </li>
-          <?php endif; ?>
+          <?php endforeach; ?>
         </ul>
       </li>
     <?php endif; ?>
 
-    <!-- Challans -->
-    <?php
-    $canChallan = can('challan.view');
-    if ($canChallan):
+    <!-- Challans (dynamic) -->
+    <?php if (!empty($challanMenuItems)):
       $isChallansActive = (strpos(uri_string(), 'challans') === 0);
     ?>
       <li class="menu-item <?= $isChallansActive ? 'active open' : '' ?>">
@@ -183,34 +157,19 @@
           <div data-i18n="Challans">Challans</div>
         </a>
         <ul class="menu-sub">
-          <li class="menu-item <?= (uri_string() === 'challans' || uri_string() === 'challans/') ? 'active' : '' ?>">
-            <a href="<?= base_url('challans') ?>" class="menu-link">
-              <div data-i18n="All Challans">All Challans</div>
-            </a>
-          </li>
-          <li class="menu-item">
-            <a href="<?= base_url('challans/create?type=Rhodium') ?>" class="menu-link">
-              <div data-i18n="Rhodium Challan">Rhodium Challan</div>
-            </a>
-          </li>
-          <li class="menu-item">
-            <a href="<?= base_url('challans/create?type=Meena') ?>" class="menu-link">
-              <div data-i18n="Meena Challan">Meena Challan</div>
-            </a>
-          </li>
-          <li class="menu-item">
-            <a href="<?= base_url('challans/create?type=Wax') ?>" class="menu-link">
-              <div data-i18n="Wax Challan">Wax Challan</div>
-            </a>
-          </li>
+          <?php foreach ($challanMenuItems as $item): ?>
+            <li class="menu-item <?= (strpos(uri_string(), $item['url']) !== false) ? 'active' : '' ?>">
+              <a href="<?= base_url($item['url']) ?>" class="menu-link">
+                <div><?= esc($item['label']) ?></div>
+              </a>
+            </li>
+          <?php endforeach; ?>
         </ul>
       </li>
     <?php endif; ?>
 
-    <!-- Invoices -->
-    <?php
-    $canInvoice = can('invoice.view');
-    if ($canInvoice):
+    <!-- Invoices (dynamic) -->
+    <?php if (!empty($invoiceMenuItems)):
       $isInvoicesActive = (strpos(uri_string(), 'invoices') !== false || strpos(uri_string(), 'account-invoices') !== false || strpos(uri_string(), 'cash-invoices') !== false || strpos(uri_string(), 'wax-invoices') !== false);
     ?>
       <li class="menu-item <?= $isInvoicesActive ? 'active open' : '' ?>">
@@ -219,39 +178,21 @@
           <div data-i18n="Invoices">Invoices</div>
         </a>
         <ul class="menu-sub">
-          <li class="menu-item <?= (uri_string() === 'invoices' || uri_string() === 'invoices/') ? 'active' : '' ?>">
-            <a href="<?= base_url('invoices') ?>" class="menu-link">
-              <div data-i18n="All Invoices">All Invoices</div>
-            </a>
-          </li>
-          <li class="menu-item <?= (strpos(uri_string(), 'account-invoices') === 0) ? 'active' : '' ?>">
-            <a href="<?= base_url('account-invoices') ?>" class="menu-link">
-              <div data-i18n="Account Invoices">Account Invoices</div>
-            </a>
-          </li>
-          <li class="menu-item <?= (strpos(uri_string(), 'cash-invoices') === 0) ? 'active' : '' ?>">
-            <a href="<?= base_url('cash-invoices') ?>" class="menu-link">
-              <div data-i18n="Cash Invoices">Cash Invoices</div>
-            </a>
-          </li>
-          <li class="menu-item <?= (strpos(uri_string(), 'wax-invoices') === 0) ? 'active' : '' ?>">
-            <a href="<?= base_url('wax-invoices') ?>" class="menu-link">
-              <div data-i18n="Wax Invoices">Wax Invoices</div>
-            </a>
-          </li>
+          <?php foreach ($invoiceMenuItems as $item): ?>
+            <li class="menu-item <?= (strpos(uri_string(), $item['url']) === 0) ? 'active' : '' ?>">
+              <a href="<?= base_url($item['url']) ?>" class="menu-link">
+                <div><?= esc($item['label']) ?></div>
+              </a>
+            </li>
+          <?php endforeach; ?>
         </ul>
       </li>
     <?php endif; ?>
 
 
-
     <!-- Payments -->
-    <?php
-    $canPayment = can('payment.view');
-    if ($canPayment):
-      $isPaymentsActive = (strpos(uri_string(), 'payments') === 0);
-    ?>
-      <li class="menu-item <?= $isPaymentsActive ? 'active' : '' ?>">
+    <?php if (can_any('payments')): ?>
+      <li class="menu-item <?= (strpos(uri_string(), 'payments') === 0) ? 'active' : '' ?>">
         <a href="<?= base_url('payments') ?>" class="menu-link">
           <i class="menu-icon tf-icons ri-money-dollar-circle-line"></i>
           <div data-i18n="Payments">Payments</div>
@@ -260,11 +201,29 @@
     <?php endif; ?>
 
 
+    <!-- Ledgers (dynamic) -->
+    <?php if (!empty($ledgerMenuItems)):
+      $isLedgersActive = (strpos(uri_string(), 'ledgers') === 0);
+    ?>
+      <li class="menu-item <?= $isLedgersActive ? 'active open' : '' ?>">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon tf-icons ri-book-2-line"></i>
+          <div data-i18n="Ledgers">Ledgers</div>
+        </a>
+        <ul class="menu-sub">
+          <?php foreach ($ledgerMenuItems as $item): ?>
+            <li class="menu-item <?= (strpos(uri_string(), $item['url']) !== false) ? 'active' : '' ?>">
+              <a href="<?= base_url($item['url']) ?>" class="menu-link">
+                <div><?= esc($item['label']) ?></div>
+              </a>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      </li>
+    <?php endif; ?>
 
-    <!-- Reports -->
-    <?php
-    $canReport = can('report.view');
-    if ($canReport):
+    <!-- Reports (dynamic) -->
+    <?php if (!empty($reportMenuItems)):
       $isReportsActive = (strpos(uri_string(), 'reports') === 0);
     ?>
       <li class="menu-item <?= $isReportsActive ? 'active open' : '' ?>">
@@ -273,36 +232,21 @@
           <div data-i18n="Reports">Reports</div>
         </a>
         <ul class="menu-sub">
-          <li class="menu-item <?= (strpos(uri_string(), 'reports/ledger') === 0) ? 'active' : '' ?>">
-            <a href="<?= base_url('reports/receivables') ?>" class="menu-link"> <!-- Consolidated view -->
-              <div data-i18n="Ledger Summary">Ledger Summary</div>
-            </a>
-          </li>
-          <li class="menu-item <?= (strpos(uri_string(), 'reports/outstanding') === 0 && strpos(uri_string(), 'aging') === false) ? 'active' : '' ?>">
-            <a href="<?= base_url('reports/outstanding') ?>" class="menu-link">
-              <div data-i18n="Outstanding Invoices">Outstanding Invoices</div>
-            </a>
-          </li>
-          <li class="menu-item <?= (strpos(uri_string(), 'reports/outstanding/aging') !== false) ? 'active' : '' ?>">
-            <a href="<?= base_url('reports/outstanding/aging') ?>" class="menu-link">
-              <div data-i18n="Aging Report">Aging Report</div>
-            </a>
-          </li>
-          <li class="menu-item <?= (strpos(uri_string(), 'reports/receivables/monthly') !== false) ? 'active' : '' ?>">
-            <a href="<?= base_url('reports/receivables/monthly') ?>" class="menu-link">
-              <div data-i18n="Monthly Receivables">Monthly Receivables</div>
-            </a>
-          </li>
+          <?php foreach ($reportMenuItems as $item): ?>
+            <li class="menu-item <?= (strpos(uri_string(), $item['url']) !== false) ? 'active' : '' ?>">
+              <a href="<?= base_url($item['url']) ?>" class="menu-link">
+                <div><?= esc($item['label']) ?></div>
+              </a>
+            </li>
+          <?php endforeach; ?>
         </ul>
       </li>
-
     <?php endif; ?>
 
     <!-- Deliveries -->
     <?php
-    // Check permissions
-    $canDeliveryAdmin = can('deliveries.view');
-    $canDeliveryStaff = can('deliveries.view_assigned');
+    $canDeliveryAdmin = can_any('deliveries.all');
+    $canDeliveryStaff = can_any('deliveries.assigned');
 
     if ($canDeliveryAdmin || $canDeliveryStaff):
       $isDeliveriesActive = (strpos(uri_string(), 'deliveries') === 0 || strpos(uri_string(), 'my-deliveries') === 0);
@@ -312,6 +256,16 @@
         <a href="<?= $deliveryUrl ?>" class="menu-link">
           <i class="menu-icon tf-icons ri-truck-line"></i>
           <div data-i18n="Deliveries">Deliveries</div>
+        </a>
+      </li>
+    <?php endif; ?>
+
+    <!-- Audit Logs -->
+    <?php if (can_any('audit')): ?>
+      <li class="menu-item <?= (strpos(uri_string(), 'audit-logs') === 0) ? 'active' : '' ?>">
+        <a href="<?= base_url('audit-logs') ?>" class="menu-link">
+          <i class="menu-icon tf-icons ri-history-line"></i>
+          <div data-i18n="Audit Logs">Audit Logs</div>
         </a>
       </li>
     <?php endif; ?>

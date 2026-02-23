@@ -19,24 +19,26 @@ class AuditLogController extends BaseController
 
   public function index()
   {
-    // Permission check can be added here or via filters
+    $this->gate('audit.logs.all.list');
 
     $session = session();
-    if (!$session->has('user')) {
-      return redirect()->to('/login');
-    }
-    $companyId = $session->get('user')['company_id'];
+    $companyId = $session->get('company_id');
 
     $data = [
       'logs' => $this->auditModel->getRecentActivity($companyId, 100),
       'title' => 'System Audit Logs'
     ];
 
-    return view('audit/index', $data);
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('audit', 'logs.all');
+    }
+
+    return $this->render('audit/index', $data);
   }
 
   public function recordAuditTrail($recordType, $recordId)
   {
+    $this->gate('audit.logs.all.view');
     $data = [
       'logs' => $this->auditModel->getAuditTrail($recordType, $recordId),
       'recordType' => $recordType,
@@ -44,13 +46,19 @@ class AuditLogController extends BaseController
       'title' => "Audit Trail: $recordType #$recordId"
     ];
 
-    return view('audit/index', $data); // Reuse index view or create specific one. Reusing index with filtered data is easiest.
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('audit', 'logs.all');
+    }
+
+    return $this->render('audit/index', $data); // Reuse index view or create specific one. Reusing index with filtered data is easiest.
   }
 
   public function userActivity($userId)
   {
+    $this->gate('audit.logs.all.view');
+
     $session = session();
-    $companyId = $session->get('user')['company_id'];
+    $companyId = $session->get('company_id');
 
     $user = $this->userModel->find($userId);
 
@@ -59,6 +67,10 @@ class AuditLogController extends BaseController
       'title' => 'Activity Log: ' . ($user['full_name'] ?? 'Unknown User')
     ];
 
-    return view('audit/index', $data);
+    if ($this->permissions) {
+      $data['action_flags'] = $this->permissions->getActionFlags('audit', 'logs.all');
+    }
+
+    return $this->render('audit/index', $data);
   }
 }

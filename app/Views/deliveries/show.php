@@ -60,17 +60,21 @@
 
         <div class="mt-4">
           <!-- Actions -->
-          <?php if ($delivery['delivery_status'] == 'Assigned'): ?>
+          <?php if ($delivery['delivery_status'] == 'Assigned' && ($action_flags['start'] ?? false)): ?>
             <button class="btn btn-warning w-100" id="btnStart">
               <i class="ri-truck-line me-1"></i> Start Delivery
             </button>
           <?php elseif ($delivery['delivery_status'] == 'In Transit'): ?>
-            <button class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#completeModal">
-              <i class="ri-check-double-line me-1"></i> Mark Delivered
-            </button>
-            <button class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#failModal">
-              <i class="ri-close-circle-line me-1"></i> Mark Failed
-            </button>
+            <?php if ($action_flags['complete'] ?? false): ?>
+              <button class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#completeModal">
+                <i class="ri-check-double-line me-1"></i> Mark Delivered
+              </button>
+            <?php endif; ?>
+            <?php if ($action_flags['fail'] ?? false): ?>
+              <button class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#failModal">
+                <i class="ri-close-circle-line me-1"></i> Mark Failed
+              </button>
+            <?php endif; ?>
           <?php endif; ?>
         </div>
       </div>

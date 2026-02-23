@@ -19,13 +19,14 @@ use CodeIgniter\Config\BaseService;
  */
 class Services extends BaseService
 {
-    public static function PermissionService($getShared = true)
-    {
-        if ($getShared) {
-            return static::getSharedInstance('PermissionService');
-        }
-
-        return new \App\Services\Auth\PermissionService();
+  public static function PermissionService($getShared = true)
+  {
+    if ($getShared) {
+      return static::getSharedInstance('PermissionService');
     }
 
+    return new \App\Services\Auth\PermissionService(
+      \Config\Services::cache()
+    );
+  }
 }

@@ -26,13 +26,11 @@ class LedgerController extends BaseController
    */
   public function accountsLedger()
   {
-    if (!$this->hasPermission('reports.ledger')) {
-      return redirect()->back()->with('error', 'Permission denied.');
-    }
+    $this->gate('ledgers.accounts.all.list');
 
     $accounts = $this->accountModel->findAll();
 
-    return view('ledgers/accounts_list', [
+    return $this->render('ledgers/accounts_list', [
       'accounts' => $accounts,
       'title'    => 'Account Ledgers'
     ]);
@@ -44,13 +42,11 @@ class LedgerController extends BaseController
    */
   public function cashCustomersLedger()
   {
-    if (!$this->hasPermission('reports.ledger')) {
-      return redirect()->back()->with('error', 'Permission denied.');
-    }
+    $this->gate('ledgers.cash_customers.all.list');
 
     $cashCustomers = $this->cashCustomerModel->findAll();
 
-    return view('ledgers/cash_customers_list', [
+    return $this->render('ledgers/cash_customers_list', [
       'cashCustomers' => $cashCustomers,
       'title'         => 'Cash Customer Ledgers'
     ]);
@@ -62,9 +58,7 @@ class LedgerController extends BaseController
    */
   public function accountLedger(int $id)
   {
-    if (!$this->hasPermission('reports.ledger')) {
-      return redirect()->back()->with('error', 'Permission denied.');
-    }
+    $this->gate('ledgers.accounts.all.view');
 
     $account = $this->accountModel->find($id);
     if (!$account) {
@@ -81,7 +75,7 @@ class LedgerController extends BaseController
       $openingBalance = $this->ledgerEntryModel->getOpeningBalance($id, 'Account', $fromDate);
     }
 
-    return view('ledgers/account_ledger', [
+    return $this->render('ledgers/account_ledger', [
       'account'        => $account,
       'entries'        => $entries,
       'fromDate'       => $fromDate,
@@ -97,9 +91,7 @@ class LedgerController extends BaseController
    */
   public function cashCustomerLedger(int $id)
   {
-    if (!$this->hasPermission('reports.ledger')) {
-      return redirect()->back()->with('error', 'Permission denied.');
-    }
+    $this->gate('ledgers.cash_customers.all.view');
 
     $cashCustomer = $this->cashCustomerModel->find($id);
     if (!$cashCustomer) {
@@ -116,7 +108,7 @@ class LedgerController extends BaseController
       $openingBalance = $this->ledgerEntryModel->getOpeningBalance($id, 'Cash', $fromDate);
     }
 
-    return view('ledgers/cash_customer_ledger', [
+    return $this->render('ledgers/cash_customer_ledger', [
       'cashCustomer'   => $cashCustomer,
       'entries'        => $entries,
       'fromDate'       => $fromDate,
@@ -134,8 +126,12 @@ class LedgerController extends BaseController
    */
   public function exportLedger($type, $id)
   {
-    if (!$this->hasPermission('reports.ledger')) {
-      return redirect()->back()->with('error', 'Permission denied.');
+    if ($type === 'account') {
+      $this->gate('ledgers.accounts.all.export');
+    } elseif ($type === 'cash-customer') {
+      $this->gate('ledgers.cash_customers.all.export');
+    } else {
+      return redirect()->back()->with('error', 'Invalid export type.');
     }
 
     $format = $this->request->getGet('format') ?? 'csv';
@@ -168,7 +164,7 @@ class LedgerController extends BaseController
 
     if ($format === 'pdf') {
       // Render Print View
-      return view('ledgers/print_ledger', [
+      return $this->render('ledgers/print_ledger', [
         'name'           => $name,
         'entries'        => $entries,
         'fromDate'       => $fromDate,
