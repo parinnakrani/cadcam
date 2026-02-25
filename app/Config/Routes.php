@@ -201,6 +201,9 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     // Print/PDF invoice
     $routes->get('(:num)/print', 'InvoiceController::print/$1');
+
+    // Change status (AJAX)
+    $routes->post('(:num)/change-status', 'InvoiceController::changeStatus/$1');
   });
 
   // Account Invoice Routes

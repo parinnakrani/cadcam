@@ -19,7 +19,68 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
   $baseRoute = 'wax-invoices';
   $baseTitle = 'Wax Invoices';
 }
+
+// ── Invoice Status Config ──
+$invoiceStatus = $invoice['invoice_status'] ?? 'Draft';
+
+$statusBadgeMap = [
+  'Draft'          => 'bg-label-secondary',
+  'Posted'         => 'bg-label-info',
+  'Partially Paid' => 'bg-label-warning',
+  'Paid'           => 'bg-label-success',
+  'Delivered'      => 'bg-label-primary',
+  'Closed'         => 'bg-label-dark',
+  'Cancelled'      => 'bg-label-danger',
+];
+$statusBadgeClass = $statusBadgeMap[$invoiceStatus] ?? 'bg-label-secondary';
+
+// Valid manual transitions
+$validTransitions = [
+  'Draft'          => ['Posted', 'Cancelled'],
+  'Posted'         => ['Closed', 'Cancelled'],
+  'Partially Paid' => ['Closed'],
+  'Paid'           => ['Delivered', 'Closed'],
+  'Delivered'      => ['Closed'],
+  'Closed'         => [],
+  'Cancelled'      => [],
+];
+$nextStatuses = $validTransitions[$invoiceStatus] ?? [];
+
+$statusLabels = [
+  'Draft'          => ['icon' => 'ri-draft-line',          'text' => 'Revert to Draft'],
+  'Posted'         => ['icon' => 'ri-send-plane-line',      'text' => 'Mark as Posted'],
+  'Partially Paid' => ['icon' => 'ri-money-dollar-circle-line', 'text' => 'Mark as Partially Paid'],
+  'Paid'           => ['icon' => 'ri-checkbox-circle-line', 'text' => 'Mark as Paid'],
+  'Delivered'      => ['icon' => 'ri-truck-line',           'text' => 'Mark as Delivered'],
+  'Closed'         => ['icon' => 'ri-lock-line',            'text' => 'Close Invoice'],
+  'Cancelled'      => ['icon' => 'ri-close-circle-line',    'text' => 'Cancel Invoice'],
+];
 ?>
+
+<!-- Flash Messages -->
+<?php if (session()->getFlashdata('success')): ?>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <?= esc(session()->getFlashdata('success')) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')): ?>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <?= esc(session()->getFlashdata('error')) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<?php endif; ?>
+
+<!-- Status Change Success Toast -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1090">
+  <div id="statusToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="statusToastMsg">Status updated.</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="<?= base_url('/') ?>">Home</a></li>
@@ -36,7 +97,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       <small>Created on <?= date('d M Y, h:i A', strtotime($invoice['created_at'])) ?></small>
     </p>
   </div>
-  <div class="btn-group">
+  <div class="d-flex gap-2 flex-wrap">
     <!-- Print Button -->
     <a href="<?= base_url("invoices/{$invoice['id']}/print") ?>" target="_blank" class="btn btn-outline-primary">
       <i class="ri-printer-line"></i> Print
@@ -47,6 +108,26 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       <a href="<?= base_url("{$baseRoute}/{$invoice['id']}/edit") ?>" class="btn btn-outline-secondary">
         <i class="ri-pencil-line"></i> Edit
       </a>
+    <?php endif; ?>
+
+    <!-- Change Status Dropdown -->
+    <?php if (!empty($nextStatuses)): ?>
+      <div class="btn-group">
+        <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="ri-exchange-line me-1"></i> Change Status
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <?php foreach ($nextStatuses as $next): ?>
+            <?php $lbl = $statusLabels[$next] ?? ['icon' => 'ri-arrow-right-line', 'text' => $next]; ?>
+            <li>
+              <a class="dropdown-item btn-change-status <?= $next === 'Cancelled' ? 'text-danger' : '' ?>"
+                href="javascript:void(0);" data-status="<?= esc($next) ?>">
+                <i class="<?= $lbl['icon'] ?> me-1"></i> <?= esc($lbl['text']) ?>
+              </a>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
     <?php endif; ?>
 
     <!-- Record Payment Button (only if amount due > 0) -->
@@ -79,6 +160,9 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
   }
   ?>
   <span class="badge bg-<?= $typeBadge ?> me-2"><?= esc($invoice['invoice_type']) ?></span>
+
+  <!-- Invoice Status Badge (workflow status) -->
+  <span class="badge <?= $statusBadgeClass ?> me-2"><?= esc($invoiceStatus) ?></span>
 
   <!-- Payment Status Badge -->
   <?php
@@ -407,6 +491,74 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
         </div>
       </div>
     <?php endif; ?>
+
+    <!-- Status Workflow Card -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0"><i class="ri-route-line me-1"></i> Invoice Status</h5>
+      </div>
+      <div class="card-body pb-1">
+        <?php
+        $allStatuses = ['Draft', 'Posted', 'Paid', 'Delivered', 'Closed'];
+        $currentIdx  = array_search($invoiceStatus, $allStatuses);
+        if ($currentIdx === false) $currentIdx = -1;
+        ?>
+        <?php foreach ($allStatuses as $idx => $st): ?>
+          <?php
+          $isActive = ($st === $invoiceStatus);
+          $isPast   = ($idx < $currentIdx);
+          $iconClass = 'ri-checkbox-blank-circle-line text-muted';
+          $textClass = 'text-muted';
+          if ($isPast) {
+            $iconClass = 'ri-checkbox-circle-fill text-success';
+            $textClass = 'text-success';
+          }
+          if ($isActive) {
+            $iconClass = 'ri-radio-button-line text-primary';
+            $textClass = 'fw-semibold text-primary';
+          }
+          ?>
+          <div class="d-flex align-items-center mb-3">
+            <i class="<?= $iconClass ?> me-2 ri-lg"></i>
+            <span class="<?= $textClass ?>"><?= esc($st) ?></span>
+            <?php if ($isActive): ?>
+              <span class="badge bg-label-primary ms-2">Current</span>
+            <?php endif; ?>
+          </div>
+          <?php if ($idx < count($allStatuses) - 1): ?>
+            <div class="ms-2 ps-1 border-start <?= $isPast ? 'border-success' : 'border-light' ?>" style="height:12px;"></div>
+          <?php endif; ?>
+        <?php endforeach; ?>
+        <?php if ($invoiceStatus === 'Cancelled'): ?>
+          <div class="d-flex align-items-center mb-3">
+            <i class="ri-close-circle-fill text-danger me-2 ri-lg"></i>
+            <span class="text-danger fw-semibold">Cancelled <span class="badge bg-label-danger ms-1">Current</span></span>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Status Change Confirmation Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="ri-exchange-line me-1"></i> Change Status</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Change invoice status from <strong><?= esc($invoiceStatus) ?></strong> to <strong id="new-status-label"></strong>?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-status">
+          <i class="ri-check-line me-1"></i> Confirm
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -414,7 +566,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
 
 <?= $this->endSection() ?>
 
-<?= $this->section('scripts') ?>
+<?= $this->section('pageScripts') ?>
 <script>
   // Delete Invoice Function
   function deleteInvoice(invoiceId, invoiceNumber) {
@@ -440,5 +592,65 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       });
     }
   }
+
+  $(document).ready(function() {
+    // =========================================================================
+    // STATUS CHANGE
+    // =========================================================================
+    var statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+    var statusToast = new bootstrap.Toast(document.getElementById('statusToast'));
+    var pendingStatus = null;
+
+    $(document).on('click', '.btn-change-status', function(e) {
+      e.preventDefault();
+      pendingStatus = $(this).data('status');
+      $('#new-status-label').text(pendingStatus);
+      statusModal.show();
+    });
+
+    $('#btn-confirm-status').on('click', function() {
+      if (!pendingStatus) return;
+
+      var $btn = $(this);
+      $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Updating...');
+
+      $.ajax({
+        url: '<?= base_url("invoices/{$invoice['id']}/change-status") ?>',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          new_status: pendingStatus
+        }),
+        dataType: 'json',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function(res) {
+          statusModal.hide();
+          if (res.status === 'success') {
+            $('#statusToastMsg').text('Status changed to ' + pendingStatus);
+            statusToast.show();
+            setTimeout(function() {
+              window.location.reload();
+            }, 1000);
+          } else {
+            alert(res.message || 'Status change failed.');
+          }
+        },
+        error: function(xhr) {
+          statusModal.hide();
+          var msg = 'Status change failed.';
+          try {
+            msg = JSON.parse(xhr.responseText).message || msg;
+          } catch (e) {}
+          alert(msg);
+        },
+        complete: function() {
+          $btn.prop('disabled', false).html('<i class="ri-check-line me-1"></i> Confirm');
+          pendingStatus = null;
+        }
+      });
+    });
+  });
 </script>
 <?= $this->endSection() ?>

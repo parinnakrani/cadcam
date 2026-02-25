@@ -687,17 +687,15 @@ class InvoiceController extends BaseController
 
   /**
    * Generate and download invoice PDF
-   * 
+   *
    * GET /invoices/{id}/print
-   * 
+   *
    * @param int $id Invoice ID
    * @return string|ResponseInterface
    */
   public function print(int $id)
   {
-    // Check permission happens after we load the invoice
     try {
-      // Get invoice with lines
       $invoice = $this->invoiceService->getInvoiceById($id);
 
       if (!$invoice) {
@@ -707,11 +705,86 @@ class InvoiceController extends BaseController
       $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
       $this->gate("invoices.{$sub}.print");
 
-      // Render printable HTML view
       return $this->render('invoices/print', ['invoice' => $invoice]);
     } catch (Exception $e) {
       log_message('error', 'Invoice print error: ' . $e->getMessage());
       return redirect()->back()->with('error', 'Failed to generate printable invoice: ' . $e->getMessage());
     }
+  }
+
+  /**
+   * Change invoice status
+   *
+   * POST /invoices/{id}/change-status
+   *
+   * @param int $id Invoice ID
+   * @return ResponseInterface
+   */
+  public function changeStatus(int $id)
+  {
+    try {
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return $this->response->setStatusCode(404)->setJSON(['status' => 'error', 'message' => 'Invoice not found']);
+      }
+
+      $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
+      if (!can("invoices.{$sub}.edit")) {
+        return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Permission denied']);
+      }
+
+      // Read new status from JSON body or POST
+      $body      = $this->request->getJSON(true) ?? [];
+      $newStatus = trim($body['new_status'] ?? $this->request->getPost('new_status') ?? '');
+
+      // Valid manual transitions
+      $validTransitions = [
+        'Draft'          => ['Posted', 'Cancelled'],
+        'Posted'         => ['Closed', 'Cancelled'],
+        'Partially Paid' => ['Closed'],
+        'Paid'           => ['Delivered', 'Closed'],
+        'Delivered'      => ['Closed'],
+        'Closed'         => [],
+        'Cancelled'      => [],
+      ];
+
+      $currentStatus = $invoice['invoice_status'] ?? 'Draft';
+      $allowed       = $validTransitions[$currentStatus] ?? [];
+
+      if (!in_array($newStatus, $allowed)) {
+        return $this->response->setStatusCode(400)->setJSON([
+          'status'  => 'error',
+          'message' => "Cannot change status from '{$currentStatus}' to '{$newStatus}'"
+        ]);
+      }
+
+      // Update the invoice_status column directly
+      $invoiceModel = new \App\Models\InvoiceModel();
+      $invoiceModel->update($id, ['invoice_status' => $newStatus]);
+
+      log_message('info', "[InvoiceController::changeStatus] Invoice #{$id} status: {$currentStatus} → {$newStatus}");
+
+      return $this->response->setJSON([
+        'status'  => 'success',
+        'message' => "Status changed to {$newStatus}",
+      ]);
+    } catch (Exception $e) {
+      log_message('error', '[InvoiceController::changeStatus] ' . $e->getMessage());
+      return $this->response->setStatusCode(500)->setJSON(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+  }
+
+  /**
+   * Resolve invoice sub-module from invoice type
+   */
+  protected function resolveInvoiceSub(string $type): string
+  {
+    return match ($type) {
+      'Accounts Invoice' => 'account',
+      'Cash Invoice'     => 'cash',
+      'Wax Invoice'      => 'wax',
+      default            => 'all',
+    };
   }
 }
