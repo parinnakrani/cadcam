@@ -248,22 +248,9 @@ class CashInvoiceController extends InvoiceController
    */
   public function edit(int $id)
   {
-    // Check permission
     try {
-      // Get invoice
-      $invoice = $this->invoiceService->getInvoiceById($id);
-
-      if (!$invoice) {
-        return redirect()->to('/cash-invoices')->with('error', 'Invoice not found');
-      }
-
-      // Ensure it is a Cash Invoice
-      if ($invoice['invoice_type'] !== $this->invoiceType) {
-        // Optionally redirect to correct edit page if type mismatch
-        return redirect()->to('/cash-invoices')->with('error', 'Invalid invoice type');
-      }
-
       $this->gate('invoices.cash.edit');
+
       // Get invoice
       $invoice = $this->invoiceService->getInvoiceById($id);
 
@@ -273,7 +260,6 @@ class CashInvoiceController extends InvoiceController
 
       // Ensure it is a Cash Invoice
       if ($invoice['invoice_type'] !== $this->invoiceType) {
-        // Optionally redirect to correct edit page if type mismatch
         return redirect()->to('/cash-invoices')->with('error', 'Invalid invoice type');
       }
 
@@ -283,8 +269,17 @@ class CashInvoiceController extends InvoiceController
           ->with('error', 'Cannot edit invoice with payment history');
       }
 
-      // Load dropdowns - only Cash customers
+      // Load dropdowns
       $companyId = session()->get('company_id');
+
+      // Get gold rates for all purities
+      $goldRates = [];
+      foreach (['24K', '22K', '18K', '14K'] as $purity) {
+        $rate = $this->goldRateModel->getLatestRate((int)$companyId, $purity);
+        if ($rate !== null) {
+          $goldRates[$purity] = $rate;
+        }
+      }
 
       $data = [
         'invoice' => $invoice,
@@ -301,6 +296,7 @@ class CashInvoiceController extends InvoiceController
           ->where('is_deleted', 0)
           ->orderBy('process_name', 'ASC')
           ->findAll(),
+        'gold_rates' => $goldRates,
       ];
 
       return $this->render('invoices/edit', $data);

@@ -152,126 +152,117 @@
           </tr>
         </thead>
         <tbody>
-          <?php if (!empty($invoices)): ?>
-            <?php foreach ($invoices as $invoice): ?>
-              <tr>
-                <!-- Invoice Number -->
-                <td>
-                  <a href="<?= base_url("invoices/{$invoice['id']}") ?>" class="text-decoration-none fw-bold">
-                    <?= esc($invoice['invoice_number']) ?>
-                  </a>
-                </td>
-
-                <!-- Date -->
-                <td><?= date('d M Y', strtotime($invoice['invoice_date'])) ?></td>
-
-                <!-- Customer Name -->
-                <td>
-                  <?= esc($invoice['customer_name'] ?? 'N/A') ?>
-                </td>
-
-                <!-- Grand Total -->
-                <td class="text-end fw-bold">₹<?= number_format($invoice['grand_total'], 2) ?></td>
-
-                <!-- Amount Paid -->
-                <td class="text-end">₹<?= number_format($invoice['total_paid'], 2) ?></td>
-
-                <!-- Amount Due -->
-                <td class="text-end">
-                  <span class="<?= $invoice['amount_due'] > 0 ? 'text-danger fw-bold' : 'text-success' ?>">
-                    ₹<?= number_format($invoice['amount_due'], 2) ?>
-                  </span>
-                </td>
-
-                <!-- Payment Status Badge -->
-                <td>
-                  <?php
-                  $statusBadge = 'secondary';
-                  $statusText = $invoice['payment_status'];
-
-                  if ($invoice['payment_status'] === 'Pending') {
-                    $statusBadge = 'danger';
-                    $statusText = 'Unpaid';
-                  } elseif ($invoice['payment_status'] === 'Partial Paid') {
-                    $statusBadge = 'warning';
-                  } elseif ($invoice['payment_status'] === 'Paid') {
-                    $statusBadge = 'success';
-                  }
-                  ?>
-                  <span class="badge bg-<?= $statusBadge ?>">
-                    <?= esc($statusText) ?>
-                  </span>
-                </td>
-
-                <!-- Delivery Status -->
-                <td>
-                  <?php
-                  $deliveryStatus = $invoice['delivery_status'] ?? 'Not Delivered';
-                  $deliveryBadge = $deliveryStatus === 'Delivered' ? 'success' : 'secondary';
-                  ?>
-                  <span class="badge bg-<?= $deliveryBadge ?>">
-                    <?= esc($deliveryStatus) ?>
-                  </span>
-                </td>
-
-                <!-- Actions -->
-                <td class="text-center">
-                  <div class="btn-group btn-group-sm" role="group">
-                    <!-- View -->
-                    <a href="<?= base_url("invoices/{$invoice['id']}") ?>"
-                      class="btn btn-outline-primary"
-                      title="View">
-                      <i class="ri-eye-line"></i>
-                    </a>
-
-                    <!-- Edit (only if not paid) -->
-                    <?php if ($invoice['total_paid'] == 0 && ($action_flags['edit'] ?? false)): ?>
-                      <?php
-                      $editUrl = base_url("invoices/{$invoice['id']}/edit");
-                      if ($invoice['invoice_type'] === 'Accounts Invoice') {
-                        $editUrl = base_url("account-invoices/{$invoice['id']}/edit");
-                      } elseif ($invoice['invoice_type'] === 'Cash Invoice') {
-                        $editUrl = base_url("cash-invoices/{$invoice['id']}/edit");
-                      } elseif ($invoice['invoice_type'] === 'Wax Invoice') {
-                        $editUrl = base_url("wax-invoices/{$invoice['id']}/edit");
-                      }
-                      ?>
-                      <a href="<?= $editUrl ?>"
-                        class="btn btn-outline-secondary"
-                        title="Edit">
-                        <i class="ri-pencil-line"></i>
-                      </a>
-                    <?php endif; ?>
-
-                    <!-- Print -->
-                    <a href="<?= base_url("invoices/{$invoice['id']}/print") ?>"
-                      class="btn btn-outline-info"
-                      target="_blank"
-                      title="Print">
-                      <i class="ri-printer-line"></i>
-                    </a>
-
-                    <!-- Delete (only if not paid) -->
-                    <?php if ($invoice['total_paid'] == 0 && ($action_flags['delete'] ?? false)): ?>
-                      <button type="button"
-                        class="btn btn-outline-danger"
-                        onclick="deleteInvoice(<?= $invoice['id'] ?>, '<?= esc($invoice['invoice_number']) ?>')"
-                        title="Delete">
-                        <i class="ri-delete-bin-line"></i>
-                      </button>
-                    <?php endif; ?>
-                  </div>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          <?php else: ?>
+          <?php foreach ($invoices as $invoice): ?>
             <tr>
-              <td colspan="9" class="text-center text-muted py-4">
-                <i class="ri-inbox-line" style="font-size: 3rem;"></i>
-                <p class="mt-2">No invoices found</p>
+              <!-- Invoice Number -->
+              <td>
+                <a href="<?= base_url("invoices/{$invoice['id']}") ?>" class="text-decoration-none fw-bold">
+                  <?= esc($invoice['invoice_number']) ?>
+                </a>
+              </td>
+
+              <!-- Date -->
+              <td><?= date('d M Y', strtotime($invoice['invoice_date'])) ?></td>
+
+              <!-- Customer Name -->
+              <td>
+                <?= esc($invoice['customer_name'] ?? 'N/A') ?>
+              </td>
+
+              <!-- Grand Total -->
+              <td class="text-end fw-bold">₹<?= number_format($invoice['grand_total'], 2) ?></td>
+
+              <!-- Amount Paid -->
+              <td class="text-end">₹<?= number_format($invoice['total_paid'], 2) ?></td>
+
+              <!-- Amount Due -->
+              <td class="text-end">
+                <span class="<?= $invoice['amount_due'] > 0 ? 'text-danger fw-bold' : 'text-success' ?>">
+                  ₹<?= number_format($invoice['amount_due'], 2) ?>
+                </span>
+              </td>
+
+              <!-- Payment Status Badge -->
+              <td>
+                <?php
+                $statusBadge = 'secondary';
+                $statusText = $invoice['payment_status'];
+
+                if ($invoice['payment_status'] === 'Pending') {
+                  $statusBadge = 'danger';
+                  $statusText = 'Unpaid';
+                } elseif ($invoice['payment_status'] === 'Partial Paid') {
+                  $statusBadge = 'warning';
+                } elseif ($invoice['payment_status'] === 'Paid') {
+                  $statusBadge = 'success';
+                }
+                ?>
+                <span class="badge bg-<?= $statusBadge ?>">
+                  <?= esc($statusText) ?>
+                </span>
+              </td>
+
+              <!-- Delivery Status -->
+              <td>
+                <?php
+                $deliveryStatus = $invoice['delivery_status'] ?? 'Not Delivered';
+                $deliveryBadge = $deliveryStatus === 'Delivered' ? 'success' : 'secondary';
+                ?>
+                <span class="badge bg-<?= $deliveryBadge ?>">
+                  <?= esc($deliveryStatus) ?>
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <!-- View -->
+                  <a href="<?= base_url("invoices/{$invoice['id']}") ?>"
+                    class="btn btn-outline-primary"
+                    title="View">
+                    <i class="ri-eye-line"></i>
+                  </a>
+
+                  <!-- Edit (only if not paid) -->
+                  <?php if ($invoice['total_paid'] == 0 && ($action_flags['edit'] ?? false)): ?>
+                    <?php
+                    $editUrl = base_url("invoices/{$invoice['id']}/edit");
+                    if ($invoice['invoice_type'] === 'Accounts Invoice') {
+                      $editUrl = base_url("account-invoices/{$invoice['id']}/edit");
+                    } elseif ($invoice['invoice_type'] === 'Cash Invoice') {
+                      $editUrl = base_url("cash-invoices/{$invoice['id']}/edit");
+                    } elseif ($invoice['invoice_type'] === 'Wax Invoice') {
+                      $editUrl = base_url("wax-invoices/{$invoice['id']}/edit");
+                    }
+                    ?>
+                    <a href="<?= $editUrl ?>"
+                      class="btn btn-outline-secondary"
+                      title="Edit">
+                      <i class="ri-pencil-line"></i>
+                    </a>
+                  <?php endif; ?>
+
+                  <!-- Print -->
+                  <a href="<?= base_url("invoices/{$invoice['id']}/print") ?>"
+                    class="btn btn-outline-info"
+                    target="_blank"
+                    title="Print">
+                    <i class="ri-printer-line"></i>
+                  </a>
+
+                  <!-- Delete (only if not paid) -->
+                  <?php if ($invoice['total_paid'] == 0 && ($action_flags['delete'] ?? false)): ?>
+                    <button type="button"
+                      class="btn btn-outline-danger"
+                      onclick="deleteInvoice(<?= $invoice['id'] ?>, '<?= esc($invoice['invoice_number']) ?>')"
+                      title="Delete">
+                      <i class="ri-delete-bin-line"></i>
+                    </button>
+                  <?php endif; ?>
+                </div>
               </td>
             </tr>
-          <?php endif; ?>
+          <?php endforeach; ?>
         </tbody>
       </table>
     </div>

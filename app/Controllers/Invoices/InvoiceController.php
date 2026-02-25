@@ -16,6 +16,7 @@ use App\Models\ProductModel;
 use App\Models\ProcessModel;
 use App\Models\ChallanModel;
 use App\Models\ChallanLineModel;
+use App\Models\GoldRateModel;
 use App\Models\CompanyModel;
 use App\Services\Invoice\InvoiceNotFoundException;
 use App\Services\Invoice\InvoiceAlreadyPaidException;
@@ -50,6 +51,7 @@ class InvoiceController extends BaseController
   protected CashCustomerModel $cashCustomerModel;
   protected ProductModel $productModel;
   protected ProcessModel $processModel;
+  protected GoldRateModel $goldRateModel;
 
   public function __construct()
   {
@@ -61,6 +63,7 @@ class InvoiceController extends BaseController
     $this->cashCustomerModel = new CashCustomerModel();
     $this->productModel = new ProductModel();
     $this->processModel = new ProcessModel();
+    $this->goldRateModel = new GoldRateModel();
 
     // Instantiate ChallanService with all dependencies
     $this->challanService = new ChallanService(
@@ -518,6 +521,15 @@ class InvoiceController extends BaseController
       // Load dropdowns
       $companyId = session()->get('company_id');
 
+      // Get gold rates for all purities
+      $goldRates = [];
+      foreach (['24K', '22K', '18K', '14K'] as $purity) {
+        $rate = $this->goldRateModel->getLatestRate((int)$companyId, $purity);
+        if ($rate !== null) {
+          $goldRates[$purity] = $rate;
+        }
+      }
+
       $data = [
         'invoice' => $invoice,
         'accounts' => $this->accountModel->where('company_id', $companyId)
@@ -535,6 +547,7 @@ class InvoiceController extends BaseController
           ->where('is_deleted', 0)
           ->orderBy('process_name', 'ASC')
           ->findAll(),
+        'gold_rates' => $goldRates,
       ];
 
       return $this->render('invoices/edit', $data);

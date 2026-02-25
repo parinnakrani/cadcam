@@ -191,13 +191,15 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
           <thead class="table-light">
             <tr>
               <th style="width: 50px;">#</th>
-              <th style="width: 200px;">Products</th>
-              <th style="width: 200px;">Processes</th>
-              <th style="width: 100px;">Qty</th>
-              <th style="width: 120px;">Weight (g)</th>
-              <th style="width: 120px;">Rate (₹)</th>
-              <th style="width: 120px;">Amount (₹)</th>
-              <th style="width: 80px;">Actions</th>
+              <th style="width: 180px;">Products</th>
+              <th style="width: 180px;">Processes</th>
+              <th style="width: 70px;">Qty</th>
+              <th style="width: 100px;">Weight (g)</th>
+              <th style="width: 100px;">Gold Wt (g)</th>
+              <th style="width: 80px;">Purity</th>
+              <th style="width: 100px;">Rate (₹)</th>
+              <th style="width: 110px;">Amount (₹)</th>
+              <th style="width: 50px;"></th>
             </tr>
           </thead>
           <tbody id="linesBody">
@@ -222,28 +224,28 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
               <tr>
                 <td class="text-end text-muted">Subtotal:</td>
                 <td class="text-end fw-semibold" style="width: 120px;">
-                  <span id="subtotalDisplay">₹0.00</span>
+                  <span id="subtotalDisplay">₹<?= number_format($invoice['subtotal'] ?? 0, 2) ?></span>
                 </td>
               </tr>
               <tr>
-                <td class="text-end text-muted">Tax:</td>
+                <td class="text-end text-muted">Tax (Inclusive):</td>
                 <td class="text-end fw-semibold">
-                  <span id="totalTaxDisplay">₹0.00</span>
+                  <span id="totalTaxDisplay">₹<?= number_format($invoice['tax_amount'] ?? 0, 2) ?></span>
                 </td>
               </tr>
               <tr class="border-top">
                 <td class="text-end fw-bold fs-5">Grand Total:</td>
                 <td class="text-end fw-bold fs-5 text-primary">
-                  <span id="grandTotalDisplay">₹0.00</span>
+                  <span id="grandTotalDisplay">₹<?= number_format($invoice['grand_total'] ?? 0, 2) ?></span>
                 </td>
               </tr>
             </tbody>
           </table>
 
           <!-- Hidden Inputs for Submission -->
-          <input type="hidden" name="subtotal" id="subtotalInput" value="0">
-          <input type="hidden" name="tax_amount" id="taxAmountInput" value="0">
-          <input type="hidden" name="grand_total" id="grandTotalInput" value="0">
+          <input type="hidden" name="subtotal" id="subtotalInput" value="<?= esc($invoice['subtotal'] ?? 0) ?>">
+          <input type="hidden" name="tax_amount" id="taxAmountInput" value="<?= esc($invoice['tax_amount'] ?? 0) ?>">
+          <input type="hidden" name="grand_total" id="grandTotalInput" value="<?= esc($invoice['grand_total'] ?? 0) ?>">
 
           <!-- Tax Breakdown Inputs (Hidden) -->
           <input type="hidden" id="taxType" value="">
@@ -344,6 +346,19 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
         name="lines[__INDEX__][weight]" value="0.000" min="0" step="0.001">
     </td>
     <td>
+      <input type="number" class="form-control form-control-sm line-gold-weight"
+        name="lines[__INDEX__][gold_weight]" value="" min="0" step="0.001" placeholder="0.000">
+    </td>
+    <td>
+      <select class="form-select form-select-sm line-purity" name="lines[__INDEX__][gold_purity]">
+        <option value="">--</option>
+        <option value="24K">24K</option>
+        <option value="22K">22K</option>
+        <option value="18K">18K</option>
+        <option value="14K">14K</option>
+      </select>
+    </td>
+    <td>
       <input type="number" class="form-control form-control-sm line-rate"
         name="lines[__INDEX__][rate]" value="0.00" min="0" step="0.01">
     </td>
@@ -351,6 +366,9 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       <input type="text" class="form-control form-control-sm line-amount fw-semibold"
         name="lines[__INDEX__][amount]" value="0.00" readonly tabindex="-1"
         style="background-color: #f8f9fa;">
+      <input type="hidden" class="line-current-gold-price" name="lines[__INDEX__][current_gold_price]" value="">
+      <input type="hidden" class="line-adjusted-gold-weight" name="lines[__INDEX__][adjusted_gold_weight]" value="">
+      <input type="hidden" class="line-gold-adjustment-amount" name="lines[__INDEX__][gold_adjustment_amount]" value="">
     </td>
     <td class="text-center align-middle">
       <button type="button" class="btn btn-sm btn-outline-danger btn-remove-line" title="Remove Line">
@@ -386,8 +404,10 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
 
     // Global variables
     let lineIndex = 0;
+    let isInitialLoad = true;
     const companyStateId = <?= session()->get('company_state_id') ?? 'null' ?>;
     const defaultTaxRate = <?= $default_tax_rate ?? 3.00 ?>;
+    const goldRates = <?= json_encode($gold_rates ?? []) ?>;
 
     // Initialize
     initializeForm();
@@ -424,16 +444,16 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
           const $row = $('#linesBody .line-row:last');
 
           $row.find('.line-qty').val(line.quantity);
-
-          // Weight: prioritize gold_weight if > 0, else weight
-          let weight = parseFloat(line.weight);
-          if (parseFloat(line.gold_weight) > 0) {
-            weight = parseFloat(line.gold_weight);
-          }
-          $row.find('.line-weight').val(weight);
-
+          $row.find('.line-weight').val(parseFloat(line.weight || 0).toFixed(3));
           $row.find('.line-rate').val(line.rate);
           $row.find('.line-amount').val(line.amount);
+
+          // Gold fields
+          if (line.gold_weight) $row.find('.line-gold-weight').val(parseFloat(line.gold_weight).toFixed(3));
+          if (line.gold_purity) $row.find('.line-purity').val(line.gold_purity);
+          if (line.current_gold_price) $row.find('.line-current-gold-price').val(line.current_gold_price);
+          if (line.adjusted_gold_weight) $row.find('.line-adjusted-gold-weight').val(line.adjusted_gold_weight);
+          if (line.gold_adjustment_amount) $row.find('.line-gold-adjustment-amount').val(line.gold_adjustment_amount);
 
           // Products
           if (line.product_ids) {
@@ -467,6 +487,8 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
         // Add one empty line if none exist
         addLine();
       }
+
+      isInitialLoad = false;
     }
 
     function setupEventListeners() {
@@ -500,6 +522,8 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       // Remove Line
       $(document).on('click', '.btn-remove-line', function() {
         var $row = $(this).closest('.line-row');
+        // Remove associated gold adjustment info row if exists
+        $row.next('.gold-adjustment-info').remove();
         // Destroy Select2 before removing
         $row.find('.line-product, .line-process').select2('destroy');
         $row.remove();
@@ -516,7 +540,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
         calculateLineAmount($(this).closest('.line-row'));
       });
 
-      $(document).on('input change', '.line-qty, .line-rate, .line-weight', function() {
+      $(document).on('input change', '.line-qty, .line-rate, .line-weight, .line-gold-weight, .line-purity', function() {
         calculateLineAmount($(this).closest('.line-row'));
       });
 
@@ -578,8 +602,12 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
     }
 
     function calculateLineAmount($row) {
+      if (typeof isInitialLoad !== 'undefined' && isInitialLoad) return;
+
       var quantity = parseInt($row.find('.line-qty').val()) || 1;
       var weight = parseFloat($row.find('.line-weight').val()) || 0;
+      var goldWeight = parseFloat($row.find('.line-gold-weight').val()) || 0;
+      var purity = $row.find('.line-purity').val() || '';
       var $processSelect = $row.find('.line-process');
       var selectedProcesses = $processSelect.val() || [];
 
@@ -594,53 +622,95 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       // If no processes selected, check manual rate
       var manualRate = parseFloat($row.find('.line-rate').val()) || 0;
 
-      // If processes selected, override rate. Else keep manual rate.
-      // Note: We update the rate field if processes are selected.
       if (selectedProcesses.length > 0) {
         $row.find('.line-rate').val(totalRate.toFixed(2));
       } else {
-        // If we allow manual entry when no process is selected, we use the value in the input
         totalRate = manualRate;
       }
 
-      // Amount calculation
-      var amount = 0;
+      // Base Amount = weight × rate (if weight > 0), otherwise qty × rate
+      var baseAmount = 0;
       if (weight > 0) {
-        amount = weight * totalRate;
+        baseAmount = weight * totalRate;
       } else {
-        amount = quantity * totalRate;
+        baseAmount = quantity * totalRate;
       }
-      $row.find('.line-amount').val(amount.toFixed(2));
+
+      // Gold adjustment calculation
+      var currentGoldPrice = 0;
+      var adjustedGoldWeight = 0;
+      var goldAdjustmentAmount = 0;
+
+      if (goldWeight > 0 && purity && goldRates[purity]) {
+        currentGoldPrice = parseFloat(goldRates[purity]);
+        adjustedGoldWeight = goldWeight - weight; // gold difference
+        goldAdjustmentAmount = adjustedGoldWeight * currentGoldPrice;
+      }
+
+      var finalAmount = baseAmount + goldAdjustmentAmount;
+
+      // Store gold adjustment values in hidden fields
+      $row.find('.line-current-gold-price').val(currentGoldPrice.toFixed(2));
+      $row.find('.line-adjusted-gold-weight').val(adjustedGoldWeight.toFixed(3));
+      $row.find('.line-gold-adjustment-amount').val(goldAdjustmentAmount.toFixed(2));
+
+      $row.find('.line-amount').val(finalAmount.toFixed(2));
+
+      // Show/hide gold adjustment info below the row
+      var $infoRow = $row.next('.gold-adjustment-info');
+      if (goldAdjustmentAmount !== 0) {
+        var sign = goldAdjustmentAmount > 0 ? '+' : '';
+        var infoHtml = '<td colspan="10" class="py-1 ps-3 bg-light border-0">' +
+          '<small class="text-muted">' +
+          '<i class="ri-information-line me-1"></i>' +
+          'Gold Adj: Wt Diff = <strong>' + adjustedGoldWeight.toFixed(3) + 'g</strong>' +
+          ' × Rate ₹' + currentGoldPrice.toLocaleString('en-IN', {
+            minimumFractionDigits: 2
+          }) +
+          ' = <strong class="' + (goldAdjustmentAmount > 0 ? 'text-success' : 'text-danger') + '">' +
+          sign + '₹' + goldAdjustmentAmount.toLocaleString('en-IN', {
+            minimumFractionDigits: 2
+          }) +
+          '</strong>' +
+          ' | Base ₹' + baseAmount.toLocaleString('en-IN', {
+            minimumFractionDigits: 2
+          }) +
+          ' → Final ₹' + finalAmount.toLocaleString('en-IN', {
+            minimumFractionDigits: 2
+          }) +
+          '</small></td>';
+
+        if ($infoRow.length) {
+          $infoRow.html(infoHtml);
+        } else {
+          $row.after('<tr class="gold-adjustment-info">' + infoHtml + '</tr>');
+        }
+      } else {
+        if ($infoRow.length) $infoRow.remove();
+      }
 
       calculateTotals();
     }
 
     function calculateTotals() {
-      let subtotal = 0;
+      if (typeof isInitialLoad !== 'undefined' && isInitialLoad) return;
+
+      let lineTotal = 0;
 
       $('#linesBody .line-row').each(function() {
         var amount = parseFloat($(this).find('.line-amount').val()) || 0;
-        subtotal += amount;
+        lineTotal += amount;
       });
 
-      // Tax Calculation
-      // We need to know tax type and rate
-      // Simplification: We assume tax rate is set in hidden input or derived
-      // But currently we don't have a tax breakdown UI in the new layout request (only "Remove tax & total from column")
-      // However, the Invoice model likely still expects tax info.
-      // We will perform calculations but maybe not show detailed breakdown in line items anymore.
-      // We still need to show the Grand Total somewhere? 
-      // The user request "Remove tax & total from column" likely refers to the LINE ITEM table columns.
-      // The overall invoice totals (Subtotal, Tax, Grand Total) should probably remain.
-
-      // Let's re-add the Totals card at the bottom which I might have removed in the chunk replacement.
-      // Oops, I removed the Totals card in the chunk replacement above. I should add it back below the table.
-
+      // Tax-inclusive calculation:
+      // Line amounts already include tax, so grand total = sum of line amounts
+      // Tax is back-calculated (extracted) from the total
       const taxRate = parseFloat($('#taxRateInput').val()) || 0;
-      const taxAmount = subtotal * (taxRate / 100);
-      const grandTotal = subtotal + taxAmount;
+      const taxAmount = lineTotal * taxRate / (100 + taxRate);
+      const subtotal = lineTotal - taxAmount; // taxable amount (excl. tax)
+      const grandTotal = lineTotal; // grand total = sum of line amounts (tax already included)
 
-      // Update Displays (We need to re-add these elements in the HTML)
+      // Update Displays
       $('#subtotalDisplay').text('₹' + subtotal.toFixed(2));
       $('#totalTaxDisplay').text('₹' + taxAmount.toFixed(2));
       $('#grandTotalDisplay').text('₹' + grandTotal.toFixed(2));

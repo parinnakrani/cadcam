@@ -298,6 +298,101 @@ class LedgerService
   }
 
   /**
+   * Update a ledger entry for an invoice.
+   * 
+   * @param int $invoiceId
+   * @param float $newGrandTotal
+   * @return void
+   * @throws Exception
+   */
+  public function updateInvoiceLedgerEntry(int $invoiceId, float $newGrandTotal): void
+  {
+    $this->db->transStart();
+
+    try {
+      // Find the existing ledger entry for this invoice
+      $entry = $this->ledgerEntryModel
+        ->where('reference_type', 'invoice')
+        ->where('reference_id', $invoiceId)
+        ->first();
+
+      if (!$entry) {
+        // Just return if not found instead of failing, some early invoices might not have ledger entries
+        $this->db->transRollback();
+        log_message('warning', "Ledger entry not found for invoice ID: $invoiceId when attempting to update.");
+        return;
+      }
+
+      $customerId   = $entry['account_id'] ?: $entry['cash_customer_id'];
+      $customerType = $entry['account_id'] ? 'Account' : 'Cash';
+
+      // Update the ledger entry
+      $this->ledgerEntryModel->update($entry['id'], [
+        'debit_amount' => $newGrandTotal
+      ]);
+
+      $this->db->transComplete();
+
+      if ($this->db->transStatus() === false) {
+        throw new Exception("Transaction failed while updating invoice ledger entry.");
+      }
+
+      // Recalculate running balance after transaction completes to avoid nested transaction issues
+      $this->recalculateRunningBalance((int)$customerId, $customerType);
+    } catch (Exception $e) {
+      $this->db->transRollback();
+      log_message('error', '[LedgerService::updateInvoiceLedgerEntry] ' . $e->getMessage());
+      throw $e;
+    }
+  }
+
+  /**
+   * Delete a ledger entry for an invoice.
+   * 
+   * @param int $invoiceId
+   * @return void
+   * @throws Exception
+   */
+  public function deleteInvoiceLedgerEntry(int $invoiceId): void
+  {
+    $this->db->transStart();
+
+    try {
+      // Find the existing ledger entry for this invoice
+      $entry = $this->ledgerEntryModel
+        ->where('reference_type', 'invoice')
+        ->where('reference_id', $invoiceId)
+        ->first();
+
+      $customerId = null;
+      $customerType = null;
+
+      if ($entry) {
+        $customerId   = $entry['account_id'] ?: $entry['cash_customer_id'];
+        $customerType = $entry['account_id'] ? 'Account' : 'Cash';
+
+        // Delete the entry
+        $this->ledgerEntryModel->delete($entry['id']);
+      }
+
+      $this->db->transComplete();
+
+      if ($this->db->transStatus() === false) {
+        throw new Exception("Transaction failed while deleting invoice ledger entry.");
+      }
+
+      // Recalculate running balance
+      if ($customerId && $customerType) {
+        $this->recalculateRunningBalance((int)$customerId, $customerType);
+      }
+    } catch (Exception $e) {
+      $this->db->transRollback();
+      log_message('error', '[LedgerService::deleteInvoiceLedgerEntry] ' . $e->getMessage());
+      throw $e;
+    }
+  }
+
+  /**
    * Recalculate running balance for a customer.
    * Useful for data consistency checks or backdated entry insertions.
    * 

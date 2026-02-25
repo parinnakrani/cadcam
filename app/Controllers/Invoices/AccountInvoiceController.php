@@ -241,21 +241,9 @@ class AccountInvoiceController extends InvoiceController
    */
   public function edit(int $id)
   {
-    // Check permission
     try {
-      // Get invoice
-      $invoice = $this->invoiceService->getInvoiceById($id);
-
-      if (!$invoice) {
-        return redirect()->to('/account-invoices')->with('error', 'Invoice not found');
-      }
-
-      // Ensure it is an Account Invoice
-      if ($invoice['invoice_type'] !== $this->invoiceType) {
-        return redirect()->to('/account-invoices')->with('error', 'Invalid invoice type');
-      }
-
       $this->gate('invoices.account.edit');
+
       // Get invoice
       $invoice = $this->invoiceService->getInvoiceById($id);
 
@@ -274,8 +262,17 @@ class AccountInvoiceController extends InvoiceController
           ->with('error', 'Cannot edit invoice with payment history');
       }
 
-      // Load dropdowns - only Account customers
+      // Load dropdowns
       $companyId = session()->get('company_id');
+
+      // Get gold rates for all purities
+      $goldRates = [];
+      foreach (['24K', '22K', '18K', '14K'] as $purity) {
+        $rate = $this->goldRateModel->getLatestRate((int)$companyId, $purity);
+        if ($rate !== null) {
+          $goldRates[$purity] = $rate;
+        }
+      }
 
       $data = [
         'invoice' => $invoice,
@@ -293,6 +290,7 @@ class AccountInvoiceController extends InvoiceController
           ->where('is_deleted', 0)
           ->orderBy('process_name', 'ASC')
           ->findAll(),
+        'gold_rates' => $goldRates,
       ];
 
       return $this->render('invoices/edit', $data);
