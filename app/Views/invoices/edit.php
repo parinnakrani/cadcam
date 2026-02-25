@@ -178,38 +178,20 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
   <?= $this->endSection() ?>
 
   <!-- Line Items Section -->
-  <div class="card mb-4">
+  <div class="card mb-4" id="lineItemsCard">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="card-title mb-0"><i class="ri-list-unordered"></i> Line Items</h5>
       <button type="button" class="btn btn-sm btn-primary" id="btn-add-line">
         <i class="ri-add-line"></i> Add Line
       </button>
     </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-bordered mb-0" id="linesTable">
-          <thead class="table-light">
-            <tr>
-              <th style="width: 50px;">#</th>
-              <th style="width: 180px;">Products</th>
-              <th style="width: 180px;">Processes</th>
-              <th style="width: 70px;">Qty</th>
-              <th style="width: 100px;">Weight (g)</th>
-              <th style="width: 100px;">Gold Wt (g)</th>
-              <th style="width: 80px;">Purity</th>
-              <th style="width: 100px;">Rate (₹)</th>
-              <th style="width: 110px;">Amount (₹)</th>
-              <th style="width: 50px;"></th>
-            </tr>
-          </thead>
-          <tbody id="linesBody">
-            <!-- Line items will be added here dynamically -->
-          </tbody>
-        </table>
+    <div class="card-body">
+      <div id="linesBody">
+        <!-- Line cards added dynamically -->
       </div>
-
-      <div class="p-3 text-center" id="noLinesAlert">
-        <i class="ri-information-line"></i> Click "Add Line" to add invoice line items.
+      <div class="text-center py-4" id="noLinesAlert">
+        <i class="ri-list-check ri-2x text-muted mb-2 d-block"></i>
+        <p class="text-muted mb-0">Click <strong>Add Line</strong> to add invoice line items.</p>
       </div>
     </div>
   </div>
@@ -311,71 +293,92 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
   </div>
 </form>
 
-<!-- Line Row Template -->
+<!-- Line Card Template -->
 <template id="line-row-template">
-  <tr class="line-row" data-line-index="__INDEX__">
-    <td class="text-center align-middle line-number">__NUM__</td>
-    <td>
-      <select class="form-select form-select-sm line-product" name="lines[__INDEX__][products][]" multiple>
-        <?php if (isset($products)): foreach ($products as $product): ?>
-            <option value="<?= $product['id'] ?>" data-name="<?= esc($product['product_name']) ?>">
-              <?= esc($product['product_name']) ?>
-            </option>
-        <?php endforeach;
-        endif; ?>
-      </select>
-    </td>
-    <td>
-      <select class="form-select form-select-sm line-process" name="lines[__INDEX__][processes][]" multiple>
-        <?php if (isset($processes)): foreach ($processes as $process): ?>
-            <option value="<?= $process['id'] ?>"
-              data-rate="<?= $process['rate_per_unit'] ?? 0 ?>"
-              data-name="<?= esc($process['process_name']) ?>">
-              <?= esc($process['process_name']) ?> (₹<?= number_format($process['rate_per_unit'] ?? 0, 2) ?>)
-            </option>
-        <?php endforeach;
-        endif; ?>
-      </select>
-    </td>
-    <td>
-      <input type="number" class="form-control form-control-sm line-qty"
-        name="lines[__INDEX__][quantity]" value="1" min="1" step="1">
-    </td>
-    <td>
-      <input type="number" class="form-control form-control-sm line-weight"
-        name="lines[__INDEX__][weight]" value="0.000" min="0" step="0.001">
-    </td>
-    <td>
-      <input type="number" class="form-control form-control-sm line-gold-weight"
-        name="lines[__INDEX__][gold_weight]" value="" min="0" step="0.001" placeholder="0.000">
-    </td>
-    <td>
-      <select class="form-select form-select-sm line-purity" name="lines[__INDEX__][gold_purity]">
-        <option value="">--</option>
-        <option value="24K">24K</option>
-        <option value="22K">22K</option>
-        <option value="18K">18K</option>
-        <option value="14K">14K</option>
-      </select>
-    </td>
-    <td>
-      <input type="number" class="form-control form-control-sm line-rate"
-        name="lines[__INDEX__][rate]" value="0.00" min="0" step="0.01">
-    </td>
-    <td>
-      <input type="text" class="form-control form-control-sm line-amount fw-semibold"
-        name="lines[__INDEX__][amount]" value="0.00" readonly tabindex="-1"
-        style="background-color: #f8f9fa;">
-      <input type="hidden" class="line-current-gold-price" name="lines[__INDEX__][current_gold_price]" value="">
-      <input type="hidden" class="line-adjusted-gold-weight" name="lines[__INDEX__][adjusted_gold_weight]" value="">
-      <input type="hidden" class="line-gold-adjustment-amount" name="lines[__INDEX__][gold_adjustment_amount]" value="">
-    </td>
-    <td class="text-center align-middle">
-      <button type="button" class="btn btn-sm btn-outline-danger btn-remove-line" title="Remove Line">
-        <i class="ri-delete-bin-line"></i>
+  <div class="line-card mb-3" data-line-index="__INDEX__">
+    <div class="line-card-header d-flex align-items-center justify-content-between">
+      <span class="line-card-number fw-semibold">
+        <i class="ri-circle-line me-1"></i> Line #__NUM__
+      </span>
+      <button type="button" class="btn btn-sm btn-text-danger btn-remove-line" title="Remove Line">
+        <i class="ri-delete-bin-line"></i> Remove
       </button>
-    </td>
-  </tr>
+    </div>
+    <div class="line-card-body">
+      <!-- Row 1: Products + Processes -->
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label form-label-sm">Product(s)</label>
+          <select class="form-select line-product" name="lines[__INDEX__][products][]" multiple>
+            <?php if (isset($products)): foreach ($products as $product): ?>
+                <option value="<?= $product['id'] ?>" data-name="<?= esc($product['product_name']) ?>">
+                  <?= esc($product['product_name']) ?>
+                </option>
+            <?php endforeach;
+            endif; ?>
+          </select>
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label form-label-sm">Process(es)</label>
+          <select class="form-select line-process" name="lines[__INDEX__][processes][]" multiple>
+            <?php if (isset($processes)): foreach ($processes as $process): ?>
+                <option value="<?= $process['id'] ?>"
+                  data-rate="<?= $process['rate_per_unit'] ?? 0 ?>"
+                  data-name="<?= esc($process['process_name']) ?>">
+                  <?= esc($process['process_name']) ?> (₹<?= number_format($process['rate_per_unit'] ?? 0, 2) ?>)
+                </option>
+            <?php endforeach;
+            endif; ?>
+          </select>
+        </div>
+      </div>
+      <!-- Row 2: Qty + Weight + Gold Weight + Purity + Rate + Amount -->
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-2">
+          <label class="form-label form-label-sm">Qty</label>
+          <input type="number" class="form-control line-qty"
+            name="lines[__INDEX__][quantity]" value="1" min="1" step="1">
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label form-label-sm">Weight (g)</label>
+          <input type="number" class="form-control line-weight"
+            name="lines[__INDEX__][weight]" value="0.000" min="0" step="0.001">
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label form-label-sm">Gold Wt (g)</label>
+          <input type="number" class="form-control line-gold-weight"
+            name="lines[__INDEX__][gold_weight]" value="" min="0" step="0.001" placeholder="0.000">
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label form-label-sm">Purity</label>
+          <select class="form-select line-purity" name="lines[__INDEX__][gold_purity]">
+            <option value="">--</option>
+            <option value="24K">24K</option>
+            <option value="22K">22K</option>
+            <option value="18K">18K</option>
+            <option value="14K">14K</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label form-label-sm">Rate (₹)</label>
+          <input type="number" class="form-control line-rate"
+            name="lines[__INDEX__][rate]" value="0.00" min="0" step="0.01">
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label form-label-sm">Amount (₹)</label>
+          <input type="text" class="form-control line-amount fw-bold text-end"
+            name="lines[__INDEX__][amount]" value="0.00" readonly tabindex="-1">
+          <input type="hidden" class="line-current-gold-price" name="lines[__INDEX__][current_gold_price]" value="">
+          <input type="hidden" class="line-adjusted-gold-weight" name="lines[__INDEX__][adjusted_gold_weight]" value="">
+          <input type="hidden" class="line-gold-adjustment-amount" name="lines[__INDEX__][gold_adjustment_amount]" value="">
+        </div>
+      </div>
+      <!-- Gold Adjustment Info (shown dynamically) -->
+      <div class="gold-adjustment-info-container d-none">
+        <div class="alert alert-info py-2 mb-0 small gold-adjustment-info-text"></div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <?= $this->endSection() ?>
@@ -441,7 +444,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       if (existingLines.length > 0) {
         existingLines.forEach(line => {
           addLine();
-          const $row = $('#linesBody .line-row:last');
+          const $row = $('#linesBody .line-card:last');
 
           $row.find('.line-qty').val(line.quantity);
           $row.find('.line-weight').val(parseFloat(line.weight || 0).toFixed(3));
@@ -458,7 +461,6 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
           // Products
           if (line.product_ids) {
             let pIds = line.product_ids;
-            // Decode if string (JSON) or use as is
             if (typeof pIds === 'string') {
               try {
                 pIds = JSON.parse(pIds);
@@ -521,27 +523,25 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
 
       // Remove Line
       $(document).on('click', '.btn-remove-line', function() {
-        var $row = $(this).closest('.line-row');
-        // Remove associated gold adjustment info row if exists
-        $row.next('.gold-adjustment-info').remove();
+        var $row = $(this).closest('.line-card');
         // Destroy Select2 before removing
         $row.find('.line-product, .line-process').select2('destroy');
         $row.remove();
         renumberLines();
         calculateTotals();
 
-        if ($('#linesBody .line-row').length === 0) {
+        if ($('#linesBody .line-card').length === 0) {
           $('#noLinesAlert').show();
         }
       });
 
       // Calculation Events
       $(document).on('change', '.line-process', function() {
-        calculateLineAmount($(this).closest('.line-row'));
+        calculateLineAmount($(this).closest('.line-card'));
       });
 
       $(document).on('input change', '.line-qty, .line-rate, .line-weight, .line-gold-weight, .line-purity', function() {
-        calculateLineAmount($(this).closest('.line-row'));
+        calculateLineAmount($(this).closest('.line-card'));
       });
 
       // Form submission
@@ -596,8 +596,8 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
     }
 
     function renumberLines() {
-      $('#linesBody .line-row').each(function(i) {
-        $(this).find('.line-number').text(i + 1);
+      $('#linesBody .line-card').each(function(i) {
+        $(this).find('.line-card-number').html('<i class="ri-circle-line me-1"></i> Line #' + (i + 1));
       });
     }
 
@@ -656,37 +656,33 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
 
       $row.find('.line-amount').val(finalAmount.toFixed(2));
 
-      // Show/hide gold adjustment info below the row
-      var $infoRow = $row.next('.gold-adjustment-info');
+      // Show/hide gold adjustment info inside the card
+      var $infoContainer = $row.find('.gold-adjustment-info-container');
+      var $infoText = $row.find('.gold-adjustment-info-text');
       if (goldAdjustmentAmount !== 0) {
         var sign = goldAdjustmentAmount > 0 ? '+' : '';
-        var infoHtml = '<td colspan="10" class="py-1 ps-3 bg-light border-0">' +
-          '<small class="text-muted">' +
+        var infoHtml =
           '<i class="ri-information-line me-1"></i>' +
           'Gold Adj: Wt Diff = <strong>' + adjustedGoldWeight.toFixed(3) + 'g</strong>' +
-          ' × Rate ₹' + currentGoldPrice.toLocaleString('en-IN', {
+          ' &times; Rate &#8377;' + currentGoldPrice.toLocaleString('en-IN', {
             minimumFractionDigits: 2
           }) +
           ' = <strong class="' + (goldAdjustmentAmount > 0 ? 'text-success' : 'text-danger') + '">' +
-          sign + '₹' + goldAdjustmentAmount.toLocaleString('en-IN', {
+          sign + '&#8377;' + goldAdjustmentAmount.toLocaleString('en-IN', {
             minimumFractionDigits: 2
           }) +
           '</strong>' +
-          ' | Base ₹' + baseAmount.toLocaleString('en-IN', {
+          ' | Base &#8377;' + baseAmount.toLocaleString('en-IN', {
             minimumFractionDigits: 2
           }) +
-          ' → Final ₹' + finalAmount.toLocaleString('en-IN', {
+          ' &rarr; Final &#8377;' + finalAmount.toLocaleString('en-IN', {
             minimumFractionDigits: 2
-          }) +
-          '</small></td>';
-
-        if ($infoRow.length) {
-          $infoRow.html(infoHtml);
-        } else {
-          $row.after('<tr class="gold-adjustment-info">' + infoHtml + '</tr>');
-        }
+          });
+        $infoText.html(infoHtml);
+        $infoContainer.removeClass('d-none');
       } else {
-        if ($infoRow.length) $infoRow.remove();
+        $infoContainer.addClass('d-none');
+        $infoText.html('');
       }
 
       calculateTotals();
@@ -697,7 +693,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
 
       let lineTotal = 0;
 
-      $('#linesBody .line-row').each(function() {
+      $('#linesBody .line-card').each(function() {
         var amount = parseFloat($(this).find('.line-amount').val()) || 0;
         lineTotal += amount;
       });
@@ -894,7 +890,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
         alert('Please enter cash customer details');
         return;
       }
-      if ($('#linesBody .line-row').length === 0) {
+      if ($('#linesBody .line-card').length === 0) {
         alert('Add at least one line item');
         return;
       }
@@ -934,15 +930,72 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
 </script>
 
 <style>
-  /* Select2 Custom Styles */
-  .select2-container {
-    width: 100% !important;
-    min-width: 150px;
+  /* ===== LINE CARD LAYOUT ===== */
+  .line-card {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
   }
 
-  .select2-container--default .select2-selection--multiple {
-    min-height: 38px;
-    border-color: #d9dee3;
+  .line-card:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .line-card-header {
+    background: var(--bs-light);
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+  }
+
+  .line-card-number {
+    font-size: 0.875rem;
+    color: var(--bs-primary);
+  }
+
+  .line-card-body {
+    padding: 1rem;
+    background: #fff;
+  }
+
+  /* Larger form controls for tablet touch */
+  .line-card .form-control,
+  .line-card .form-select {
+    font-size: 1rem;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Select2 inside cards */
+  .line-card .select2-container {
+    width: 100% !important;
+  }
+
+  .line-card .select2-container--bootstrap-5 .select2-selection,
+  .line-card .select2-container--default .select2-selection--multiple {
+    min-height: 44px;
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Amount field highlighted */
+  .line-amount {
+    background-color: var(--bs-primary-bg-subtle) !important;
+    color: var(--bs-primary);
+    font-size: 1.05rem !important;
+  }
+
+  /* Remove button */
+  .btn-text-danger {
+    color: var(--bs-danger);
+    background: transparent;
+    border: none;
+    font-size: 0.8125rem;
+  }
+
+  .btn-text-danger:hover {
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    border-radius: 0.25rem;
   }
 </style>
 <?= $this->endSection() ?>

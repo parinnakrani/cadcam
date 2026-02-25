@@ -51,9 +51,9 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
 
     <!-- Record Payment Button (only if amount due > 0) -->
     <?php if ($invoice['amount_due'] > 0): ?>
-      <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#recordPaymentModal">
+      <a href="<?= base_url("payments/create?invoice_id={$invoice['id']}") ?>" class="btn btn-success">
         <i class="ri-bank-card-line"></i> Record Payment
-      </button>
+      </a>
     <?php endif; ?>
 
     <!-- Delete Button (only if not paid) -->
@@ -410,50 +410,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
   </div>
 </div>
 
-<!-- Record Payment Modal -->
-<div class="modal fade" id="recordPaymentModal" tabindex="-1" aria-labelledby="recordPaymentModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="recordPaymentModalLabel">Record Payment</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form id="recordPaymentForm">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="paymentAmount" class="form-label">Payment Amount <span class="text-danger">*</span></label>
-            <input type="number" class="form-control" id="paymentAmount" name="amount"
-              max="<?= $invoice['amount_due'] ?>" step="0.01" required>
-            <small class="text-muted">Amount Due: ₹<?= number_format($invoice['amount_due'], 2) ?></small>
-          </div>
-          <div class="mb-3">
-            <label for="paymentDate" class="form-label">Payment Date <span class="text-danger">*</span></label>
-            <input type="date" class="form-control" id="paymentDate" name="payment_date"
-              value="<?= date('Y-m-d') ?>" required>
-          </div>
-          <div class="mb-3">
-            <label for="paymentMethod" class="form-label">Payment Method</label>
-            <select class="form-select" id="paymentMethod" name="payment_method">
-              <option value="Cash">Cash</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Cheque">Cheque</option>
-              <option value="UPI">UPI</option>
-              <option value="Card">Card</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="paymentNotes" class="form-label">Notes</label>
-            <textarea class="form-control" id="paymentNotes" name="notes" rows="2"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success">Record Payment</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+
 
 <?= $this->endSection() ?>
 
@@ -483,49 +440,5 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       });
     }
   }
-
-  // Record Payment Form Submission
-  $('#recordPaymentForm').on('submit', function(e) {
-    e.preventDefault();
-
-    const amount = parseFloat($('#paymentAmount').val());
-    const maxAmount = parseFloat(<?= $invoice['amount_due'] ?>);
-
-    if (amount <= 0) {
-      alert('Payment amount must be greater than zero');
-      return;
-    }
-
-    if (amount > maxAmount) {
-      alert(`Payment amount cannot exceed amount due (₹${maxAmount.toFixed(2)})`);
-      return;
-    }
-
-    // Submit payment
-    $.ajax({
-      url: '<?= base_url("payments/record") ?>',
-      type: 'POST',
-      data: {
-        invoice_id: <?= $invoice['id'] ?>,
-        amount: amount,
-        payment_date: $('#paymentDate').val(),
-        payment_method: $('#paymentMethod').val(),
-        notes: $('#paymentNotes').val()
-      },
-      dataType: 'json',
-      success: function(response) {
-        if (response.success) {
-          alert('Payment recorded successfully!');
-          window.location.reload();
-        } else {
-          alert('Error: ' + (response.error || 'Failed to record payment'));
-        }
-      },
-      error: function(xhr) {
-        const response = xhr.responseJSON;
-        alert('Error: ' + (response?.error || 'Failed to record payment'));
-      }
-    });
-  });
 </script>
 <?= $this->endSection() ?>
