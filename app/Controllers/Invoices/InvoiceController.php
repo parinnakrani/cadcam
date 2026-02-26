@@ -149,6 +149,10 @@ class InvoiceController extends BaseController
       // Get all invoices (DataTables handles pagination)
       $invoices = $invoiceModel->findAll();
 
+      // Get accounts and cash customers for filters
+      $accounts = $this->accountModel->where('company_id', session()->get('company_id'))->where('is_deleted', 0)->orderBy('account_name', 'ASC')->findAll();
+      $cashCustomers = $this->cashCustomerModel->orderBy('customer_name', 'ASC')->findAll();
+
       // Check if AJAX request
       if ($this->request->isAJAX()) {
         return $this->response->setJSON([
@@ -176,6 +180,8 @@ class InvoiceController extends BaseController
         'canCreateAccount' => $canCreateAccount,
         'canCreateCash'    => $canCreateCash,
         'canCreateWax'     => $canCreateWax,
+        'accounts'         => $accounts,
+        'cash_customers'   => $cashCustomers,
       ]);
     } catch (Exception $e) {
       log_message('error', 'Invoice listing error: ' . $e->getMessage());

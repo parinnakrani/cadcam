@@ -73,6 +73,15 @@
           </select>
         </div>
 
+        <!-- Customer Dropdown (Hidden initially) -->
+        <div class="col-md-3" id="filterCustomerContainer" style="display: none;">
+          <label for="filterCustomer" class="form-label">Customer</label>
+          <select class="form-select" id="filterCustomer" name="customer_id">
+            <option value="">All Customers</option>
+            <!-- Options populated via JS -->
+          </select>
+        </div>
+
         <!-- Payment Status -->
         <div class="col-md-3">
           <label for="filterPaymentStatus" class="form-label">Payment Status</label>
@@ -94,16 +103,6 @@
           </select>
         </div>
 
-        <!-- Customer Type -->
-        <div class="col-md-3">
-          <label for="filterCustomerType" class="form-label">Customer Type</label>
-          <select class="form-select" id="filterCustomerType" name="customer_type">
-            <option value="">All Customers</option>
-            <option value="Account">Account</option>
-            <option value="Cash">Cash</option>
-          </select>
-        </div>
-
         <!-- Date From -->
         <div class="col-md-3">
           <label for="filterDateFrom" class="form-label">Date From</label>
@@ -119,7 +118,7 @@
         <!-- Search -->
         <div class="col-md-4">
           <label for="filterSearch" class="form-label">Search</label>
-          <input type="text" class="form-control" id="filterSearch" name="search" placeholder="Invoice number, reference...">
+          <input type="text" class="form-control" id="filterSearch" name="search" placeholder="Invoice number...">
         </div>
 
         <!-- Filter Actions -->
@@ -153,7 +152,12 @@
         </thead>
         <tbody>
           <?php foreach ($invoices as $invoice): ?>
-            <tr>
+            <tr data-invoice-type="<?= esc($invoice['invoice_type']) ?>"
+              data-account-id="<?= esc($invoice['account_id'] ?? '') ?>"
+              data-cash-customer-id="<?= esc($invoice['cash_customer_id'] ?? '') ?>"
+              data-invoice-date="<?= esc($invoice['invoice_date']) ?>"
+              data-payment-status="<?= esc($invoice['payment_status']) ?>"
+              data-delivery-status="<?= esc($invoice['delivery_status'] ?? '') ?>">
               <!-- Invoice Number -->
               <td>
                 <a href="<?= base_url("invoices/{$invoice['id']}") ?>" class="text-decoration-none fw-bold">
@@ -223,13 +227,11 @@
                     <i class="ri-eye-line"></i>
                   </a>
 
-                  <!-- Edit (only if not paid) -->
-                  <?php if ($invoice['total_paid'] == 0 && ($action_flags['edit'] ?? false)): ?>
+                  <!-- Edit (only if not paid and not Accounts Invoice) -->
+                  <?php if ($invoice['invoice_type'] !== 'Accounts Invoice' && $invoice['total_paid'] == 0 && ($action_flags['edit'] ?? false)): ?>
                     <?php
                     $editUrl = base_url("invoices/{$invoice['id']}/edit");
-                    if ($invoice['invoice_type'] === 'Accounts Invoice') {
-                      $editUrl = base_url("account-invoices/{$invoice['id']}/edit");
-                    } elseif ($invoice['invoice_type'] === 'Cash Invoice') {
+                    if ($invoice['invoice_type'] === 'Cash Invoice') {
                       $editUrl = base_url("cash-invoices/{$invoice['id']}/edit");
                     } elseif ($invoice['invoice_type'] === 'Wax Invoice') {
                       $editUrl = base_url("wax-invoices/{$invoice['id']}/edit");
@@ -275,23 +277,69 @@
 
 <?= $this->section('pageScripts') ?>
 <script>
+  // Customer Data Variables
+  const accounts = <?= json_encode($accounts ?? []); ?>;
+  const cashCustomers = <?= json_encode($cash_customers ?? []); ?>;
+
   $(document).ready(function() {
+    // Custom DataTables logic for filtering
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData, counter) {
+      const row = $(settings.aoData[dataIndex].nTr);
+
+      const invoiceType = $('#filterInvoiceType').val();
+      const customerId = $('#filterCustomer').val();
+      const paymentStatus = $('#filterPaymentStatus').val();
+      const deliveryStatus = $('#filterDeliveryStatus').val();
+      const dateFrom = $('#filterDateFrom').val();
+      const dateTo = $('#filterDateTo').val();
+
+      const rowInvoiceType = row.data('invoice-type');
+      const rowAccountId = row.data('account-id');
+      const rowCashCustId = row.data('cash-customer-id');
+      const rowDate = row.data('invoice-date');
+      const rowPaymentStatus = row.data('payment-status');
+      const rowDeliveryStatus = row.data('delivery-status');
+
+      // Invoice Type Check
+      if (invoiceType && rowInvoiceType !== invoiceType) return false;
+
+      // Customer ID Check
+      if (customerId) {
+        if (invoiceType === 'Accounts Invoice' && rowAccountId.toString() !== customerId) return false;
+        if (invoiceType === 'Cash Invoice' && rowCashCustId.toString() !== customerId) return false;
+      }
+
+      // Payment Status Check
+      if (paymentStatus && rowPaymentStatus !== paymentStatus) return false;
+
+      // Delivery Status Check
+      // Let's account for "Not Delivered" which may be null or empty in the data attribute
+      const normalizedRowDeliveryStatus = rowDeliveryStatus ? rowDeliveryStatus : 'Not Delivered';
+      if (deliveryStatus && normalizedRowDeliveryStatus !== deliveryStatus) return false;
+
+      // Date Range Check
+      if (dateFrom && rowDate < dateFrom) return false;
+      if (dateTo && rowDate > dateTo) return false;
+
+      return true;
+    });
+
     // Initialize DataTable
     const table = $('#invoicesTable').DataTable({
       processing: true,
-      serverSide: false, // Client-side for now, can be changed to server-side
+      serverSide: false,
       pageLength: 20,
       order: [
         [1, 'desc']
-      ], // Sort by date descending
+      ],
       columnDefs: [{
           orderable: false,
           targets: [8]
-        }, // Disable sorting on Actions column
+        },
         {
           className: 'text-end',
           targets: [3, 4, 5]
-        } // Right-align amount columns
+        }
       ],
       language: {
         emptyTable: '<i class="ri-inbox-line" style="font-size: 3rem;"></i><p class="mt-2">No invoices found</p>',
@@ -306,6 +354,32 @@
       icon.toggleClass('ri-arrow-down-s-line ri-arrow-up-s-line');
     });
 
+    // Handle Invoice Type change to show correct customers dropdown
+    $('#filterInvoiceType').on('change', function() {
+      const type = $(this).val();
+      const customerContainer = $('#filterCustomerContainer');
+      const customerSelect = $('#filterCustomer');
+
+      // Clear current options
+      customerSelect.html('<option value="">All Customers</option>');
+
+      if (type === 'Accounts Invoice') {
+        accounts.forEach(acc => {
+          customerSelect.append(new Option(acc.account_name, acc.id));
+        });
+        customerContainer.show();
+      } else if (type === 'Cash Invoice') {
+        cashCustomers.forEach(cust => {
+          customerSelect.append(new Option(cust.customer_name, cust.id));
+        });
+        customerContainer.show();
+      } else {
+        customerContainer.hide();
+      }
+
+      applyFilters();
+    });
+
     // Apply Filters
     $('#filterForm select, #filterForm input').on('change keyup', function() {
       applyFilters();
@@ -314,58 +388,17 @@
     // Clear Filters
     $('#clearFilters').on('click', function() {
       $('#filterForm')[0].reset();
+      $('#filterCustomerContainer').hide();
+      $('#filterCustomer').html('<option value="">All Customers</option>');
       applyFilters();
     });
 
     // Apply filters function
     function applyFilters() {
-      const invoiceType = $('#filterInvoiceType').val();
-      const paymentStatus = $('#filterPaymentStatus').val();
-      const deliveryStatus = $('#filterDeliveryStatus').val();
-      const customerType = $('#filterCustomerType').val();
-      const dateFrom = $('#filterDateFrom').val();
-      const dateTo = $('#filterDateTo').val();
       const search = $('#filterSearch').val();
 
-      // Build filter string
-      let filterString = '';
-
-      if (invoiceType) filterString += invoiceType + '|';
-      if (paymentStatus) filterString += paymentStatus + '|';
-      if (deliveryStatus) filterString += deliveryStatus + '|';
-      if (customerType) filterString += customerType + '|';
-      if (search) filterString += search;
-
-      // Apply global search
-      table.search(filterString).draw();
-
-      // For server-side processing, reload with AJAX
-      // Uncomment below for server-side
-      /*
-      const params = {
-          invoice_type: invoiceType,
-          payment_status: paymentStatus,
-          delivery_status: deliveryStatus,
-          customer_type: customerType,
-          date_from: dateFrom,
-          date_to: dateTo,
-          search: search
-      };
-
-      $.ajax({
-          url: '<?= base_url('invoices') ?>',
-          type: 'GET',
-          data: params,
-          dataType: 'json',
-          success: function(response) {
-              if (response.success) {
-                  table.clear();
-                  table.rows.add(response.data);
-                  table.draw();
-              }
-          }
-      });
-      */
+      // DataTables Global Search handles text match, ext.search handles hidden criteria
+      table.search(search).draw();
     }
 
     // Highlight overdue invoices
