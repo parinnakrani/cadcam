@@ -399,23 +399,46 @@ class InvoiceService
     $this->db->transStart();
 
     try {
+      // Collect all source challan IDs BEFORE deleting lines
+      $challanIdsToReset = [];
+
+      // From invoice record's challan_ids field
+      if (!empty($invoice['challan_ids'])) {
+        $decoded = json_decode($invoice['challan_ids'], true);
+        if (is_array($decoded)) {
+          $challanIdsToReset = array_merge($challanIdsToReset, $decoded);
+        }
+      }
+
+      // From invoice_lines' source_challan_id field
+      $invoiceLines = $this->invoiceLineModel->getLinesByInvoiceId($id);
+      foreach ($invoiceLines as $line) {
+        if (!empty($line['source_challan_id'])) {
+          $challanIdsToReset[] = (int) $line['source_challan_id'];
+        }
+      }
+
+      // Remove duplicates
+      $challanIdsToReset = array_unique($challanIdsToReset);
+
       // Soft delete invoice
       $this->invoiceModel->delete($id);
 
-      // Soft delete all invoice lines
+      // Delete all invoice lines (hard delete)
       $this->invoiceLineModel->deleteLinesByInvoiceId($id);
 
       // Delete ledger entry
       $this->ledgerService->deleteInvoiceLedgerEntry($id);
 
-      // If invoice was from challan, unmark challan as invoiced
-      if (!empty($invoice['challan_ids'])) {
-        $challanIds = json_decode($invoice['challan_ids'], true);
-        foreach ($challanIds as $challanId) {
+      // Reset challans so they are available for re-invoicing
+      if (!empty($challanIdsToReset)) {
+        foreach ($challanIdsToReset as $challanId) {
           $this->challanModel->update($challanId, [
-            'is_invoiced'   => 0,
-            'invoiced_date' => null,
-            'updated_by'    => session()->get('user_id'),
+            'is_invoiced'       => 0,
+            'invoice_generated' => 0,
+            'invoiced_date'     => null,
+            'challan_status'    => 'Completed',
+            'updated_by'        => session()->get('user_id'),
           ]);
         }
       }

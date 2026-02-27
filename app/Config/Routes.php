@@ -142,7 +142,7 @@ $routes->group('customers', ['filter' => 'auth'], function ($routes) {
 // CHALLAN ROUTES
 $routes->group('challans', ['filter' => 'auth'], function ($routes) {
   // List & Search
-  $routes->get('/', 'Challans\ChallanController::index', ['filter' => 'permission:challans.all.list']);
+  $routes->get('/', 'Challans\ChallanController::index');
   $routes->get('search', 'Challans\ChallanController::search');
 
   // Create
@@ -179,7 +179,7 @@ $routes->group('challans', ['filter' => 'auth'], function ($routes) {
 $routes->group('', ['filter' => 'auth'], function ($routes) {
   // Base Invoice Routes (All Invoices)
   $routes->group('invoices', ['namespace' => 'App\Controllers\Invoices'], function ($routes) {
-    $routes->get('/', 'InvoiceController::index', ['filter' => 'permission:invoices.all.list']);
+    $routes->get('/', 'InvoiceController::index');
 
     // Create invoice (standalone)
     $routes->get('create', 'InvoiceController::create');

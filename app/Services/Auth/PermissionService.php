@@ -265,15 +265,29 @@ class PermissionService
   {
     $items = [];
 
-    $subModules = [
-      'all'     => ['label' => 'All Invoices',     'url' => 'invoices'],
+    // "Invoice List" shows if user has ANY invoice type list permission
+    $canListAny = $this->can('invoices.all.list')
+      || $this->can('invoices.account.list')
+      || $this->can('invoices.cash.list')
+      || $this->can('invoices.wax.list');
+
+    if ($canListAny) {
+      $items[] = [
+        'label'      => 'Invoice List',
+        'url'        => 'invoices',
+        'sub_module' => 'all',
+      ];
+    }
+
+    // Create links per type
+    $createItems = [
       'account' => ['label' => 'Create Account Invoice', 'url' => 'account-invoices/create'],
       'cash'    => ['label' => 'Create Cash Invoice',    'url' => 'cash-invoices/create'],
       'wax'     => ['label' => 'Create Wax Invoice',     'url' => 'wax-invoices/create'],
     ];
 
-    foreach ($subModules as $sub => $meta) {
-      if ($this->canAny("invoices.{$sub}")) {
+    foreach ($createItems as $sub => $meta) {
+      if ($this->canCreate('invoices', $sub) || $this->canCreate('invoices', 'all')) {
         $items[] = [
           'label'      => $meta['label'],
           'url'        => $meta['url'],
@@ -294,15 +308,29 @@ class PermissionService
   {
     $items = [];
 
-    $subModules = [
-      'all'     => ['label' => 'All Challans',     'url' => 'challans'],
-      'rhodium' => ['label' => 'Rhodium Challan',  'url' => 'challans/create?type=Rhodium'],
-      'meena'   => ['label' => 'Meena Challan',    'url' => 'challans/create?type=Meena'],
-      'wax'     => ['label' => 'Wax Challan',      'url' => 'challans/create?type=Wax'],
+    // "Challan List" shows if user has ANY challan type list permission
+    $canListAny = $this->can('challans.all.list')
+      || $this->can('challans.rhodium.list')
+      || $this->can('challans.meena.list')
+      || $this->can('challans.wax.list');
+
+    if ($canListAny) {
+      $items[] = [
+        'label'      => 'Challan List',
+        'url'        => 'challans',
+        'sub_module' => 'all',
+      ];
+    }
+
+    // Create links per type
+    $createItems = [
+      'rhodium' => ['label' => 'Create Rhodium Challan', 'url' => 'challans/create?type=Rhodium'],
+      'meena'   => ['label' => 'Create Meena Challan',   'url' => 'challans/create?type=Meena'],
+      'wax'     => ['label' => 'Create Wax Challan',     'url' => 'challans/create?type=Wax'],
     ];
 
-    foreach ($subModules as $sub => $meta) {
-      if ($this->canAny("challans.{$sub}")) {
+    foreach ($createItems as $sub => $meta) {
+      if ($this->canCreate('challans', $sub) || $this->canCreate('challans', 'all')) {
         $items[] = [
           'label'      => $meta['label'],
           'url'        => $meta['url'],

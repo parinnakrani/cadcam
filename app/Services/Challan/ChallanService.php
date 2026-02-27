@@ -419,6 +419,11 @@ class ChallanService
     $this->challanModel->join('accounts', 'accounts.id = challans.account_id', 'left');
     $this->challanModel->join('cash_customers', 'cash_customers.id = challans.cash_customer_id', 'left');
 
+    // Filter by allowed challan types (permission-based)
+    if (!empty($filters['allowed_types']) && is_array($filters['allowed_types'])) {
+      $this->challanModel->whereIn('challans.challan_type', $filters['allowed_types']);
+    }
+
     if (!empty($filters['status'])) {
       $this->challanModel->where('challans.challan_status', $filters['status']);
     }

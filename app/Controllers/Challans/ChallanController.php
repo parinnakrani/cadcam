@@ -103,16 +103,38 @@ class ChallanController extends BaseController
    */
   public function index()
   {
-    $this->gate('challans.all.list');
+    // Determine which challan types the user can list
+    $canListAll     = can('challans.all.list');
+    $canListRhodium = can('challans.rhodium.list') || $canListAll;
+    $canListMeena   = can('challans.meena.list')   || $canListAll;
+    $canListWax     = can('challans.wax.list')     || $canListAll;
+
+    // If no list permission at all, deny access
+    if (!$canListRhodium && !$canListMeena && !$canListWax) {
+      if ($this->request->isAJAX()) {
+        return $this->response->setStatusCode(403)->setJSON([
+          'error' => 'You do not have permission to view challans'
+        ]);
+      }
+      return redirect()->back()->with('error', 'You do not have permission to view challans');
+    }
+
+    // Build allowed types array
+    $allowedTypes = [];
+    if ($canListRhodium) $allowedTypes[] = 'Rhodium';
+    if ($canListMeena)   $allowedTypes[] = 'Meena';
+    if ($canListWax)     $allowedTypes[] = 'Wax';
 
     $filters = [
-      'status'     => $this->request->getGet('challan_status'),
-      'date_from'  => $this->request->getGet('from_date'),
-      'date_to'    => $this->request->getGet('to_date'),
-      'account_id' => $this->request->getGet('account_id'),
+      'status'        => $this->request->getGet('challan_status'),
+      'challan_type'  => $this->request->getGet('challan_type'),
+      'date_from'     => $this->request->getGet('from_date'),
+      'date_to'       => $this->request->getGet('to_date'),
+      'account_id'    => $this->request->getGet('account_id'),
+      'allowed_types' => $allowedTypes,
     ];
 
-    // Remove empty/null filters
+    // Remove empty/null filters (but keep allowed_types)
     $filters = array_filter($filters, fn($v) => $v !== null && $v !== '');
 
     if ($this->request->isAJAX()) {
@@ -128,15 +150,24 @@ class ChallanController extends BaseController
       ->orderBy('account_name', 'ASC')
       ->findAll();
 
+    // Per-type action flags for the view
+    $typeActionFlags = [];
+    if ($this->permissions) {
+      $typeActionFlags['Rhodium'] = $this->permissions->getActionFlags('challans', 'rhodium');
+      $typeActionFlags['Meena']   = $this->permissions->getActionFlags('challans', 'meena');
+      $typeActionFlags['Wax']     = $this->permissions->getActionFlags('challans', 'wax');
+    }
+
     $data = [
-      'challans'  => $challans,
-      'filters'   => $filters,
-      'accounts'  => $accounts,
-      'pageTitle' => 'Challans',
+      'challans'          => $challans,
+      'filters'           => $filters,
+      'accounts'          => $accounts,
+      'allowed_types'     => $allowedTypes,
+      'type_action_flags' => $typeActionFlags,
+      'pageTitle'         => 'Challans',
     ];
 
     if ($this->permissions) {
-      $data['action_flags'] = $this->permissions->getActionFlags('challans', 'all');
       // Per-type create flags for individual buttons
       $data['canCreateRhodium'] = $this->permissions->canCreate('challans', 'rhodium') || $this->permissions->canCreate('challans', 'all');
       $data['canCreateMeena']   = $this->permissions->canCreate('challans', 'meena')   || $this->permissions->canCreate('challans', 'all');

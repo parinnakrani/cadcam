@@ -113,9 +113,20 @@
       <div class="card-body">
         <!-- Filters -->
         <div class="row mb-4 g-3">
+          <!-- Challan Type -->
+          <div class="col-md-2">
+            <label class="form-label" for="filter_challan_type">Challan Type</label>
+            <select id="filter_challan_type" class="form-select form-select-sm filter-control">
+              <option value="">All Types</option>
+              <?php foreach ($allowed_types ?? [] as $type): ?>
+                <option value="<?= esc($type) ?>"><?= esc($type) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <!-- Account -->
           <div class="col-md-3">
             <label class="form-label" for="filter_account">Account</label>
-            <select id="filter_account" class="form-select form-select-sm">
+            <select id="filter_account" class="form-select form-select-sm filter-control">
               <option value="">All Accounts</option>
               <?php foreach ($accounts as $acc): ?>
                 <option value="<?= esc($acc['id']) ?>"
@@ -125,9 +136,10 @@
               <?php endforeach; ?>
             </select>
           </div>
+          <!-- Status -->
           <div class="col-md-2">
             <label class="form-label" for="filter_status">Status</label>
-            <select id="filter_status" class="form-select form-select-sm">
+            <select id="filter_status" class="form-select form-select-sm filter-control">
               <option value="">All Statuses</option>
               <option value="Draft" <?= (($filters['status'] ?? '') === 'Draft')       ? 'selected' : '' ?>>Draft</option>
               <option value="Pending" <?= (($filters['status'] ?? '') === 'Pending')     ? 'selected' : '' ?>>Pending</option>
@@ -136,20 +148,20 @@
               <option value="Invoiced" <?= (($filters['status'] ?? '') === 'Invoiced')    ? 'selected' : '' ?>>Invoiced</option>
             </select>
           </div>
+          <!-- From Date -->
           <div class="col-md-2">
             <label class="form-label" for="filter_from_date">From Date</label>
-            <input type="date" id="filter_from_date" class="form-control form-control-sm" value="<?= esc($filters['date_from'] ?? '') ?>">
+            <input type="date" id="filter_from_date" class="form-control form-control-sm filter-control" value="<?= esc($filters['date_from'] ?? '') ?>">
           </div>
+          <!-- To Date -->
           <div class="col-md-2">
             <label class="form-label" for="filter_to_date">To Date</label>
-            <input type="date" id="filter_to_date" class="form-control form-control-sm" value="<?= esc($filters['date_to'] ?? '') ?>">
+            <input type="date" id="filter_to_date" class="form-control form-control-sm filter-control" value="<?= esc($filters['date_to'] ?? '') ?>">
           </div>
-          <div class="col-md-2 d-flex align-items-end gap-2">
-            <button type="button" id="btn-filter" class="btn btn-outline-primary btn-sm">
-              <i class="ri-filter-3-line me-1"></i> Filter
-            </button>
-            <button type="button" id="btn-reset" class="btn btn-outline-secondary btn-sm">
-              <i class="ri-refresh-line me-1"></i> Reset
+          <!-- Reset -->
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="button" id="btn-reset" class="btn btn-outline-secondary btn-sm w-100" title="Reset Filters">
+              <i class="ri-refresh-line"></i>
             </button>
           </div>
         </div>
@@ -161,7 +173,7 @@
               <tr>
                 <th>Challan #</th>
                 <th>Date</th>
-
+                <th>Type</th>
                 <th>Customer</th>
                 <th>Status</th>
                 <th>Weight (g)</th>
@@ -250,15 +262,23 @@
     }
 
     function getCustomerName(row) {
-      // ChallanModel findAll returns flat row without joins
-      // getChallanWithCustomer joins names, but index uses findAll
-      // We display whatever is available
       if (row.account_name) return row.account_name;
       if (row.customer_name) return row.customer_name;
-      // Fallback: show customer type + ID
       if (row.customer_type === 'Account' && row.account_id) return 'Account #' + row.account_id;
       if (row.customer_type === 'Cash' && row.cash_customer_id) return 'Cash #' + row.cash_customer_id;
       return '-';
+    }
+
+    // =========================================================================
+    // PER-TYPE ACTION FLAGS (from controller)
+    // =========================================================================
+    var typeActionFlags = <?= json_encode($type_action_flags ?? []) ?>;
+
+    function getFlag(challanType, action) {
+      if (typeActionFlags[challanType] && typeActionFlags[challanType][action]) {
+        return true;
+      }
+      return false;
     }
 
     // =========================================================================
@@ -268,15 +288,15 @@
 
     var table = $('#challansTable').DataTable({
       processing: true,
-      serverSide: false, // Client-side — controller returns all matching results
+      serverSide: false,
       ajax: {
         url: baseUrl,
         type: 'GET',
-        // Explicitly add header for CodeIgniter isAJAX() check
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         },
         data: function(d) {
+          d.challan_type = $('#filter_challan_type').val();
           d.account_id = $('#filter_account').val();
           d.challan_status = $('#filter_status').val();
           d.from_date = $('#filter_from_date').val();
@@ -284,12 +304,11 @@
         },
         error: function(xhr, error, code) {
           console.error('DataTables Error:', error, code, xhr.responseText);
-          // Optional: alert('Failed to load challans: ' + code);
         }
       },
       order: [
         [1, 'desc']
-      ], // Sort by date descending
+      ],
       columns: [
         // Challan Number (link)
         {
@@ -311,7 +330,13 @@
             });
           }
         },
-
+        // Challan Type
+        {
+          data: 'challan_type',
+          render: function(data) {
+            return typeBadge(data);
+          }
+        },
         // Customer Name
         {
           data: null,
@@ -346,44 +371,50 @@
             return formatCurrency(data);
           }
         },
-        // Actions
+        // Actions — inline icons per type permission
         {
           data: 'id',
           orderable: false,
           searchable: false,
           className: 'text-center',
           render: function(data, type, row) {
+            var challanType = row.challan_type || '';
             var isInvoiced = row.invoice_generated == 1 || row.challan_status === 'Invoiced';
-            var editDisabled = isInvoiced ? 'disabled' : '';
-            var deleteDisabled = isInvoiced ? 'disabled' : '';
-            var canView = <?= ($action_flags['view'] ?? false) ? 'true' : 'false' ?>;
-            var canEdit = <?= ($action_flags['edit'] ?? false) ? 'true' : 'false' ?>;
-            var canDelete = <?= ($action_flags['delete'] ?? false) ? 'true' : 'false' ?>;
+            var html = '<div class="btn-group btn-group-sm" role="group">';
 
-            var html = '<div class="dropdown">' +
-              '<button class="btn p-0" type="button" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>' +
-              '<div class="dropdown-menu">';
-
-            if (canView) {
-              html += '  <a class="dropdown-item" href="' + baseUrl + '/' + data + '">' +
-                '    <i class="ri-eye-line me-1"></i> View</a>';
-            }
-            if (canEdit) {
-              html += '  <a class="dropdown-item ' + editDisabled + '" href="' + baseUrl + '/' + data + '/edit">' +
-                '    <i class="ri-pencil-line me-1"></i> Edit</a>';
-            }
-            if (canView) { // Print requires view permission
-              html += '  <a class="dropdown-item" href="' + baseUrl + '/' + data + '/print" target="_blank">' +
-                '    <i class="ri-printer-line me-1"></i> Print</a>';
+            // View
+            if (getFlag(challanType, 'view')) {
+              html += '<a href="' + baseUrl + '/' + data + '" class="btn btn-outline-primary" title="View">' +
+                '<i class="ri-eye-line"></i></a>';
             }
 
-            if (canDelete) {
-              html += '  <div class="dropdown-divider"></div>' +
-                '  <a class="dropdown-item text-danger delete-record ' + deleteDisabled + '" href="javascript:void(0);" ' +
-                '     data-id="' + data + '" data-number="' + (row.challan_number || '') + '">' +
-                '    <i class="ri-delete-bin-line me-1"></i> Delete</a>';
+            // Edit (disabled if invoiced)
+            if (getFlag(challanType, 'edit')) {
+              if (isInvoiced) {
+                html += '<button class="btn btn-outline-secondary" disabled title="Edit (Invoiced)"><i class="ri-pencil-line"></i></button>';
+              } else {
+                html += '<a href="' + baseUrl + '/' + data + '/edit" class="btn btn-outline-secondary" title="Edit">' +
+                  '<i class="ri-pencil-line"></i></a>';
+              }
             }
-            html += '</div></div>';
+
+            // Print
+            if (getFlag(challanType, 'print')) {
+              html += '<a href="' + baseUrl + '/' + data + '/print" class="btn btn-outline-info" target="_blank" title="Print">' +
+                '<i class="ri-printer-line"></i></a>';
+            }
+
+            // Delete (disabled if invoiced)
+            if (getFlag(challanType, 'delete')) {
+              if (isInvoiced) {
+                html += '<button class="btn btn-outline-danger" disabled title="Delete (Invoiced)"><i class="ri-delete-bin-line"></i></button>';
+              } else {
+                html += '<button class="btn btn-outline-danger delete-record" data-id="' + data + '" data-number="' + (row.challan_number || '') + '" title="Delete">' +
+                  '<i class="ri-delete-bin-line"></i></button>';
+              }
+            }
+
+            html += '</div>';
             return html;
           }
         }
@@ -411,18 +442,9 @@
 
       data.forEach(function(row) {
         if (row.challan_status === 'Draft') draft++;
-        else if (row.challan_status === 'Pending') {
-          /* nothing? Pending count? */
-        } else if (row.challan_status === 'In Progress') progress++;
+        else if (row.challan_status === 'In Progress') progress++;
         else if (row.challan_status === 'Completed') completed++;
       });
-
-      // Note: The logic above missed 'Pending' and 'Invoiced'. 
-      // Assuming user only wants to track specific statuses as per original code.
-      // Original code:
-      // if (row.challan_status === 'Draft') draft++;
-      // else if (row.challan_status === 'In Progress') progress++;
-      // else if (row.challan_status === 'Completed') completed++;
 
       $('#stat-total').text(total);
       $('#stat-draft').text(draft);
@@ -431,23 +453,19 @@
     }
 
     // =========================================================================
-    // FILTER ACTIONS
+    // AUTO-FILTER ON CHANGE (no Filter button needed)
     // =========================================================================
-    $('#btn-filter').on('click', function() {
+    $('.filter-control').on('change', function() {
       table.ajax.reload();
     });
 
     $('#btn-reset').on('click', function() {
+      $('#filter_challan_type').val('');
       $('#filter_account').val('');
       $('#filter_status').val('');
       $('#filter_from_date').val('');
       $('#filter_to_date').val('');
       table.ajax.reload();
-    });
-
-    // Pressing Enter in date fields triggers filter
-    $('#filter_from_date, #filter_to_date').on('keypress', function(e) {
-      if (e.which === 13) table.ajax.reload();
     });
 
     // =========================================================================
@@ -471,7 +489,7 @@
     var deleteId = null;
     var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
 
-    $(document).on('click', '.delete-record:not(.disabled)', function(e) {
+    $(document).on('click', '.delete-record:not(:disabled)', function(e) {
       e.preventDefault();
       e.stopPropagation();
       deleteId = $(this).data('id');

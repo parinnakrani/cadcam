@@ -89,8 +89,14 @@ class InvoiceController extends BaseController
    */
   public function index()
   {
-    // We want the generic invoices list view. If they have ANY invoice list permission, let them in.
-    if (!can_any('invoices') || (!can('invoices.all.list') && !can('invoices.account.list') && !can('invoices.cash.list') && !can('invoices.wax.list'))) {
+    // Determine which invoice types the user can list
+    $canListAll     = can('invoices.all.list');
+    $canListAccount = can('invoices.account.list') || $canListAll;
+    $canListCash    = can('invoices.cash.list')    || $canListAll;
+    $canListWax     = can('invoices.wax.list')     || $canListAll;
+
+    // If no list permission at all, deny access
+    if (!$canListAccount && !$canListCash && !$canListWax) {
       if ($this->request->isAJAX() || $this->request->is('json')) {
         return $this->response->setStatusCode(403)->setJSON([
           'error' => 'You do not have permission to view invoices'
@@ -104,7 +110,6 @@ class InvoiceController extends BaseController
       $filters = [
         'invoice_type'   => $this->request->getGet('invoice_type'),
         'payment_status' => $this->request->getGet('payment_status'),
-        'customer_type'  => $this->request->getGet('customer_type'),
         'date_from'      => $this->request->getGet('date_from'),
         'date_to'        => $this->request->getGet('date_to'),
         'search'         => $this->request->getGet('search'),
@@ -121,6 +126,13 @@ class InvoiceController extends BaseController
         ->where('invoices.is_deleted', 0)
         ->orderBy('invoices.invoice_date', 'DESC')
         ->orderBy('invoices.id', 'DESC');
+
+      // Filter by allowed invoice types (only show types user has permission for)
+      $allowedTypes = [];
+      if ($canListAccount) $allowedTypes[] = 'Accounts Invoice';
+      if ($canListCash)    $allowedTypes[] = 'Cash Invoice';
+      if ($canListWax)     $allowedTypes[] = 'Wax Invoice';
+      $invoiceModel->whereIn('invoices.invoice_type', $allowedTypes);
 
       // Apply filters
       if (!empty($filters['invoice_type'])) {
@@ -161,10 +173,12 @@ class InvoiceController extends BaseController
         ]);
       }
 
-      // Action flags for the view (we provide the parent 'invoices' and generic sub-module)
-      $actionFlags = [];
+      // Per-type action flags so the view can check permission per invoice row
+      $typeActionFlags = [];
       if ($this->permissions) {
-        $actionFlags = $this->permissions->getActionFlags('invoices', 'all');
+        $typeActionFlags['Accounts Invoice'] = $this->permissions->getActionFlags('invoices', 'account');
+        $typeActionFlags['Cash Invoice']     = $this->permissions->getActionFlags('invoices', 'cash');
+        $typeActionFlags['Wax Invoice']      = $this->permissions->getActionFlags('invoices', 'wax');
       }
 
       // Per-type create flags for individual buttons
@@ -174,14 +188,15 @@ class InvoiceController extends BaseController
 
       // Load view
       return $this->render('invoices/index', [
-        'invoices'         => $invoices,
-        'filters'          => $filters,
-        'action_flags'     => $actionFlags,
-        'canCreateAccount' => $canCreateAccount,
-        'canCreateCash'    => $canCreateCash,
-        'canCreateWax'     => $canCreateWax,
-        'accounts'         => $accounts,
-        'cash_customers'   => $cashCustomers,
+        'invoices'          => $invoices,
+        'filters'           => $filters,
+        'type_action_flags' => $typeActionFlags,
+        'allowed_types'     => $allowedTypes,
+        'canCreateAccount'  => $canCreateAccount,
+        'canCreateCash'     => $canCreateCash,
+        'canCreateWax'      => $canCreateWax,
+        'accounts'          => $accounts,
+        'cash_customers'    => $cashCustomers,
       ]);
     } catch (Exception $e) {
       log_message('error', 'Invoice listing error: ' . $e->getMessage());
@@ -450,11 +465,6 @@ class InvoiceController extends BaseController
    */
   public function show(int $id)
   {
-    // Check permission
-    if (!can('invoice.view')) {
-      return redirect()->back()->with('error', 'You do not have permission to view invoices');
-    }
-
     try {
       // Get invoice with lines
       $invoice = $this->invoiceService->getInvoiceById($id);
@@ -463,8 +473,11 @@ class InvoiceController extends BaseController
         return redirect()->to('/invoices')->with('error', 'Invoice not found');
       }
 
-      // Get payment history (if payment module exists)
-      // $payments = $this->paymentService->getPaymentsByInvoiceId($id);
+      // Resolve sub-module from invoice type and check permission
+      $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
+      if (!can("invoices.{$sub}.view") && !can('invoices.all.view')) {
+        return redirect()->back()->with('error', 'You do not have permission to view this invoice');
+      }
 
       // Check if AJAX request
       if ($this->request->isAJAX()) {
@@ -477,10 +490,9 @@ class InvoiceController extends BaseController
       // Load view
       $data = [
         'invoice' => $invoice,
-        // 'payments' => $payments ?? []
       ];
       if ($this->permissions) {
-        $data['action_flags'] = $this->permissions->getActionFlags('invoices', $sub ?? 'all');
+        $data['action_flags'] = $this->permissions->getActionFlags('invoices', $sub);
       }
       return $this->render('invoices/show', $data);
     } catch (Exception $e) {
@@ -657,7 +669,7 @@ class InvoiceController extends BaseController
       }
 
       $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
-      if (!can("invoices.{$sub}.delete")) {
+      if (!can("invoices.{$sub}.delete") && !can('invoices.all.delete')) {
         return $this->response->setStatusCode(403)->setJSON([
           'error' => 'You do not have permission to delete this invoice'
         ]);

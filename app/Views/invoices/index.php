@@ -67,9 +67,9 @@
           <label for="filterInvoiceType" class="form-label">Invoice Type</label>
           <select class="form-select" id="filterInvoiceType" name="invoice_type">
             <option value="">All Types</option>
-            <option value="Accounts Invoice">Accounts Invoice</option>
-            <option value="Cash Invoice">Cash Invoice</option>
-            <option value="Wax Invoice">Wax Invoice</option>
+            <?php foreach ($allowed_types ?? [] as $type): ?>
+              <option value="<?= esc($type) ?>"><?= esc($type) ?></option>
+            <?php endforeach; ?>
           </select>
         </div>
 
@@ -219,16 +219,19 @@
 
               <!-- Actions -->
               <td class="text-center">
+                <?php $rowFlags = $type_action_flags[$invoice['invoice_type']] ?? []; ?>
                 <div class="btn-group btn-group-sm" role="group">
                   <!-- View -->
-                  <a href="<?= base_url("invoices/{$invoice['id']}") ?>"
-                    class="btn btn-outline-primary"
-                    title="View">
-                    <i class="ri-eye-line"></i>
-                  </a>
+                  <?php if ($rowFlags['view'] ?? false): ?>
+                    <a href="<?= base_url("invoices/{$invoice['id']}") ?>"
+                      class="btn btn-outline-primary"
+                      title="View">
+                      <i class="ri-eye-line"></i>
+                    </a>
+                  <?php endif; ?>
 
                   <!-- Edit (only if not paid and not Accounts Invoice) -->
-                  <?php if ($invoice['invoice_type'] !== 'Accounts Invoice' && $invoice['total_paid'] == 0 && ($action_flags['edit'] ?? false)): ?>
+                  <?php if ($invoice['invoice_type'] !== 'Accounts Invoice' && $invoice['total_paid'] == 0 && ($rowFlags['edit'] ?? false)): ?>
                     <?php
                     $editUrl = base_url("invoices/{$invoice['id']}/edit");
                     if ($invoice['invoice_type'] === 'Cash Invoice') {
@@ -245,15 +248,17 @@
                   <?php endif; ?>
 
                   <!-- Print -->
-                  <a href="<?= base_url("invoices/{$invoice['id']}/print") ?>"
-                    class="btn btn-outline-info"
-                    target="_blank"
-                    title="Print">
-                    <i class="ri-printer-line"></i>
-                  </a>
+                  <?php if ($rowFlags['print'] ?? false): ?>
+                    <a href="<?= base_url("invoices/{$invoice['id']}/print") ?>"
+                      class="btn btn-outline-info"
+                      target="_blank"
+                      title="Print">
+                      <i class="ri-printer-line"></i>
+                    </a>
+                  <?php endif; ?>
 
                   <!-- Delete (only if not paid) -->
-                  <?php if ($invoice['total_paid'] == 0 && ($action_flags['delete'] ?? false)): ?>
+                  <?php if ($invoice['total_paid'] == 0 && ($rowFlags['delete'] ?? false)): ?>
                     <button type="button"
                       class="btn btn-outline-danger"
                       onclick="deleteInvoice(<?= $invoice['id'] ?>, '<?= esc($invoice['invoice_number']) ?>')"
