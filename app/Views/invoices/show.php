@@ -337,7 +337,7 @@ $statusLabels = [
                           style="max-height:50px; max-width:65px; cursor:pointer;"
                           data-full-src="<?= base_url($line['image_path']) ?>">
                       <?php else: ?>
-                        <span class="text-muted small">â€”</span>
+                        <span class="text-muted small">--</span>
                       <?php endif; ?>
                     </td>
                   </tr>

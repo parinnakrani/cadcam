@@ -52,16 +52,8 @@
             value="<?= date('Y-m-d') ?>" required>
         </div>
 
-        <!-- Invoice Type -->
-        <div class="col-md-3">
-          <label for="invoiceType" class="form-label">Invoice Type <span class="text-danger">*</span></label>
-          <select class="form-select" id="invoiceType" name="invoice_type" required>
-            <option value="">Select Type</option>
-            <option value="Accounts Invoice" <?= (isset($invoice_type) && $invoice_type === 'Accounts Invoice') ? 'selected' : '' ?>>Accounts Invoice</option>
-            <option value="Cash Invoice" <?= (isset($invoice_type) && $invoice_type === 'Cash Invoice') ? 'selected' : '' ?>>Cash Invoice</option>
-            <option value="Wax Invoice" <?= (isset($invoice_type) && $invoice_type === 'Wax Invoice') ? 'selected' : '' ?>>Wax Invoice</option>
-          </select>
-        </div>
+        <!-- Invoice Type (hidden - always Cash Invoice) -->
+        <input type="hidden" id="invoiceType" name="invoice_type" value="Cash Invoice">
 
         <!-- Due Date (Optional, for Account invoices) -->
         <div class="col-md-3">
@@ -69,23 +61,8 @@
           <input type="date" class="form-control" id="dueDate" name="due_date">
         </div>
 
-        <!-- Customer Type (Radio) -->
-        <div class="col-md-12">
-          <label class="form-label">Customer Type <span class="text-danger">*</span></label>
-          <div class="btn-group w-100" role="group">
-            <input type="radio" class="btn-check" name="customer_type" id="customerTypeAccount"
-              value="Account" autocomplete="off" <?= (isset($customer_type) && $customer_type === 'Account') ? 'checked' : '' ?>>
-            <label class="btn btn-outline-primary" for="customerTypeAccount">
-              <i class="ri-building-line"></i> Account Customer
-            </label>
-
-            <input type="radio" class="btn-check" name="customer_type" id="customerTypeCash"
-              value="Cash" autocomplete="off" <?= (isset($customer_type) && $customer_type === 'Cash') ? 'checked' : '' ?>>
-            <label class="btn btn-outline-success" for="customerTypeCash">
-              <i class="ri-bank-card-line"></i> Cash Customer
-            </label>
-          </div>
-        </div>
+        <!-- Customer Type (hidden - always Cash Customer) -->
+        <input type="hidden" name="customer_type" id="customerTypeCash" value="Cash">
 
         <!-- Account Customer (shown when Account selected) -->
         <div class="col-md-6" id="accountCustomerSection" style="display: none;">
@@ -104,8 +81,8 @@
           </select>
         </div>
 
-        <!-- Cash Customer (shown when Cash selected) -->
-        <div class="col-md-6" id="cashCustomerSection" style="display: none;">
+        <!-- Cash Customer (always visible) -->
+        <div class="col-md-6" id="cashCustomerSection">
           <label class="form-label">Cash Customer <span class="text-danger">*</span></label>
           <div class="row g-2 mb-2">
             <div class="col-md-6">
@@ -446,11 +423,8 @@
       // Hide no lines alert initially
       $('#noLinesAlert').hide();
 
-      // Trigger customer type toggle if selected
-      const customerType = $('input[name="customer_type"]:checked').val();
-      if (customerType) {
-        toggleCustomerType(customerType);
-      }
+      // Always Cash Customer - initialize accordingly
+      toggleCustomerType('Cash');
     }
 
     function setupEventListeners() {

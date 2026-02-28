@@ -62,16 +62,8 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
             value="<?= esc($invoice['invoice_date']) ?>" required>
         </div>
 
-        <!-- Invoice Type -->
-        <div class="col-md-3">
-          <label for="invoiceType" class="form-label">Invoice Type <span class="text-danger">*</span></label>
-          <select class="form-select" id="invoiceType" name="invoice_type" required>
-            <option value="">Select Type</option>
-            <option value="Accounts Invoice" <?= ($invoice['invoice_type'] === 'Accounts Invoice') ? 'selected' : '' ?>>Accounts Invoice</option>
-            <option value="Cash Invoice" <?= ($invoice['invoice_type'] === 'Cash Invoice') ? 'selected' : '' ?>>Cash Invoice</option>
-            <option value="Wax Invoice" <?= ($invoice['invoice_type'] === 'Wax Invoice') ? 'selected' : '' ?>>Wax Invoice</option>
-          </select>
-        </div>
+        <!-- Invoice Type (hidden - always Cash Invoice) -->
+        <input type="hidden" id="invoiceType" name="invoice_type" value="Cash Invoice">
 
         <!-- Due Date (Optional, for Account invoices) -->
         <div class="col-md-3">
@@ -79,26 +71,10 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
           <input type="date" class="form-control" id="dueDate" name="due_date" value="<?= esc($invoice['due_date'] ?? '') ?>">
         </div>
 
-        <!-- Customer Type (Radio) -->
-        <?php $isAccount = !empty($invoice['account_id']); ?>
-        <div class="col-md-12">
-          <label class="form-label">Customer Type <span class="text-danger">*</span></label>
-          <div class="btn-group w-100" role="group">
-            <input type="radio" class="btn-check" name="customer_type" id="customerTypeAccount"
-              value="Account" autocomplete="off" <?= $isAccount ? 'checked' : '' ?>>
-            <label class="btn btn-outline-primary" for="customerTypeAccount">
-              <i class="ri-building-line"></i> Account Customer
-            </label>
+        <!-- Customer Type (hidden - always Cash Customer) -->
+        <input type="hidden" name="customer_type" id="customerTypeCash" value="Cash">
 
-            <input type="radio" class="btn-check" name="customer_type" id="customerTypeCash"
-              value="Cash" autocomplete="off" <?= !$isAccount ? 'checked' : '' ?>>
-            <label class="btn btn-outline-success" for="customerTypeCash">
-              <i class="ri-bank-card-line"></i> Cash Customer
-            </label>
-          </div>
-        </div>
-
-        <!-- Account Customer (shown when Account selected) -->
+        <!-- Account Customer (hidden - not used for Cash) -->
         <div class="col-md-6" id="accountCustomerSection" style="display: none;">
           <label for="accountId" class="form-label">Account Customer <span class="text-danger">*</span></label>
           <select class="form-select" id="accountId" name="account_id">
@@ -116,8 +92,8 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
           </select>
         </div>
 
-        <!-- Cash Customer (shown when Cash selected) -->
-        <div class="col-md-12 row mt-4" id="cashCustomerSection" style="display: none;">
+        <!-- Cash Customer (always visible) -->
+        <div class="col-md-12 row mt-4" id="cashCustomerSection">
           <div class="col-md-6">
             <input type="hidden" id="cashCustomerId" name="cash_customer_id" value="<?= esc($invoice['cash_customer_id'] ?? '') ?>">
             <div class="mb-2">
@@ -450,11 +426,8 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       // Hide no lines alert initially
       $('#noLinesAlert').hide();
 
-      // Trigger customer type toggle if selected
-      const customerType = $('input[name="customer_type"]:checked').val();
-      if (customerType) {
-        toggleCustomerType(customerType, false);
-      }
+      // Always Cash Customer - initialize accordingly (false = don't clear existing data)
+      toggleCustomerType('Cash', false);
 
       // Load Existing Lines
       const existingLines = <?= json_encode($invoice['lines'] ?? []) ?>;
