@@ -158,7 +158,7 @@
       <span class="line-card-number fw-semibold">
         <i class="ri-circle-line me-1"></i> Line #__NUM__
       </span>
-      <button type="button" class="btn btn-sm btn-icon btn-text-danger btn-remove-line" title="Remove Line">
+      <button type="button" class="btn btn-sm btn-text-danger btn-remove-line" title="Remove Line">
         <i class="ri-delete-bin-line"></i> Remove
       </button>
     </div>
