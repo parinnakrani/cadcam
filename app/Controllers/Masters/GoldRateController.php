@@ -36,14 +36,15 @@ class GoldRateController extends BaseController
     $isEnteredSilver = $this->goldRateService->checkIfTodayRateEntered('Silver');
 
     $alertMessage = [];
-    if (!$isEntered22K) $alertMessage[] = "22K Gold Rate not entered for today.";
     if (!$isEntered24K) $alertMessage[] = "24K Gold Rate not entered for today.";
-    if (!$isEnteredSilver) $alertMessage[] = "Silver Rate not entered for today.";
 
     // Get recent history (last 30 days)
     $today = date('Y-m-d');
     $thirtyDaysAgo = date('Y-m-d', strtotime('-30 days'));
     $history = $this->goldRateService->getRateHistory($thirtyDaysAgo, $today);
+
+    // Get latest rate for 24K
+    $latestRate24K = $this->goldRateService->getLatestRate('24K');
 
     $data = [
       'title'        => 'Gold Rates',
@@ -52,7 +53,8 @@ class GoldRateController extends BaseController
       'today'        => $today,
       'isEntered22K' => $isEntered22K,
       'isEntered24K' => $isEntered24K,
-      'isEnteredSilver' => $isEnteredSilver
+      'isEnteredSilver' => $isEnteredSilver,
+      'latestRate24K'   => $latestRate24K
     ];
 
     if ($this->permissions) {

@@ -22,23 +22,8 @@
               <?php endif; ?>
             </div>
 
-            <!-- Metal Type -->
-            <div class="mb-3">
-              <label for="metal_type" class="form-label">Metal Type</label>
-              <?php
-              // On first load: use $selectedMetal (from ?metal= query param)
-              // After validation failure: old('metal_type') takes priority
-              $currentMetal = old('metal_type', $selectedMetal ?? '22K');
-              ?>
-              <select class="form-select" id="metal_type" name="metal_type" required>
-                <option value="22K" <?= $currentMetal === '22K'    ? 'selected' : '' ?>>22K Gold</option>
-                <option value="24K" <?= $currentMetal === '24K'    ? 'selected' : '' ?>>24K Gold</option>
-                <option value="Silver" <?= $currentMetal === 'Silver' ? 'selected' : '' ?>>Silver</option>
-              </select>
-              <?php if (session('errors.metal_type')): ?>
-                <div class="text-danger"><?= session('errors.metal_type') ?></div>
-              <?php endif; ?>
-            </div>
+            <!-- Metal Type is hidden and defaulted to 24K -->
+            <input type="hidden" name="metal_type" value="24K">
 
             <!-- Rate Per Gram -->
             <div class="mb-3">

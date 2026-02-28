@@ -21,36 +21,20 @@
     <?php endif; ?>
 
     <!-- Statistics / Today's Rates -->
-    <div class="col-md-4">
+
+    <div class="col-md-6">
       <div class="card h-100">
         <div class="card-body">
-          <div class="d-flex align-items-center mb-2 pb-1">
-            <div class="avatar me-2">
-              <span class="avatar-initial rounded bg-label-warning"><i class="bx bxs-coin-stack"></i></span>
+          <div class="d-flex align-items-center justify-content-between mb-2 pb-1">
+            <div class="d-flex align-items-center">
+              <div class="avatar me-2">
+                <span class="avatar-initial rounded bg-label-warning"><i class="bx bxs-coin-stack"></i></span>
+              </div>
+              <h4 class="ms-1 mb-0">24K Gold</h4>
             </div>
-            <h4 class="ms-1 mb-0">22K Gold</h4>
-          </div>
-          <?php if ($isEntered22K): ?>
-            <!-- Retrieve actual rate for display? Controller passed bool only. -->
-            <p class="mb-1">Rate Entered</p>
-            <span class="badge bg-label-success">Updated</span>
-          <?php else: ?>
-            <p class="mb-1 text-danger">Not Entered</p>
-            <?php if ($action_flags['create'] ?? false): ?>
-              <a href="<?= base_url('masters/gold-rates/create?metal=22K') ?>" class="btn btn-sm btn-primary">Add Rate</a>
+            <?php if (isset($latestRate24K) && $latestRate24K): ?>
+              <h4 class="mb-0 text-primary">₹ <?= number_format($latestRate24K, 2) ?></h4>
             <?php endif; ?>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-2 pb-1">
-            <div class="avatar me-2">
-              <span class="avatar-initial rounded bg-label-warning"><i class="bx bxs-coin-stack"></i></span>
-            </div>
-            <h4 class="ms-1 mb-0">24K Gold</h4>
           </div>
           <?php if ($isEntered24K): ?>
             <p class="mb-1">Rate Entered</p>
@@ -64,27 +48,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-2 pb-1">
-            <div class="avatar me-2">
-              <span class="avatar-initial rounded bg-label-secondary"><i class="bx bxs-coin-stack"></i></span>
-            </div>
-            <h4 class="ms-1 mb-0">Silver</h4>
-          </div>
-          <?php if ($isEnteredSilver): ?>
-            <p class="mb-1">Rate Entered</p>
-            <span class="badge bg-label-success">Updated</span>
-          <?php else: ?>
-            <p class="mb-1 text-danger">Not Entered</p>
-            <?php if ($action_flags['create'] ?? false): ?>
-              <a href="<?= base_url('masters/gold-rates/create?metal=Silver') ?>" class="btn btn-sm btn-primary">Add Rate</a>
-            <?php endif; ?>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
+
   </div>
 
   <!-- Rate History Table -->

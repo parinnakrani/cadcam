@@ -218,22 +218,14 @@ $challanId     = $challan['id'] ?? 0;
           <input type="number" class="form-control line-gold-weight"
             name="lines[__INDEX__][gold_weight]" value="" min="0" step="0.001" placeholder="0.000">
         </div>
-        <div class="col-6 col-md-2">
-          <label class="form-label form-label-sm">Purity</label>
-          <select class="form-select line-purity" name="lines[__INDEX__][gold_purity]">
-            <option value="">--</option>
-            <option value="24K">24K</option>
-            <option value="22K">22K</option>
-            <option value="18K">18K</option>
-            <option value="14K">14K</option>
-          </select>
-        </div>
-        <div class="col-6 col-md-2">
+        <!-- Purity is hidden and defaults to 24K -->
+        <input type="hidden" class="line-purity" name="lines[__INDEX__][gold_purity]" value="24K">
+        <div class="col-6 col-md-3">
           <label class="form-label form-label-sm">Rate (₹)</label>
           <input type="number" class="form-control line-rate"
             name="lines[__INDEX__][rate]" value="0.00" min="0" step="0.01" readonly>
         </div>
-        <div class="col-6 col-md-2">
+        <div class="col-6 col-md-3">
           <label class="form-label form-label-sm">Amount (₹)</label>
           <input type="text" class="form-control line-amount fw-bold text-end"
             name="lines[__INDEX__][amount]" value="0.00" readonly tabindex="-1">
@@ -349,7 +341,6 @@ $challanId     = $challan['id'] ?? 0;
         if (lineData.quantity) $row.find('.line-qty').val(lineData.quantity);
         if (lineData.weight) $row.find('.line-weight').val(parseFloat(lineData.weight).toFixed(3));
         if (lineData.gold_weight) $row.find('.line-gold-weight').val(parseFloat(lineData.gold_weight).toFixed(3));
-        if (lineData.gold_purity) $row.find('.line-purity').val(lineData.gold_purity);
         if (lineData.rate) $row.find('.line-rate').val(parseFloat(lineData.rate).toFixed(2));
         if (lineData.amount) $row.find('.line-amount').val(parseFloat(lineData.amount).toFixed(2));
         if (lineData.product_name) $row.find('.line-product-name').val(lineData.product_name);
@@ -500,7 +491,7 @@ $challanId     = $challan['id'] ?? 0;
       calculateLineAmount($row);
     });
 
-    $(document).on('input change', '.line-qty, .line-rate, .line-weight, .line-gold-weight, .line-purity', function() {
+    $(document).on('input change', '.line-qty, .line-rate, .line-weight, .line-gold-weight', function() {
       var $row = $(this).closest('.line-card');
       calculateLineAmount($row);
     });
@@ -519,7 +510,7 @@ $challanId     = $challan['id'] ?? 0;
       var quantity = parseInt($row.find('.line-qty').val()) || 1;
       var weight = parseFloat($row.find('.line-weight').val()) || 0;
       var goldWeight = parseFloat($row.find('.line-gold-weight').val()) || 0;
-      var purity = $row.find('.line-purity').val() || '';
+      var purity = '24K'; // Purity is fixed to 24K
       var $processSelect = $row.find('.line-process');
       var selectedProcesses = $processSelect.val() || [];
       var historicalPrices = $row.data('historical-prices') || {};

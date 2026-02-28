@@ -325,22 +325,14 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
           <input type="number" class="form-control line-gold-weight"
             name="lines[__INDEX__][gold_weight]" value="" min="0" step="0.001" placeholder="0.000">
         </div>
-        <div class="col-6 col-md-2">
-          <label class="form-label form-label-sm">Purity</label>
-          <select class="form-select line-purity" name="lines[__INDEX__][gold_purity]">
-            <option value="">--</option>
-            <option value="24K">24K</option>
-            <option value="22K">22K</option>
-            <option value="18K">18K</option>
-            <option value="14K">14K</option>
-          </select>
-        </div>
-        <div class="col-6 col-md-2">
+        <!-- Purity is hidden and defaults to 24K -->
+        <input type="hidden" class="line-purity" name="lines[__INDEX__][gold_purity]" value="24K">
+        <div class="col-6 col-md-3">
           <label class="form-label form-label-sm">Rate (₹)</label>
           <input type="number" class="form-control line-rate"
             name="lines[__INDEX__][rate]" value="0.00" min="0" step="0.01">
         </div>
-        <div class="col-6 col-md-2">
+        <div class="col-6 col-md-3">
           <label class="form-label form-label-sm">Amount (₹)</label>
           <input type="text" class="form-control line-amount fw-bold text-end"
             name="lines[__INDEX__][amount]" value="0.00" readonly tabindex="-1">
@@ -443,7 +435,6 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
 
           // Gold fields
           if (line.gold_weight) $row.find('.line-gold-weight').val(parseFloat(line.gold_weight).toFixed(3));
-          if (line.gold_purity) $row.find('.line-purity').val(line.gold_purity);
           if (line.current_gold_price) $row.find('.line-current-gold-price').val(line.current_gold_price);
           if (line.adjusted_gold_weight) $row.find('.line-adjusted-gold-weight').val(line.adjusted_gold_weight);
           if (line.gold_adjustment_amount) $row.find('.line-gold-adjustment-amount').val(line.gold_adjustment_amount);
@@ -540,7 +531,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
         calculateLineAmount($(this).closest('.line-card'));
       });
 
-      $(document).on('input change', '.line-qty, .line-rate, .line-weight, .line-gold-weight, .line-purity', function() {
+      $(document).on('input change', '.line-qty, .line-rate, .line-weight, .line-gold-weight', function() {
         calculateLineAmount($(this).closest('.line-card'));
       });
 
@@ -607,7 +598,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
       var quantity = parseInt($row.find('.line-qty').val()) || 1;
       var weight = parseFloat($row.find('.line-weight').val()) || 0;
       var goldWeight = parseFloat($row.find('.line-gold-weight').val()) || 0;
-      var purity = $row.find('.line-purity').val() || '';
+      var purity = '24K'; // Purity is fixed to 24K
       var $processSelect = $row.find('.line-process');
       var selectedProcesses = $processSelect.val() || [];
 
