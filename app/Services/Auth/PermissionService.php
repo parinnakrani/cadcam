@@ -408,6 +408,7 @@ class PermissionService
     $items = [];
 
     $subModules = [
+      'daily'       => ['label' => 'Daily Report',         'url' => 'reports/daily'],
       'receivables' => ['label' => 'Ledger Summary',      'url' => 'reports/receivables'],
       'outstanding' => ['label' => 'Outstanding Invoices', 'url' => 'reports/outstanding'],
       'aging'       => ['label' => 'Aging Report',         'url' => 'reports/outstanding/aging'],

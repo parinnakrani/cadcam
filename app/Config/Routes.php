@@ -296,6 +296,11 @@ $routes->group('reports', ['namespace' => 'App\Controllers\Reports', 'filter' =>
   // Receivables
   $routes->get('receivables', 'ReceivableReportController::index', ['filter' => 'permission:reports.receivables.list']);
   $routes->get('receivables/monthly', 'ReceivableReportController::monthlySummary', ['filter' => 'permission:reports.monthly.list']);
+
+  // Daily Invoice Report
+  $routes->get('daily', 'DailyReportController::index', ['filter' => 'permission:reports.daily.list']);
+  $routes->get('daily/export', 'DailyReportController::exportCsv', ['filter' => 'permission:reports.daily.export']);
+  $routes->get('daily/print', 'DailyReportController::printReport', ['filter' => 'permission:reports.daily.list']);
 });
 
 

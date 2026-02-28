@@ -220,6 +220,7 @@ class PermissionsSeeder extends Seeder
       'receivables' => 'Receivables Report',
       'aging'       => 'Aging Report',
       'monthly'     => 'Monthly Report',
+      'daily'       => 'Daily Report',
     ];
     foreach ($reportSubModules as $sub => $subLabel) {
       foreach (['list', 'export'] as $action) {
