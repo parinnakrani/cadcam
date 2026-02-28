@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 23, 2026 at 06:20 PM
+-- Generation Time: Feb 28, 2026 at 08:33 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -72,8 +72,8 @@ CREATE TABLE `accounts` (
 --
 
 INSERT INTO `accounts` (`id`, `company_id`, `account_code`, `account_name`, `business_name`, `contact_person`, `mobile`, `email`, `contact_person_name`, `mobile_number`, `email_address`, `billing_address_line1`, `billing_address_line2`, `billing_city`, `billing_state_id`, `billing_pincode`, `shipping_address_line1`, `shipping_address_line2`, `shipping_city`, `shipping_state_id`, `shipping_pincode`, `same_as_billing`, `gst_number`, `pan_number`, `opening_balance`, `opening_balance_type`, `current_balance`, `opening_balance_date`, `credit_limit`, `payment_terms`, `notes`, `account_group`, `wax_price_per_gram`, `is_active`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(3, 1, 'ACC-0001', 'Parin', 'Code Nine', '', '9586969009', '', NULL, '', NULL, 'Minibazaar', '', 'Surat', 1, '395006', '', '', '', NULL, '', 0, '', '', 0.00, 'Debit', 7694.67, NULL, NULL, '', '', NULL, NULL, 1, '2026-02-11 19:19:38', '2026-02-21 08:46:22', 0),
-(4, 1, 'ACC-0002', 'Alpesh Pansheriya', '', '', '8000259032', 'alpesh@gmail.com', NULL, '', NULL, 'Jakatnaka', '', 'Surat', 1, '395006', 'Jakatnaka', '', 'Surat', 1, '395006', 1, '22AAAAA0000A1Z5', 'ABCDE1234F', 160.00, 'Credit', 354.40, NULL, NULL, 'No payment terms', 'No notes', NULL, NULL, 1, '2026-02-20 17:07:43', '2026-02-21 08:49:40', 0);
+(3, 1, 'ACC-0001', 'Parin', 'Code Nine', '', '9586969009', '', NULL, '', NULL, 'Minibazaar', '', 'Surat', 1, '395006', '', '', '', NULL, '', 0, '', '', 0.00, 'Debit', 21769.67, NULL, NULL, '', '', NULL, NULL, 1, '2026-02-11 19:19:38', '2026-02-26 16:42:51', 0),
+(4, 1, 'ACC-0002', 'Alpesh Pansheriya', '', '', '8000259032', 'alpesh@gmail.com', NULL, '', NULL, 'Jakatnaka', '', 'Surat', 1, '395006', 'Jakatnaka', '', 'Surat', 1, '395006', 1, '22AAAAA0000A1Z5', 'ABCDE1234F', 160.00, 'Credit', 1714.40, NULL, NULL, 'No payment terms', 'No notes', NULL, NULL, 1, '2026-02-20 17:07:43', '2026-02-26 16:51:29', 0);
 
 -- --------------------------------------------------------
 
@@ -120,75 +120,11 @@ CREATE TABLE `audit_logs` (
 --
 
 INSERT INTO `audit_logs` (`id`, `company_id`, `user_id`, `module`, `action_type`, `record_type`, `record_id`, `before_data`, `after_data`, `ip_address`, `user_agent`, `created_at`) VALUES
-(1, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:20:01'),
-(2, NULL, NULL, 'Master', 'create', 'GoldRate', 1, NULL, '{\"company_id\":\"1\",\"rate_date\":\"2026-02-21\",\"metal_type\":\"22K\",\"rate_per_gram\":\"15000\",\"created_by\":\"2\",\"is_deleted\":0,\"created_at\":\"2026-02-21 13:50:14\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:20:14'),
-(3, NULL, NULL, 'Customer', 'create', 'CashCustomer', 1, NULL, '{\"customer_name\":\"Parin Patel\",\"mobile\":\"9586969009\",\"mobile_number\":\"9586969009\",\"company_id\":\"1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:22:38'),
-(4, NULL, NULL, 'Invoice', 'create', 'Invoice', 1, NULL, '{\"invoice_type\":\"Cash Invoice\",\"invoice_date\":\"2026-02-21\",\"due_date\":\"\",\"account_id\":null,\"cash_customer_id\":\"1\",\"billing_address\":null,\"shipping_address\":null,\"reference_number\":\"#1\",\"tax_rate\":\"18\",\"notes\":\"Notes goes here\",\"terms_conditions\":\"Terms & Conditions goes here as customer \",\"company_id\":\"1\",\"created_by\":\"2\",\"updated_by\":\"2\",\"invoice_number\":\"SYS-0009\",\"subtotal\":214.83,\"tax_amount\":38.67,\"cgst_amount\":0,\"sgst_amount\":0,\"igst_amount\":38.67,\"grand_total\":253.5,\"payment_terms\":null,\"challan_ids\":null,\"total_paid\":0,\"amount_due\":253.5,\"payment_status\":\"Pending\",\"invoice_status\":\"Draft\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:22:38'),
-(5, NULL, NULL, 'Payment', 'create', 'Payment', 1, NULL, '{\"company_id\":\"1\",\"payment_number\":\"PAY-0001\",\"invoice_id\":\"1\",\"customer_type\":\"Cash\",\"account_id\":null,\"cash_customer_id\":\"1\",\"payment_date\":\"2026-02-21\",\"payment_amount\":150,\"payment_mode\":\"Cash\",\"cheque_number\":\"\",\"cheque_date\":\"\",\"bank_name\":\"\",\"transaction_reference\":\"\",\"notes\":\"\",\"received_by\":\"2\",\"is_deleted\":0}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:36:59'),
-(6, NULL, NULL, 'Invoice', 'create', 'Invoice', 2, NULL, '{\"invoice_type\":\"Cash Invoice\",\"invoice_date\":\"2026-02-21\",\"due_date\":\"\",\"account_id\":null,\"cash_customer_id\":\"1\",\"billing_address\":null,\"shipping_address\":null,\"reference_number\":null,\"tax_rate\":\"18\",\"notes\":null,\"terms_conditions\":\"\",\"company_id\":\"1\",\"created_by\":\"2\",\"updated_by\":\"2\",\"invoice_number\":\"SYS-0010\",\"subtotal\":21.19,\"tax_amount\":3.81,\"cgst_amount\":0,\"sgst_amount\":0,\"igst_amount\":3.81,\"grand_total\":25,\"payment_terms\":null,\"challan_ids\":null,\"total_paid\":0,\"amount_due\":25,\"payment_status\":\"Pending\",\"invoice_status\":\"Draft\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:40:50'),
-(7, NULL, NULL, 'Payment', 'create', 'Payment', 2, NULL, '{\"company_id\":\"1\",\"payment_number\":\"PAY-0002\",\"invoice_id\":\"2\",\"customer_type\":\"Cash\",\"account_id\":null,\"cash_customer_id\":\"1\",\"payment_date\":\"2026-02-21\",\"payment_amount\":12,\"payment_mode\":\"Cash\",\"cheque_number\":\"\",\"cheque_date\":\"\",\"bank_name\":\"\",\"transaction_reference\":\"\",\"notes\":\"\",\"received_by\":\"2\",\"is_deleted\":0}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:41:50'),
-(8, NULL, NULL, 'Challan', '', 'Challan', 1, NULL, '{\"company_id\":\"1\",\"user_id\":\"2\",\"challan_number\":\"CH-0013\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:42:59'),
-(9, NULL, NULL, 'Challan', '', 'Challan', 2, NULL, '{\"company_id\":\"1\",\"user_id\":\"2\",\"challan_number\":\"CH-0014\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:43:41'),
-(10, NULL, NULL, 'Challan', '', 'Challan', 3, NULL, '{\"company_id\":\"1\",\"user_id\":\"2\",\"challan_number\":\"CH-0015\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:44:02'),
-(11, NULL, NULL, 'Challan', '', 'Challan', 2, '{\"status\":\"Draft\"}', '{\"status\":\"Pending\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:44:30'),
-(12, NULL, NULL, 'Challan', '', 'Challan', 3, '{\"status\":\"Draft\"}', '{\"status\":\"Pending\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:44:42'),
-(13, NULL, NULL, 'Challan', '', 'Challan', 1, '{\"status\":\"Draft\"}', '{\"status\":\"Pending\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:44:49'),
-(14, NULL, NULL, 'Challan', '', 'Challan', 3, '{\"status\":\"Pending\"}', '{\"status\":\"In Progress\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:45:25'),
-(15, NULL, NULL, 'Challan', '', 'Challan', 3, '{\"status\":\"In Progress\"}', '{\"status\":\"Completed\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:45:32'),
-(16, NULL, NULL, 'Challan', '', 'Challan', 2, '{\"status\":\"Pending\"}', '{\"status\":\"In Progress\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:45:52'),
-(17, NULL, NULL, 'Challan', '', 'Challan', 2, '{\"status\":\"In Progress\"}', '{\"status\":\"Completed\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:45:56'),
-(18, NULL, NULL, 'Challan', '', 'Challan', 1, '{\"status\":\"Pending\"}', '{\"status\":\"In Progress\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:46:07'),
-(19, NULL, NULL, 'Challan', '', 'Challan', 1, '{\"status\":\"In Progress\"}', '{\"status\":\"Completed\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:46:11'),
-(20, NULL, NULL, 'Invoice', 'create', 'Invoice', 3, NULL, '{\"company_id\":\"1\",\"invoice_type\":\"Accounts Invoice\",\"invoice_date\":\"2026-02-21\",\"account_id\":\"3\",\"billing_address\":\"Minibazaar , Surat - 395006\",\"shipping_address\":null,\"notes\":null,\"payment_terms\":null,\"challan_ids\":\"[\\\"1\\\",\\\"2\\\"]\",\"tax_rate\":18,\"created_by\":\"2\",\"updated_by\":\"2\",\"invoice_number\":\"SYS-0011\",\"subtotal\":195.34,\"tax_amount\":35.16,\"cgst_amount\":17.58,\"sgst_amount\":17.58,\"igst_amount\":0,\"grand_total\":230.5,\"cash_customer_id\":null,\"reference_number\":null,\"total_paid\":0,\"amount_due\":230.5,\"payment_status\":\"Pending\",\"invoice_status\":\"Draft\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:46:22'),
-(21, NULL, NULL, 'Challan', '', 'Challan', 4, NULL, '{\"company_id\":\"1\",\"user_id\":\"2\",\"challan_number\":\"CH-0016\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:48:59'),
-(22, NULL, NULL, 'Challan', '', 'Challan', 4, '{\"status\":\"Draft\"}', '{\"status\":\"Pending\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:49:14'),
-(23, NULL, NULL, 'Challan', '', 'Challan', 4, '{\"status\":\"Pending\"}', '{\"status\":\"In Progress\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:49:19'),
-(24, NULL, NULL, 'Challan', '', 'Challan', 4, '{\"status\":\"In Progress\"}', '{\"status\":\"Completed\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:49:23'),
-(25, NULL, NULL, 'Invoice', 'create', 'Invoice', 4, NULL, '{\"company_id\":\"1\",\"invoice_type\":\"Accounts Invoice\",\"invoice_date\":\"2026-02-21\",\"account_id\":\"4\",\"billing_address\":\"Jakatnaka , Surat - 395006\",\"shipping_address\":\"Jakatnaka , Surat - 395006\",\"notes\":\"No notes\",\"payment_terms\":\"No payment terms\",\"challan_ids\":\"[\\\"3\\\",\\\"4\\\"]\",\"tax_rate\":18,\"created_by\":\"2\",\"updated_by\":\"2\",\"invoice_number\":\"SYS-0012\",\"subtotal\":435.93,\"tax_amount\":78.47,\"cgst_amount\":39.24,\"sgst_amount\":39.23,\"igst_amount\":0,\"grand_total\":514.4,\"cash_customer_id\":null,\"reference_number\":null,\"total_paid\":0,\"amount_due\":514.4,\"payment_status\":\"Pending\",\"invoice_status\":\"Draft\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 08:49:40'),
-(26, NULL, NULL, 'User', 'update', 'User', 6, NULL, '{\"role_ids\":[\"3\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 09:30:33'),
-(27, NULL, NULL, 'User', 'create', 'User', 6, NULL, '{\"csrf_test_name\":\"dffbcbc368533a50bf697b314c5120ac\",\"full_name\":\"Billing Manager\",\"username\":\"manager\",\"email\":\"manager@gmail.com\",\"mobile_number\":\"8888888888\",\"password\":\"Manager@123\",\"role_ids\":[\"3\"],\"company_id\":\"1\",\"employment_status\":\"Active\",\"is_deleted\":0,\"failed_login_attempts\":0}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 09:30:33'),
-(28, NULL, NULL, 'Auth', 'login', 'User', 6, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 09:31:04'),
-(29, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-21 09:51:40'),
-(30, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 05:42:22'),
-(31, NULL, NULL, 'Auth', 'logout', 'User', 2, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 05:46:07'),
-(32, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 05:46:14'),
-(33, NULL, NULL, 'Auth', 'logout', 'User', 2, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 05:53:05'),
-(34, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 05:53:11'),
-(35, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 06:00:30'),
-(36, NULL, NULL, 'Roles', '', 'Role', 11, NULL, '{\"role_name\":\"Cashier\",\"company_id\":\"1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 06:11:11'),
-(37, NULL, NULL, 'User', 'update', 'User', 7, NULL, '{\"role_ids\":[\"11\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 06:12:24'),
-(38, NULL, NULL, 'User', 'create', 'User', 7, NULL, '{\"csrf_test_name\":\"d59433aad40980f36ab78d1b86238f97\",\"full_name\":\"New\",\"username\":\"Cashier\",\"email\":\"cashier@gmail.com\",\"mobile_number\":\"9992223323\",\"password\":\"Cashier@123\",\"role_ids\":[\"11\"],\"company_id\":\"1\",\"employment_status\":\"Active\",\"is_deleted\":0,\"failed_login_attempts\":0}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 06:12:24'),
-(39, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 06:12:52'),
-(40, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 06:36:59'),
-(41, NULL, NULL, 'Challan', '', 'Challan', 5, NULL, '{\"company_id\":\"1\",\"user_id\":\"2\",\"challan_number\":\"CH-0017\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 06:38:54'),
-(42, NULL, NULL, 'Auth', 'logout', 'User', 7, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 07:59:00'),
-(43, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 07:59:09'),
-(44, NULL, NULL, 'access_denied', '', NULL, NULL, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 08:09:01'),
-(45, NULL, NULL, 'access_denied', '', NULL, NULL, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 08:09:07'),
-(46, NULL, NULL, 'access_denied', '', NULL, NULL, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-22 08:09:10'),
-(47, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 15:54:58'),
-(48, NULL, NULL, 'Auth', 'logout', 'User', 2, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 15:55:07'),
-(49, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 15:55:19'),
-(50, NULL, NULL, 'access_denied', '', NULL, NULL, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 15:55:28'),
-(51, NULL, NULL, 'access_denied', '', NULL, NULL, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 15:58:27'),
-(52, NULL, NULL, 'access_denied', '', NULL, NULL, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 15:58:30'),
-(53, NULL, NULL, 'Auth', 'logout', 'User', 7, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:06:20'),
-(54, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:06:27'),
-(55, NULL, NULL, 'Auth', 'logout', 'User', 7, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:07:22'),
-(56, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:07:32'),
-(57, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:15:46'),
-(58, NULL, NULL, 'Roles', '', 'Role', 11, NULL, '{\"changes\":[\"csrf_test_name\",\"role_name\",\"role_description\",\"permissions\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:25:36'),
-(59, NULL, NULL, 'Auth', 'logout', 'User', 7, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:25:52'),
-(60, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:25:59'),
-(61, NULL, NULL, 'Roles', '', 'Role', 11, NULL, '{\"changes\":[\"csrf_test_name\",\"role_name\",\"role_description\",\"permissions\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:26:49'),
-(62, NULL, NULL, 'Auth', 'logout', 'User', 7, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:26:53'),
-(63, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:27:01'),
-(64, NULL, NULL, 'Roles', '', 'Role', 11, NULL, '{\"changes\":[\"csrf_test_name\",\"role_name\",\"role_description\",\"permissions\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:35:59'),
-(65, NULL, NULL, 'Roles', '', 'Role', 11, NULL, '{\"changes\":[\"csrf_test_name\",\"role_name\",\"role_description\",\"permissions\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:44:18'),
-(66, NULL, NULL, 'Auth', 'logout', 'User', 7, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:44:41'),
-(67, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:44:47'),
-(68, NULL, NULL, 'Auth', 'logout', 'User', 7, NULL, NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:51:16'),
-(69, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-23 16:51:23');
+(1, NULL, NULL, 'Auth', 'login', 'User', 8, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:13:29'),
+(2, NULL, NULL, 'Challan', '', 'Challan', 1, NULL, '{\"company_id\":\"1\",\"user_id\":\"8\",\"challan_number\":\"CH-0021\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:25:53'),
+(3, NULL, NULL, 'Invoice', 'create', 'Invoice', 1, NULL, '{\"invoice_type\":\"Cash Invoice\",\"invoice_date\":\"2026-02-28\",\"due_date\":\"\",\"account_id\":null,\"cash_customer_id\":\"1\",\"billing_address\":null,\"shipping_address\":null,\"reference_number\":null,\"tax_rate\":\"18\",\"notes\":null,\"terms_conditions\":\"\",\"company_id\":\"1\",\"created_by\":\"8\",\"updated_by\":\"8\",\"invoice_number\":\"SYS-0021\",\"subtotal\":169.49,\"tax_amount\":30.51,\"cgst_amount\":0,\"sgst_amount\":0,\"igst_amount\":30.51,\"grand_total\":200,\"payment_terms\":null,\"challan_ids\":null,\"total_paid\":0,\"amount_due\":200,\"payment_status\":\"Pending\",\"invoice_status\":\"Draft\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:44:26'),
+(4, NULL, NULL, 'Invoice', 'create', 'Invoice', 3, NULL, '{\"invoice_type\":\"Cash Invoice\",\"invoice_date\":\"2026-02-28\",\"due_date\":\"\",\"account_id\":null,\"cash_customer_id\":\"2\",\"billing_address\":null,\"shipping_address\":null,\"reference_number\":null,\"tax_rate\":\"18\",\"notes\":null,\"terms_conditions\":\"\",\"company_id\":\"1\",\"created_by\":\"8\",\"updated_by\":\"8\",\"invoice_number\":\"SYS-0022\",\"subtotal\":406.78,\"tax_amount\":73.22,\"cgst_amount\":0,\"sgst_amount\":0,\"igst_amount\":73.22,\"grand_total\":480,\"payment_terms\":null,\"challan_ids\":null,\"total_paid\":0,\"amount_due\":480,\"payment_status\":\"Pending\",\"invoice_status\":\"Draft\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:56:22'),
+(5, NULL, NULL, 'Invoice', 'update', 'Invoice', 3, NULL, '{\"invoice_date\":\"2026-02-28\",\"due_date\":\"\",\"billing_address\":\"\",\"shipping_address\":\"\",\"reference_number\":\"\",\"notes\":\"\",\"terms_conditions\":\"\",\"updated_by\":\"8\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:57:43');
 
 -- --------------------------------------------------------
 
@@ -221,7 +157,10 @@ CREATE TABLE `cash_customers` (
 --
 
 INSERT INTO `cash_customers` (`id`, `company_id`, `customer_name`, `mobile_number`, `created_at`, `updated_at`, `is_active`, `is_deleted`, `mobile`, `email`, `address_line1`, `address_line2`, `city`, `state_id`, `pincode`, `notes`, `current_balance`) VALUES
-(1, 1, 'Parin Patel', '9586969009', '2026-02-21 08:22:38', '2026-02-21 08:40:50', 1, 0, '9586969009', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 278.50);
+(1, 1, 'Parin Patel', '9586969009', '2026-02-21 08:22:38', '2026-02-28 06:44:26', 1, 0, '9586969009', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 450.00),
+(2, 1, 'Alpesh', '8000259032', '2026-02-23 18:11:37', '2026-02-28 06:57:43', 1, 0, '8000259032', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 7580.00),
+(3, 1, 'Parin Nakranni', '8888887777', '2026-02-25 19:26:41', '2026-02-26 17:04:40', 1, 0, '8888887777', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00),
+(4, 1, 'Parin Nakrani', '4444444444', '2026-02-27 09:15:57', '2026-02-27 09:15:57', 1, 0, '4444444444', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 25.00);
 
 -- --------------------------------------------------------
 
@@ -259,11 +198,7 @@ CREATE TABLE `challans` (
 --
 
 INSERT INTO `challans` (`id`, `company_id`, `challan_number`, `challan_date`, `challan_type`, `customer_type`, `account_id`, `cash_customer_id`, `challan_status`, `total_weight`, `subtotal_amount`, `tax_percent`, `tax_amount`, `total_amount`, `invoice_generated`, `invoice_id`, `notes`, `delivery_date`, `created_by`, `is_deleted`, `created_at`, `updated_at`) VALUES
-(1, 1, 'CH-0013', '2026-02-21', 'Rhodium', 'Account', 3, NULL, 'Invoiced', 2.000, 120.00, 18.00, 0.00, 120.00, 1, 3, '', '2026-02-21', 2, 0, '2026-02-21 08:42:59', '2026-02-21 08:46:22'),
-(2, 1, 'CH-0014', '2026-02-21', 'Rhodium', 'Account', 3, NULL, 'Invoiced', 1.300, 110.50, 18.00, 0.00, 110.50, 1, 3, '', '0000-00-00', 2, 0, '2026-02-21 08:43:41', '2026-02-21 08:46:22'),
-(3, 1, 'CH-0015', '2026-02-21', 'Rhodium', 'Account', 4, NULL, 'Invoiced', 4.345, 86.90, 18.00, 0.00, 86.90, 1, 4, '', '0000-00-00', 2, 0, '2026-02-21 08:44:02', '2026-02-21 08:49:40'),
-(4, 1, 'CH-0016', '2026-02-21', 'Rhodium', 'Account', 4, NULL, 'Invoiced', 6.000, 427.50, 18.00, 0.00, 427.50, 1, 4, '', '0000-00-00', 2, 0, '2026-02-21 08:48:59', '2026-02-21 08:49:40'),
-(5, 1, 'CH-0017', '2026-02-22', 'Rhodium', 'Account', 3, NULL, 'Draft', 2.000, 50.00, 18.00, 0.00, 50.00, 0, NULL, '', '0000-00-00', 2, 0, '2026-02-22 06:38:54', '2026-02-22 06:38:54');
+(1, 1, 'CH-0021', '2026-02-28', 'Rhodium', 'Account', 3, NULL, 'Draft', 1.000, 60.00, 18.00, 0.00, 60.00, 0, NULL, '', '0000-00-00', 8, 0, '2026-02-28 06:25:53', '2026-02-28 06:25:53');
 
 -- --------------------------------------------------------
 
@@ -300,12 +235,7 @@ CREATE TABLE `challan_lines` (
 --
 
 INSERT INTO `challan_lines` (`id`, `challan_id`, `line_number`, `product_ids`, `product_name`, `process_ids`, `process_prices`, `quantity`, `weight`, `rate`, `amount`, `image_path`, `gold_weight`, `gold_fine_weight`, `gold_purity`, `current_gold_price`, `adjusted_gold_weight`, `gold_adjustment_amount`, `line_notes`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, '[\"3\"]', 'Earring', '[\"1\"]', '[{\"process_id\":\"1\",\"process_name\":\"Rhodium Black\",\"rate\":60}]', 1, 2.000, 60.00, 120.00, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-21 08:42:59', '2026-02-21 08:42:59'),
-(2, 2, 1, '[\"3\"]', 'Earring', '[\"1\",\"2\"]', '[{\"process_id\":\"1\",\"process_name\":\"Rhodium Black\",\"rate\":60},{\"process_id\":\"2\",\"process_name\":\"Rhodium Pink\",\"rate\":25}]', 1, 1.300, 85.00, 110.50, 'uploads/challan_images/1771663421_e1a77f6363b0f86e938e.png', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-21 08:43:41', '2026-02-21 08:43:41'),
-(3, 3, 1, '[\"4\"]', 'Necklace', '[\"3\"]', '[{\"process_id\":\"3\",\"process_name\":\"Rhodium White\",\"rate\":20}]', 1, 4.345, 20.00, 86.90, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-21 08:44:02', '2026-02-21 08:44:02'),
-(4, 4, 1, '[\"3\"]', 'Earring', '[\"2\",\"3\"]', '[{\"process_id\":\"2\",\"process_name\":\"Rhodium Pink\",\"rate\":25},{\"process_id\":\"3\",\"process_name\":\"Rhodium White\",\"rate\":20}]', 1, 1.500, 45.00, 67.50, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-21 08:48:59', '2026-02-21 08:48:59'),
-(5, 4, 2, '[\"4\",\"6\"]', 'Necklace, Bracelet', '[\"1\",\"3\"]', '[{\"process_id\":\"1\",\"process_name\":\"Rhodium Black\",\"rate\":60},{\"process_id\":\"3\",\"process_name\":\"Rhodium White\",\"rate\":20}]', 1, 4.500, 80.00, 360.00, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-21 08:48:59', '2026-02-21 08:48:59'),
-(6, 5, 1, '[\"2\"]', 'Pendant', '[\"2\"]', '[{\"process_id\":\"2\",\"process_name\":\"Rhodium Pink\",\"rate\":25}]', 1, 2.000, 25.00, 50.00, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-22 06:38:54', '2026-02-22 06:38:54');
+(1, 1, 1, '[\"2\"]', 'Pendant', '[\"1\"]', '[{\"process_id\":\"1\",\"process_name\":\"Rhodium Black\",\"rate\":60}]', 1, 1.000, 60.00, 60.00, 'uploads/challan_images/1772259953_23dce7112d702f920568.png', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-28 06:25:53', '2026-02-28 06:25:53');
 
 -- --------------------------------------------------------
 
@@ -349,7 +279,8 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `company_name`, `business_legal_name`, `business_type`, `address_line1`, `address_line2`, `city`, `state_id`, `pincode`, `contact_person_name`, `contact_email`, `contact_phone`, `gst_number`, `pan_number`, `company_logo`, `invoice_prefix`, `challan_prefix`, `default_tax_rate`, `minimum_wax_price`, `financial_year_start_month`, `date_format`, `timezone`, `status`, `last_invoice_number`, `last_challan_number`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(1, 'System Administrator', 'System Administrator', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'admin@gmail.com', '9999999999', NULL, NULL, NULL, 'SYS-', 'CH-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 12, 17, '2026-02-08 16:31:03', '2026-02-22 06:38:54', 0);
+(1, 'System Administrator', 'System Administrator', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'admin@gmail.com', '9999999999', NULL, NULL, NULL, 'SYS-', 'CH-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 22, 21, '2026-02-08 16:31:03', '2026-02-28 06:56:22', 0),
+(2, 'Meena', 'Meena', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'meena@gmail.com', '8888888888', NULL, NULL, NULL, 'SYS-', 'MN-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 13, 9, '2026-02-08 16:31:03', '2026-02-24 17:08:51', 0);
 
 -- --------------------------------------------------------
 
@@ -418,7 +349,10 @@ CREATE TABLE `gold_rates` (
 --
 
 INSERT INTO `gold_rates` (`id`, `company_id`, `rate_date`, `metal_type`, `rate_per_gram`, `created_by`, `updated_by`, `is_deleted`, `created_at`, `updated_at`) VALUES
-(1, 1, '2026-02-21', '22K', 15000.00, 2, NULL, 0, '2026-02-21 08:20:14', '2026-02-21 08:20:14');
+(1, 1, '2026-02-21', '22K', 15000.00, 2, NULL, 0, '2026-02-21 08:20:14', '2026-02-21 08:20:14'),
+(2, 1, '2026-02-23', '22K', 15000.00, 2, NULL, 0, '2026-02-23 17:52:27', '2026-02-23 17:52:27'),
+(3, 1, '2026-02-24', '22K', 14000.00, 7, NULL, 0, '2026-02-24 17:12:54', '2026-02-24 17:12:54'),
+(4, 2, '2026-02-24', '22K', 11000.00, 7, NULL, 0, '2026-02-24 17:13:07', '2026-02-24 17:13:07');
 
 -- --------------------------------------------------------
 
@@ -468,10 +402,8 @@ CREATE TABLE `invoices` (
 --
 
 INSERT INTO `invoices` (`id`, `company_id`, `invoice_number`, `invoice_type`, `invoice_date`, `due_date`, `account_id`, `cash_customer_id`, `billing_address`, `shipping_address`, `reference_number`, `challan_ids`, `subtotal`, `tax_rate`, `tax_amount`, `cgst_amount`, `sgst_amount`, `igst_amount`, `grand_total`, `total_paid`, `amount_due`, `invoice_status`, `payment_status`, `gold_adjustment_applied`, `gold_adjustment_date`, `gold_adjustment_amount`, `gold_rate_used`, `notes`, `terms_conditions`, `created_by`, `created_at`, `updated_by`, `updated_at`, `is_deleted`) VALUES
-(1, 1, 'SYS-0009', 'Cash Invoice', '2026-02-21', '0000-00-00', NULL, 1, NULL, NULL, '#1', NULL, 214.83, 18.00, 38.67, 19.34, 19.33, 0.00, 253.50, 150.00, 103.50, 'Posted', 'Partial Paid', 0, NULL, NULL, NULL, 'Notes goes here', 'Terms & Conditions goes here as customer ', 2, '2026-02-21 08:22:38', 2, '2026-02-21 08:36:59', 0),
-(2, 1, 'SYS-0010', 'Cash Invoice', '2026-02-21', '0000-00-00', NULL, 1, NULL, NULL, NULL, NULL, 21.19, 18.00, 3.81, 1.91, 1.90, 0.00, 25.00, 12.00, 13.00, 'Posted', 'Partial Paid', 0, NULL, NULL, NULL, NULL, '', 2, '2026-02-21 08:40:50', 2, '2026-02-21 08:41:50', 0),
-(3, 1, 'SYS-0011', 'Accounts Invoice', '2026-02-21', NULL, 3, NULL, 'Minibazaar , Surat - 395006', NULL, NULL, '[\"1\",\"2\"]', 195.34, 18.00, 35.16, 17.58, 17.58, 0.00, 230.50, 0.00, 230.50, 'Draft', 'Pending', 0, NULL, NULL, NULL, NULL, NULL, 2, '2026-02-21 08:46:22', 2, '2026-02-21 08:46:22', 0),
-(4, 1, 'SYS-0012', 'Accounts Invoice', '2026-02-21', NULL, 4, NULL, 'Jakatnaka , Surat - 395006', 'Jakatnaka , Surat - 395006', NULL, '[\"3\",\"4\"]', 435.93, 18.00, 78.47, 39.24, 39.23, 0.00, 514.40, 0.00, 514.40, 'Draft', 'Pending', 0, NULL, NULL, NULL, 'No notes', NULL, 2, '2026-02-21 08:49:40', 2, '2026-02-21 08:49:40', 0);
+(1, 1, 'SYS-0021', 'Cash Invoice', '2026-02-28', '0000-00-00', NULL, 1, NULL, NULL, NULL, NULL, 169.49, 18.00, 30.51, 15.26, 15.25, 0.00, 200.00, 0.00, 200.00, 'Draft', 'Pending', 0, NULL, NULL, NULL, NULL, '', 8, '2026-02-28 06:44:26', 8, '2026-02-28 06:44:26', 0),
+(3, 1, 'SYS-0022', 'Cash Invoice', '2026-02-28', '0000-00-00', NULL, 2, '', '', '', NULL, 6423.73, 18.00, 1156.27, 578.14, 578.13, 0.00, 7580.00, 0.00, 7580.00, 'Draft', 'Pending', 0, NULL, NULL, NULL, '', '', 8, '2026-02-28 06:56:22', 8, '2026-02-28 06:57:43', 0);
 
 -- --------------------------------------------------------
 
@@ -500,6 +432,7 @@ CREATE TABLE `invoice_lines` (
   `adjusted_gold_weight` decimal(10,3) DEFAULT NULL COMMENT 'After adjustment',
   `gold_adjustment_amount` decimal(15,2) DEFAULT NULL COMMENT 'Per line adjustment',
   `line_notes` text DEFAULT NULL,
+  `image_path` varchar(500) DEFAULT NULL COMMENT 'Path to uploaded line image',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -508,14 +441,10 @@ CREATE TABLE `invoice_lines` (
 -- Dumping data for table `invoice_lines`
 --
 
-INSERT INTO `invoice_lines` (`id`, `invoice_id`, `line_number`, `source_challan_id`, `source_challan_line_id`, `product_ids`, `product_name`, `process_ids`, `process_prices`, `quantity`, `weight`, `rate`, `amount`, `gold_weight`, `gold_fine_weight`, `gold_purity`, `original_gold_weight`, `adjusted_gold_weight`, `gold_adjustment_amount`, `line_notes`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, NULL, NULL, '[\"3\"]', NULL, '[\"2\"]', NULL, 1, 1.500, 25.00, 37.50, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-21 08:22:38', '2026-02-21 08:22:38'),
-(2, 1, 2, NULL, NULL, '[\"4\",\"2\"]', NULL, '[\"1\",\"3\"]', NULL, 1, 2.700, 80.00, 216.00, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-21 08:22:38', '2026-02-21 08:22:38'),
-(3, 2, 1, NULL, NULL, '[\"3\"]', NULL, '[\"2\"]', NULL, 1, 1.000, 25.00, 25.00, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, '2026-02-21 08:40:50', '2026-02-21 08:40:50'),
-(4, 3, 1, 1, NULL, '[\"3\"]', NULL, '[\"1\"]', NULL, 1, 2.000, 60.00, 120.00, 0.000, NULL, '', 0.000, 0.000, 0.00, 'Consolidated from Challan CH-0013 (Lines: 1)', '2026-02-21 08:46:22', '2026-02-21 08:46:22'),
-(5, 3, 2, 2, NULL, '[\"3\"]', NULL, '[\"1\",\"2\"]', NULL, 1, 1.300, 85.00, 110.50, 0.000, NULL, '', 0.000, 0.000, 0.00, 'Consolidated from Challan CH-0014 (Lines: 2)', '2026-02-21 08:46:22', '2026-02-21 08:46:22'),
-(6, 4, 1, 3, NULL, '[\"4\"]', NULL, '[\"3\"]', NULL, 1, 4.345, 20.00, 86.90, 0.000, NULL, '', 0.000, 0.000, 0.00, 'Consolidated from Challan CH-0015 (Lines: 3)', '2026-02-21 08:49:40', '2026-02-21 08:49:40'),
-(7, 4, 2, 4, NULL, '[\"3\",\"4\",\"6\"]', NULL, '[\"2\",\"3\",\"1\"]', NULL, 2, 6.000, 125.00, 427.50, 0.000, NULL, '', 0.000, 0.000, 0.00, 'Consolidated from Challan CH-0016 (Lines: 4, 5)', '2026-02-21 08:49:40', '2026-02-21 08:49:40');
+INSERT INTO `invoice_lines` (`id`, `invoice_id`, `line_number`, `source_challan_id`, `source_challan_line_id`, `product_ids`, `product_name`, `process_ids`, `process_prices`, `quantity`, `weight`, `rate`, `amount`, `gold_weight`, `gold_fine_weight`, `gold_purity`, `original_gold_weight`, `adjusted_gold_weight`, `gold_adjustment_amount`, `line_notes`, `image_path`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, NULL, NULL, '[\"4\"]', NULL, '[\"8\"]', NULL, 1, 1.000, 200.00, 200.00, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, NULL, '2026-02-28 06:44:26', '2026-02-28 06:44:26'),
+(4, 3, 1, NULL, NULL, '[\"3\"]', NULL, '[\"1\",\"7\"]', '[]', 1, 1.000, 80.00, 80.00, 0.000, NULL, '', 0.000, 0.000, 0.00, NULL, 'uploads/invoice_images/1772261782_0de4a094d73d8eafbe11.png', '2026-02-28 06:57:43', '2026-02-28 06:57:43'),
+(5, 3, 2, NULL, NULL, '[\"1\"]', NULL, '[\"8\"]', '[]', 1, 2.500, 200.00, 7500.00, 3.000, NULL, '22K', 0.000, 0.500, 7000.00, NULL, 'uploads/invoice_images/1772261782_e1114a24838396b85072.jpg', '2026-02-28 06:57:43', '2026-02-28 06:57:43');
 
 -- --------------------------------------------------------
 
@@ -544,10 +473,8 @@ CREATE TABLE `ledger_entries` (
 --
 
 INSERT INTO `ledger_entries` (`id`, `company_id`, `account_id`, `cash_customer_id`, `entry_date`, `reference_type`, `reference_id`, `reference_number`, `description`, `debit_amount`, `credit_amount`, `balance_after`, `created_at`) VALUES
-(1, 1, NULL, 1, '2026-02-21', 'invoice', 1, 'SYS-0009', 'Invoice Generated: SYS-0009', 253.50, 0.00, 253.50, '2026-02-21 08:22:38'),
-(2, 1, NULL, 1, '2026-02-21', 'invoice', 2, 'SYS-0010', 'Invoice Generated: SYS-0010', 25.00, 0.00, 278.50, '2026-02-21 08:40:50'),
-(3, 1, 3, NULL, '2026-02-21', 'invoice', 3, 'SYS-0011', 'Invoice Generated: SYS-0011', 230.50, 0.00, 7694.67, '2026-02-21 08:46:22'),
-(4, 1, 4, NULL, '2026-02-21', 'invoice', 4, 'SYS-0012', 'Invoice Generated: SYS-0012', 514.40, 0.00, 354.40, '2026-02-21 08:49:40');
+(1, 1, NULL, 1, '2026-02-28', 'invoice', 1, 'SYS-0021', 'Invoice Generated: SYS-0021', 200.00, 0.00, 450.00, '2026-02-28 06:44:26'),
+(2, 1, NULL, 2, '2026-02-28', 'invoice', 3, 'SYS-0022', 'Invoice Generated: SYS-0022', 7580.00, 0.00, 7580.00, '2026-02-28 06:56:22');
 
 -- --------------------------------------------------------
 
@@ -596,7 +523,8 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (36, '2026-02-19-000001', 'App\\Database\\Migrations\\AddGoldAdjustmentToChallanLines', 'default', 'App', 1771441631, 17),
 (37, '2026-02-20-000001', 'App\\Database\\Migrations\\FixGoldRatesTable', 'default', 'App', 1771607637, 18),
 (38, '2026-02-22-000001', 'App\\Database\\Migrations\\CreatePermissionsTable', 'default', 'App', 1771739036, 19),
-(39, '2026-02-22-000002', 'App\\Database\\Migrations\\UpdateRolePermissionsRbac', 'default', 'App', 1771739036, 19);
+(39, '2026-02-22-000002', 'App\\Database\\Migrations\\UpdateRolePermissionsRbac', 'default', 'App', 1771739036, 19),
+(40, '2026-02-28-000001', 'App\\Database\\Migrations\\AddImagePathToInvoiceLines', 'default', 'App', 1772260241, 20);
 
 -- --------------------------------------------------------
 
@@ -625,14 +553,6 @@ CREATE TABLE `payments` (
   `updated_at` timestamp NULL DEFAULT NULL,
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ;
-
---
--- Dumping data for table `payments`
---
-
-INSERT INTO `payments` (`id`, `company_id`, `payment_number`, `invoice_id`, `customer_type`, `account_id`, `cash_customer_id`, `payment_date`, `payment_amount`, `payment_mode`, `cheque_number`, `cheque_date`, `bank_name`, `transaction_reference`, `notes`, `received_by`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(1, 1, 'PAY-0001', 1, 'Cash', NULL, 1, '2026-02-21', 150.00, 'Cash', '', '0000-00-00', '', '', '', 2, '2026-02-21 08:36:59', '2026-02-21 08:36:59', 0),
-(2, 1, 'PAY-0002', 2, 'Cash', NULL, 1, '2026-02-21', 12.00, 'Cash', '', '0000-00-00', '', '', '', 2, '2026-02-21 08:41:50', '2026-02-21 08:41:50', 0);
 
 -- --------------------------------------------------------
 
@@ -822,7 +742,18 @@ CREATE TABLE `processes` (
 INSERT INTO `processes` (`id`, `company_id`, `process_code`, `process_name`, `process_type`, `description`, `rate_per_unit`, `unit_of_measure`, `is_active`, `is_deleted`, `created_at`, `updated_at`) VALUES
 (1, 1, 'RB', 'Rhodium Black', 'Rhodium', '', 60.00, 'GRAM', 1, 0, '2026-02-11 19:01:53', '2026-02-11 19:01:53'),
 (2, 1, 'RP', 'Rhodium Pink', 'Rhodium', '', 25.00, 'PCS', 1, 0, '2026-02-11 19:02:08', '2026-02-11 19:02:08'),
-(3, 1, 'RW', 'Rhodium White', 'Rhodium', '', 20.00, 'PCS', 1, 0, '2026-02-11 19:02:36', '2026-02-11 19:02:36');
+(3, 1, 'RW', 'Rhodium White', 'Rhodium', '', 20.00, 'PCS', 1, 0, '2026-02-11 19:02:36', '2026-02-11 19:02:36'),
+(4, 2, 'RB', 'Rhodium Black', 'Rhodium', '', 60.00, 'GRAM', 1, 0, '2026-02-11 19:01:53', '2026-02-11 19:01:53'),
+(5, 2, 'RP', 'Rhodium Pink', 'Rhodium', '', 25.00, 'PCS', 1, 0, '2026-02-11 19:02:08', '2026-02-11 19:02:08'),
+(6, 2, 'RW', 'Rhodium White', 'Rhodium', '', 20.00, 'PCS', 1, 0, '2026-02-11 19:02:36', '2026-02-11 19:02:36'),
+(7, 1, 'RG', 'Rhodium God', 'Rhodium', '', 20.00, 'GRAM', 1, 0, '2026-02-27 09:36:41', '2026-02-27 09:36:41'),
+(8, 1, 'CR', 'Ceramic Rhodium', 'Rhodium', '', 200.00, 'GRAM', 1, 0, '2026-02-27 09:37:12', '2026-02-27 09:37:12'),
+(9, 1, 'VP', 'Victorium Platinum', 'Rhodium', '', 60.00, 'GRAM', 1, 0, '2026-02-27 09:37:35', '2026-02-27 09:37:35'),
+(10, 1, 'MP', 'Micro Platinum', 'Rhodium', '', 300.00, 'GRAM', 1, 0, '2026-02-27 09:37:57', '2026-02-27 09:37:57'),
+(11, 2, 'RG', 'Rhodium God', 'Rhodium', '', 20.00, 'GRAM', 1, 0, '2026-02-27 09:36:41', '2026-02-27 09:36:41'),
+(12, 2, 'CR', 'Ceramic Rhodium', 'Rhodium', '', 200.00, 'GRAM', 1, 0, '2026-02-27 09:37:12', '2026-02-27 09:37:12'),
+(13, 2, 'VP', 'Victorium Platinum', 'Rhodium', '', 60.00, 'GRAM', 1, 0, '2026-02-27 09:37:35', '2026-02-27 09:37:35'),
+(14, 2, 'MP', 'Micro Platinum', 'Rhodium', '', 300.00, 'GRAM', 1, 0, '2026-02-27 09:37:57', '2026-02-27 09:37:57');
 
 -- --------------------------------------------------------
 
@@ -855,7 +786,12 @@ INSERT INTO `products` (`id`, `company_id`, `category_id`, `product_code`, `prod
 (2, 1, 1, 'PEN001', 'Pendant', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:38', '2026-02-11 19:00:38'),
 (3, 1, 1, 'EAR001', 'Earring', '', 'uploads/products/1770901221_d2e1aff5be6425ec83e8.jpg', '', 'PCS', 1, 0, '2026-02-11 19:01:15', '2026-02-12 13:00:21'),
 (4, 1, 1, 'NECK001', 'Necklace', '', 'uploads/products/1771607177_98439e3b8d2d71cbb6a1.png', '', 'PCS', 1, 0, '2026-02-11 19:01:28', '2026-02-20 17:06:17'),
-(6, 1, 1, 'B001', 'Bracelet', '', NULL, '', 'PCS', 1, 0, '2026-02-20 17:09:02', '2026-02-20 17:09:02');
+(6, 1, 1, 'B001', 'Bracelet', '', NULL, '', 'PCS', 1, 0, '2026-02-20 17:09:02', '2026-02-20 17:09:02'),
+(7, 2, 1, 'RING001', 'Ring', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:26', '2026-02-11 19:00:26'),
+(8, 2, 1, 'PEN001', 'Pendant', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:38', '2026-02-11 19:00:38'),
+(9, 2, 1, 'EAR001', 'Earring', '', 'uploads/products/1770901221_d2e1aff5be6425ec83e8.jpg', '', 'PCS', 1, 0, '2026-02-11 19:01:15', '2026-02-12 13:00:21'),
+(10, 2, 1, 'NECK001', 'Necklace', '', 'uploads/products/1771607177_98439e3b8d2d71cbb6a1.png', '', 'PCS', 1, 0, '2026-02-11 19:01:28', '2026-02-20 17:06:17'),
+(11, 2, 1, 'B001', 'Bracelet', '', NULL, '', 'PCS', 1, 0, '2026-02-20 17:09:02', '2026-02-20 17:09:02');
 
 -- --------------------------------------------------------
 
@@ -917,7 +853,7 @@ INSERT INTO `roles` (`id`, `company_id`, `role_name`, `role_description`, `permi
 (7, 1, 'Account Invoice Viewer', 'Can see All Invoices and Account Invoice menu. List, View, Print actions only. No status change or payment recording.', '[\"invoices.all.list\",\"invoices.all.view\",\"invoices.all.print\",\"invoices.account.list\",\"invoices.account.view\",\"invoices.account.print\"]', 0, 1, '2026-02-22 05:43:56', '2026-02-22 05:43:56', 0),
 (8, 1, 'Cash Invoice Operator', 'Can see All Invoices and Cash Invoice menu. Has List, View, Print, Status Change, and Record Payment on Cash Invoices. List/View/Print only on All Invoices page.', '[\"invoices.all.list\",\"invoices.all.view\",\"invoices.all.print\",\"invoices.cash.list\",\"invoices.cash.view\",\"invoices.cash.print\",\"invoices.cash.status_change\",\"invoices.cash.record_payment\"]', 0, 1, '2026-02-22 05:43:56', '2026-02-22 05:43:56', 0),
 (9, 1, 'Challan Viewer', 'Can see All Challans, Rhodium Challan, and Meena Challan menus. Has List/View/Print/Status Change on Rhodium and Meena. List/View/Print only on All Challans.', '[\"challans.all.list\",\"challans.all.view\",\"challans.all.print\",\"challans.rhodium.list\",\"challans.rhodium.view\",\"challans.rhodium.print\",\"challans.rhodium.status_change\",\"challans.meena.list\",\"challans.meena.view\",\"challans.meena.print\",\"challans.meena.status_change\"]', 0, 1, '2026-02-22 05:43:56', '2026-02-22 05:43:56', 0),
-(11, 1, 'Cashier', '', '[\"challans.all.list\",\"challans.all.view\",\"challans.rhodium.list\",\"challans.rhodium.view\",\"challans.rhodium.create\",\"challans.rhodium.edit\",\"challans.rhodium.delete\",\"challans.rhodium.print\",\"challans.rhodium.status_change\",\"customers.accounts.list\",\"customers.accounts.view\",\"customers.accounts.create\",\"customers.accounts.edit\",\"customers.accounts.delete\",\"customers.accounts.view_ledger\",\"customers.cash_customers.list\",\"customers.cash_customers.view\",\"customers.cash_customers.create\",\"customers.cash_customers.edit\",\"customers.cash_customers.delete\",\"invoices.all.list\",\"invoices.all.view\",\"invoices.cash.list\",\"invoices.cash.view\",\"invoices.cash.create\",\"invoices.cash.edit\",\"invoices.cash.delete\",\"invoices.cash.print\",\"invoices.cash.status_change\",\"invoices.cash.record_payment\",\"masters.gold_rates.list\",\"masters.gold_rates.view\",\"masters.gold_rates.edit\"]', 0, 1, '2026-02-22 06:11:11', '2026-02-23 16:44:18', 0);
+(11, 1, 'Operator', '', '[\"challans.all.list\",\"challans.all.view\",\"challans.meena.list\",\"challans.meena.view\",\"challans.meena.create\",\"challans.meena.edit\",\"challans.meena.delete\",\"challans.meena.print\",\"challans.meena.status_change\",\"challans.rhodium.list\",\"challans.rhodium.view\",\"challans.rhodium.create\",\"challans.rhodium.edit\",\"challans.rhodium.delete\",\"challans.rhodium.print\",\"challans.rhodium.status_change\",\"customers.accounts.list\",\"customers.accounts.view\",\"customers.accounts.create\",\"customers.accounts.edit\",\"customers.accounts.delete\",\"customers.accounts.view_ledger\",\"customers.cash_customers.list\",\"customers.cash_customers.view\",\"customers.cash_customers.create\",\"customers.cash_customers.edit\",\"customers.cash_customers.delete\",\"invoices.account.list\",\"invoices.account.view\",\"invoices.account.create\",\"invoices.account.edit\",\"invoices.account.delete\",\"invoices.account.print\",\"invoices.account.status_change\",\"invoices.account.record_payment\",\"invoices.cash.list\",\"invoices.cash.view\",\"invoices.cash.create\",\"invoices.cash.edit\",\"invoices.cash.delete\",\"invoices.cash.print\",\"invoices.cash.status_change\",\"invoices.cash.record_payment\",\"masters.gold_rates.list\",\"masters.gold_rates.view\",\"masters.gold_rates.create\",\"masters.gold_rates.edit\"]', 0, 1, '2026-02-22 06:11:11', '2026-02-27 16:26:01', 0);
 
 -- --------------------------------------------------------
 
@@ -1004,11 +940,12 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `company_id`, `username`, `email`, `password_hash`, `full_name`, `mobile_number`, `remember_token`, `remember_expires_at`, `profile_photo`, `adhar_card_number`, `date_of_joining`, `employment_status`, `failed_login_attempts`, `last_login_at`, `last_login_ip`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(2, 1, 'superadmin', 'admin@gmail.com', '$2y$10$3lD2hiugSlildxvjTeH9bue.5rQEqtidB6krrpytoJk4hpXfKZ/WC', 'System Administrator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-23 16:15:46', NULL, '2026-02-08 16:31:03', '2026-02-23 16:15:46', 0),
+(2, 1, 'superadmin', 'admin@gmail.com', '$2y$10$3lD2hiugSlildxvjTeH9bue.5rQEqtidB6krrpytoJk4hpXfKZ/WC', 'System Administrator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-28 05:58:51', NULL, '2026-02-08 16:31:03', '2026-02-28 05:58:51', 0),
 (4, 1, 'parinpatel', 'parinwork@gmail.com', '$2y$10$TBdnobbaIGwuvdZuPhT5yu7U1hVKWCcVbpSpmwMNhINEdFYkUsiNa', 'Parin Patel', '9586969009', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-10 20:12:17', NULL, '2026-02-10 20:11:17', '2026-02-10 20:12:17', 0),
 (5, 1, 'parindelivery', 'parindelivery@gmail.com', '$2y$10$JVSHEEiKOf62a3cxPmxjL.WmzMc.yCkRfH.oo/96cxRztNIcFiLA.', 'Parin Delivery', '9586969119', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-14 13:22:58', NULL, '2026-02-14 13:22:23', '2026-02-14 13:22:58', 0),
 (6, 1, 'manager', 'manager@gmail.com', '$2y$10$k3x9VwI9Bl1uXw6GcxGlLeflSixKRBccf7dgccbbAzZjz1Ws.0W.y', 'Billing Manager', '8888888888', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-21 09:31:04', NULL, '2026-02-21 09:30:33', '2026-02-21 09:31:04', 0),
-(7, 1, 'Cashier', 'cashier@gmail.com', '$2y$10$5URo0zwOZQ6Tdc2E7X/anuZCSbS7tDkGFmOVpX5whaU3F7SPPNn22', 'New', '9992223323', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-23 16:51:23', NULL, '2026-02-22 06:12:24', '2026-02-23 16:51:23', 0);
+(7, 1, 'Cashier', 'cashier@gmail.com', '$2y$10$5URo0zwOZQ6Tdc2E7X/anuZCSbS7tDkGFmOVpX5whaU3F7SPPNn22', 'New', '9992223323', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-27 09:14:18', NULL, '2026-02-22 06:12:24', '2026-02-27 09:14:18', 0),
+(8, 1, 'operator', 'operator@gmail.com', '$2y$10$JFKOOH1lQUHJtbyCHxr5Xunu0NOBV87jrkJMe3pwHTm.S9TRjRPcu', 'Operator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-28 06:13:29', NULL, '2026-02-27 09:34:40', '2026-02-28 06:13:29', 0);
 
 -- --------------------------------------------------------
 
@@ -1033,7 +970,8 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `assigned_at`, `assigned_b
 (5, 4, 3, '2026-02-10 20:11:17', NULL),
 (6, 5, 5, '2026-02-14 13:22:23', NULL),
 (7, 6, 3, '2026-02-21 09:30:33', NULL),
-(8, 7, 11, '2026-02-22 06:12:24', NULL);
+(8, 7, 11, '2026-02-22 06:12:24', NULL),
+(9, 8, 11, '2026-02-27 09:34:40', NULL);
 
 --
 -- Indexes for dumped tables
@@ -1296,13 +1234,13 @@ ALTER TABLE `account_groups`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `cash_customers`
 --
 ALTER TABLE `cash_customers`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `challans`
@@ -1314,13 +1252,13 @@ ALTER TABLE `challans`
 -- AUTO_INCREMENT for table `challan_lines`
 --
 ALTER TABLE `challan_lines`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `company_settings`
@@ -1338,31 +1276,31 @@ ALTER TABLE `deliveries`
 -- AUTO_INCREMENT for table `gold_rates`
 --
 ALTER TABLE `gold_rates`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `invoice_lines`
 --
 ALTER TABLE `invoice_lines`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `ledger_entries`
 --
 ALTER TABLE `ledger_entries`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -1380,13 +1318,13 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT for table `processes`
 --
 ALTER TABLE `processes`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `product_categories`
@@ -1410,13 +1348,13 @@ ALTER TABLE `states`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables

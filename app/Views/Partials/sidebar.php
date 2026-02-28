@@ -63,9 +63,11 @@
     </li>
 
     <!-- Apps & Pages -->
-    <li class="menu-header mt-5">
-      <span class="menu-header-text" data-i18n="Apps & Pages">Apps &amp; Pages</span>
-    </li>
+    <?php if (can_any('users') || can_any('roles')): ?>
+      <li class="menu-header mt-5">
+        <span class="menu-header-text" data-i18n="Apps & Pages">Apps &amp; Pages</span>
+      </li>
+    <?php endif; ?>
 
     <!-- Users -->
     <?php if (can_any('users')): ?>

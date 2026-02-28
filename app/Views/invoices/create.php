@@ -366,7 +366,7 @@
             <button type="button" class="btn btn-sm btn-outline-secondary btn-upload-image">
               <i class="ri-camera-line me-1"></i> Upload Image
             </button>
-            <button type="button" class="btn btn-sm btn-outline-danger btn-remove-image" style="display:none;">
+            <button type="button" class="btn btn-sm btn-outline-danger btn-remove-image d-none">
               <i class="ri-close-line"></i>
             </button>
           </div>
@@ -892,8 +892,8 @@
         const $preview = $card.find('.line-image-preview');
         $preview.find('img').attr('src', e.target.result).attr('data-full-src', e.target.result);
         $preview.show();
-        $card.find('.btn-remove-image').show();
-        $card.find('.btn-upload-image').html('<i class="ri-image-edit-line"></i> Change Image');
+        $card.find('.btn-remove-image').removeClass('d-none');
+        $card.find('.btn-upload-image').html('<i class="ri-camera-line me-1"></i> Change');
       };
       reader.readAsDataURL(file);
     });
@@ -903,8 +903,8 @@
       $card.find('.line-image-input').val('');
       $card.find('.line-existing-image').val('');
       $card.find('.line-image-preview').hide().find('img').attr('src', '').attr('data-full-src', '');
-      $(this).hide();
-      $card.find('.btn-upload-image').html('<i class="ri-image-add-line"></i> Upload Image');
+      $(this).addClass('d-none');
+      $card.find('.btn-upload-image').html('<i class="ri-camera-line me-1"></i> Upload Image');
     });
 
     $(document).on('click', '.line-image-preview img', function() {
