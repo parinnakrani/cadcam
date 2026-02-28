@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main') ?>
+﻿<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>Invoice Details<?= $this->endSection() ?>
 
@@ -20,7 +20,7 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
   $baseTitle = 'Wax Invoices';
 }
 
-// ── Invoice Status Config ──
+// â”€â”€ Invoice Status Config â”€â”€
 $invoiceStatus = $invoice['invoice_status'] ?? 'Draft';
 
 $statusBadgeMap = [
@@ -298,6 +298,7 @@ $statusLabels = [
                 <th class="text-end">Weight (g)</th>
                 <th class="text-end">Rate (₹)</th>
                 <th class="text-end">Amount (₹)</th>
+                <th class="text-center">Image</th>
               </tr>
             </thead>
             <tbody>
@@ -329,11 +330,21 @@ $statusLabels = [
                     <td class="text-end"><?= number_format(($line['gold_weight'] > 0 ? $line['gold_weight'] : $line['weight']) ?? 0, 3) ?></td>
                     <td class="text-end">₹<?= number_format($line['rate'] ?? 0, 2) ?></td>
                     <td class="text-end"><strong>₹<?= number_format($line['amount'] ?? 0, 2) ?></strong></td>
+                    <td class="text-center">
+                      <?php if (!empty($line['image_path'])): ?>
+                        <img src="<?= base_url($line['image_path']) ?>" alt="Line Image"
+                          class="img-thumbnail line-image-thumb"
+                          style="max-height:50px; max-width:65px; cursor:pointer;"
+                          data-full-src="<?= base_url($line['image_path']) ?>">
+                      <?php else: ?>
+                        <span class="text-muted small">â€”</span>
+                      <?php endif; ?>
+                    </td>
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>
                 <tr>
-                  <td colspan="7" class="text-center text-muted">No line items</td>
+                  <td colspan="8" class="text-center text-muted">No line items</td>
                 </tr>
               <?php endif; ?>
             </tbody>
@@ -566,6 +577,21 @@ $statusLabels = [
 
 <?= $this->endSection() ?>
 
+
+<!-- Line Image View Modal -->
+<div class="modal fade" id="lineImageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Line Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="lineImageModalImg" src="" alt="Line Image" class="img-fluid rounded">
+      </div>
+    </div>
+  </div>
+</div>
 <?= $this->section('pageScripts') ?>
 <script>
   // Delete Invoice Function
@@ -594,6 +620,14 @@ $statusLabels = [
   }
 
   $(document).ready(function() {
+    // Line image click to open modal
+    $(document).on('click', '.line-image-thumb', function() {
+      const fullSrc = $(this).data('full-src') || $(this).attr('src');
+      $('#lineImageModalImg').attr('src', fullSrc);
+      var modal = new bootstrap.Modal(document.getElementById('lineImageModal'));
+      modal.show();
+    });
+
     // =========================================================================
     // STATUS CHANGE
     // =========================================================================

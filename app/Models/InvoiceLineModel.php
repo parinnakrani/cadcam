@@ -46,6 +46,7 @@ class InvoiceLineModel extends Model
     'adjusted_gold_weight',
     'gold_adjustment_amount',
     'line_notes',
+    'image_path',
   ];
 
   protected $useTimestamps = true;

@@ -636,7 +636,7 @@ class InvoiceService
       $line['invoice_id'] = $invoiceId;
       $line['line_number'] = $lineNumber;
 
-      // Map input arrays to model fields
+      // Map input arrays to model fields (JSON-encode for DB storage)
       if (isset($line['products'])) {
         $line['product_ids'] = is_array($line['products']) ? json_encode($line['products']) : $line['products'];
         unset($line['products']);
@@ -644,6 +644,24 @@ class InvoiceService
       if (isset($line['processes'])) {
         $line['process_ids'] = is_array($line['processes']) ? json_encode($line['processes']) : $line['processes'];
         unset($line['processes']);
+      }
+
+      // JSON-encode any remaining array/object fields so CI4 can bind them as strings
+      if (isset($line['process_prices']) && is_array($line['process_prices'])) {
+        $line['process_prices'] = json_encode($line['process_prices']);
+      }
+      if (isset($line['products_json']) && is_array($line['products_json'])) {
+        $line['products_json'] = json_encode($line['products_json']);
+      }
+      if (isset($line['processes_json']) && is_array($line['processes_json'])) {
+        $line['processes_json'] = json_encode($line['processes_json']);
+      }
+
+      // Strip any remaining array values (safety net) to prevent SQL errors
+      foreach ($line as $key => $value) {
+        if (is_array($value) || is_object($value)) {
+          $line[$key] = json_encode($value);
+        }
       }
 
       // Calculate line totals if not provided

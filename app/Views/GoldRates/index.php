@@ -89,58 +89,60 @@
 
   <!-- Rate History Table -->
   <div class="card">
-    <div class="card-header border-bottom d-flex justify-content-between align-items-center">
-      <h5 class="card-title mb-0">Rate History (Last 30 Days)</h5>
-      <div class="d-flex gap-2">
-        <a href="<?= base_url('masters/gold-rates/history') ?>" class="btn btn-outline-secondary btn-sm">
-          <i class="bx bx-line-chart me-1"></i> View Full History
-        </a>
-        <?php if ($action_flags['create'] ?? false): ?>
-          <a href="<?= base_url('masters/gold-rates/create') ?>" class="btn btn-primary btn-sm">
-            <i class="bx bx-plus me-1"></i> Add New Rate
+    <div class="card-body">
+      <div class="card-header border-bottom d-flex justify-content-between align-items-center mb-3">
+        <h5 class="card-title mb-0">Rate History (Last 30 Days)</h5>
+        <div class="d-flex gap-2">
+          <a href="<?= base_url('masters/gold-rates/history') ?>" class="btn btn-outline-secondary btn-sm">
+            <i class="bx bx-line-chart me-1"></i> View Full History
           </a>
-        <?php endif; ?>
+          <?php if ($action_flags['create'] ?? false): ?>
+            <a href="<?= base_url('masters/gold-rates/create') ?>" class="btn btn-primary btn-sm">
+              <i class="bx bx-plus me-1"></i> Add New Rate
+            </a>
+          <?php endif; ?>
+        </div>
       </div>
-    </div>
-    <div class="card-datatable table-responsive">
-      <table class="datatables-gold-rates table border-top">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Metal Type</th>
-            <th>Rate (per gram)</th>
-            <th>Updated At</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($history as $rate): ?>
+      <div class="card-datatable table-responsive">
+        <table class="datatables-gold-rates table border-top">
+          <thead>
             <tr>
-              <td><?= date('d M Y', strtotime($rate['rate_date'])) ?></td>
-              <td>
-                <?php
-                $badgeClass = match ($rate['metal_type']) {
-                  '22K' => 'bg-label-warning',
-                  '24K' => 'bg-label-warning',
-                  'Silver' => 'bg-label-secondary',
-                  default => 'bg-label-primary'
-                };
-                ?>
-                <span class="badge <?= $badgeClass ?>"><?= esc($rate['metal_type']) ?></span>
-              </td>
-              <td>₹ <?= number_format($rate['rate_per_gram'], 2) ?></td>
-              <td><?= $rate['updated_at'] ? date('d M Y H:i', strtotime($rate['updated_at'])) : '-' ?></td>
-              <td>
-                <?php if ($action_flags['edit'] ?? false): ?>
-                  <a href="<?= base_url('masters/gold-rates/edit/' . $rate['id']) ?>" class="btn btn-sm btn-icon item-edit">
-                    <i class="bx bxs-edit"></i>
-                  </a>
-                <?php endif; ?>
-              </td>
+              <th>Date</th>
+              <th>Metal Type</th>
+              <th>Rate (per gram)</th>
+              <th>Updated At</th>
+              <th>Actions</th>
             </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <?php foreach ($history as $rate): ?>
+              <tr>
+                <td><?= date('d M Y', strtotime($rate['rate_date'])) ?></td>
+                <td>
+                  <?php
+                  $badgeClass = match ($rate['metal_type']) {
+                    '22K' => 'bg-label-warning',
+                    '24K' => 'bg-label-warning',
+                    'Silver' => 'bg-label-secondary',
+                    default => 'bg-label-primary'
+                  };
+                  ?>
+                  <span class="badge <?= $badgeClass ?>"><?= esc($rate['metal_type']) ?></span>
+                </td>
+                <td>₹ <?= number_format($rate['rate_per_gram'], 2) ?></td>
+                <td><?= $rate['updated_at'] ? date('d M Y H:i', strtotime($rate['updated_at'])) : '-' ?></td>
+                <td>
+                  <?php if ($action_flags['edit'] ?? false): ?>
+                    <a href="<?= base_url('masters/gold-rates/edit/' . $rate['id']) ?>" class="btn btn-sm btn-icon item-edit">
+                      <i class="bx bxs-edit"></i>
+                    </a>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

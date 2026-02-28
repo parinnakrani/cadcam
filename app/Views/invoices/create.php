@@ -22,7 +22,7 @@
 </div>
 
 <!-- Invoice Form -->
-<form id="invoiceForm" method="POST" action="<?= base_url('invoices') ?>">
+<form id="invoiceForm" method="POST" action="<?= $form_action ?? base_url('invoices') ?>" enctype="multipart/form-data">
   <?= csrf_field() ?>
 
   <!-- Invoice Header Section -->
@@ -339,20 +339,37 @@
           <input type="number" class="form-control line-qty"
             name="lines[__INDEX__][quantity]" value="1" min="1" step="1">
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
           <label class="form-label form-label-sm">Weight (g)</label>
           <input type="number" class="form-control line-weight"
             name="lines[__INDEX__][weight]" value="0.000" min="0" step="0.001">
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
           <label class="form-label form-label-sm">Rate (₹)</label>
           <input type="number" class="form-control line-rate"
             name="lines[__INDEX__][rate]" value="0.00" min="0" step="0.01">
         </div>
-        <div class="col-6 col-md-4">
+        <div class="col-6 col-md-3">
           <label class="form-label form-label-sm">Amount (₹)</label>
           <input type="text" class="form-control line-amount fw-bold text-end"
             name="lines[__INDEX__][amount]" value="0.00" readonly tabindex="-1">
+        </div>
+        <!-- Image Upload -->
+        <div class="col-12 col-md-3 mt-2">
+          <label class="form-label form-label-sm">Image (Optional)</label>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <input type="file" class="line-image-input d-none" name="line_images[__INDEX__]" accept="image/*">
+            <input type="hidden" class="line-existing-image" name="lines[__INDEX__][existing_image]" value="">
+            <div class="line-image-preview" style="display:none;">
+              <img src="" alt="Preview" class="img-thumbnail" style="max-height:60px; max-width:80px; cursor:pointer;" data-full-src="">
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-upload-image">
+              <i class="ri-camera-line me-1"></i> Upload Image
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger btn-remove-image" style="display:none;">
+              <i class="ri-close-line"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -832,10 +849,14 @@
     }
 
     function submitData() {
+      const form = document.getElementById('invoiceForm');
+      const formData = new FormData(form);
       $.ajax({
-        url: $('#invoiceForm').attr('action'),
+        url: form.action,
         type: 'POST',
-        data: $('#invoiceForm').serialize(),
+        data: formData,
+        processData: false,
+        contentType: false,
         success: function(response) {
           if (response.success) {
             window.location.href = response.redirect;
@@ -854,8 +875,63 @@
         }
       }); // End ajax submit
     } // End submitData
+
+    // =========================================================================
+    // LINE IMAGE HANDLERS
+    // =========================================================================
+    $(document).on('click', '.btn-upload-image', function() {
+      $(this).closest('.line-card-body').find('.line-image-input').trigger('click');
+    });
+
+    $(document).on('change', '.line-image-input', function() {
+      const file = this.files[0];
+      if (!file) return;
+      const $card = $(this).closest('.line-card-body');
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const $preview = $card.find('.line-image-preview');
+        $preview.find('img').attr('src', e.target.result).attr('data-full-src', e.target.result);
+        $preview.show();
+        $card.find('.btn-remove-image').show();
+        $card.find('.btn-upload-image').html('<i class="ri-image-edit-line"></i> Change Image');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    $(document).on('click', '.btn-remove-image', function() {
+      const $card = $(this).closest('.line-card-body');
+      $card.find('.line-image-input').val('');
+      $card.find('.line-existing-image').val('');
+      $card.find('.line-image-preview').hide().find('img').attr('src', '').attr('data-full-src', '');
+      $(this).hide();
+      $card.find('.btn-upload-image').html('<i class="ri-image-add-line"></i> Upload Image');
+    });
+
+    $(document).on('click', '.line-image-preview img', function() {
+      const fullSrc = $(this).attr('data-full-src') || $(this).attr('src');
+      if (!fullSrc) return;
+      $('#lineImageModalImg').attr('src', fullSrc);
+      var modal = new bootstrap.Modal(document.getElementById('lineImageModal'));
+      modal.show();
+    });
+
   }); // End DOMContentLoaded
 </script>
+
+<!-- Image Modal -->
+<div class="modal fade" id="lineImageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Line Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="lineImageModalImg" src="" alt="Line Image" class="img-fluid rounded">
+      </div>
+    </div>
+  </div>
+</div>
 
 <style>
   /* ===== LINE CARD LAYOUT ===== */

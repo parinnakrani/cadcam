@@ -3,6 +3,7 @@
 namespace App\Controllers\Invoices;
 
 use CodeIgniter\HTTP\ResponseInterface;
+use App\Services\FileUploadService;
 
 /**
  * CashInvoiceController
@@ -18,8 +19,15 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class CashInvoiceController extends InvoiceController
 {
+  protected FileUploadService $fileUploadService;
   protected string $invoiceType = 'Cash Invoice';
   protected string $customerType = 'Cash';
+
+  public function __construct()
+  {
+    parent::__construct();
+    $this->fileUploadService = new FileUploadService();
+  }
 
   /**
    * List Cash Invoices only
@@ -129,8 +137,9 @@ class CashInvoiceController extends InvoiceController
       $companyId = session()->get('company_id');
 
       $data = [
-        'invoice_type' => $this->invoiceType, // Pre-set invoice type
+        'invoice_type'  => $this->invoiceType, // Pre-set invoice type
         'customer_type' => $this->customerType, // Pre-set customer type
+        'form_action'   => base_url('cash-invoices'), // POST to CashInvoiceController::store()
         'cash_customers' => $this->cashCustomerModel
           ->orderBy('customer_name', 'ASC')
           ->findAll(),
@@ -198,7 +207,10 @@ class CashInvoiceController extends InvoiceController
       ];
 
       // Get lines data
-      $lines = $this->request->getPost('lines') ?? [];
+      $lines = $this->parseLinesFromPost();
+
+      // Handle line image uploads
+      $lines = $this->handleLineImageUploads($lines);
 
       // Create invoice
       $invoiceId = $this->invoiceService->createInvoice($invoiceData, $lines);
@@ -346,7 +358,10 @@ class CashInvoiceController extends InvoiceController
       ];
 
       // Get lines data
-      $lines = $this->request->getPost('lines') ?? [];
+      $lines = $this->parseLinesFromPost();
+
+      // Handle line image uploads
+      $lines = $this->handleLineImageUploads($lines);
 
       // Update invoice
       $success = $this->invoiceService->updateInvoice($id, $invoiceData, $lines);
@@ -480,5 +495,122 @@ class CashInvoiceController extends InvoiceController
       log_message('error', 'Invoice show error: ' . $e->getMessage());
       return redirect()->to('/cash-invoices')->with('error', 'Failed to load invoice');
     }
+  }
+
+  /**
+   * Parse line items from POST form data.
+   * Maps form array notation to structured line data.
+   * IMPORTANT: Preserves original form index as array key so file upload
+   * indices stay in sync with line_images[N] form field names.
+   */
+  private function parseLinesFromPost(): array
+  {
+    $rawLines = $this->request->getPost('lines');
+
+    if (empty($rawLines) || !is_array($rawLines)) {
+      return [];
+    }
+
+    $lines = [];
+
+    foreach ($rawLines as $index => $rawLine) {
+      // Skip completely empty rows (no process AND no rate AND no existing image)
+      if (empty($rawLine['processes']) && empty($rawLine['rate']) && empty($rawLine['existing_image'])) {
+        continue;
+      }
+
+      $line = [
+        'products'      => isset($rawLine['products']) ? (array)$rawLine['products'] : [],
+        'product_name'  => $rawLine['product_name'] ?? null,
+        'processes'     => isset($rawLine['processes']) ? (array)$rawLine['processes'] : [],
+        'process_prices' => isset($rawLine['process_prices']) ? json_decode($rawLine['process_prices'], true) : [],
+        'quantity'      => (int)($rawLine['quantity'] ?? 1),
+        'weight'        => (float)($rawLine['weight'] ?? 0.000),
+        'rate'          => (float)($rawLine['rate'] ?? 0.00),
+        'amount'        => (float)($rawLine['amount'] ?? 0.00),
+        'gold_weight'   => isset($rawLine['gold_weight']) ? (float)$rawLine['gold_weight'] : null,
+        'gold_purity'   => $rawLine['gold_purity'] ?? null,
+        'current_gold_price'     => isset($rawLine['current_gold_price']) ? (float)$rawLine['current_gold_price'] : null,
+        'adjusted_gold_weight'   => isset($rawLine['adjusted_gold_weight']) ? (float)$rawLine['adjusted_gold_weight'] : null,
+        'gold_adjustment_amount' => isset($rawLine['gold_adjustment_amount']) ? (float)$rawLine['gold_adjustment_amount'] : null,
+        'image_path'    => $rawLine['existing_image'] ?? ($rawLine['image_path'] ?? null),
+        'line_notes'    => $rawLine['line_notes'] ?? null,
+      ];
+
+      // Recalculate amount from quantity x rate if still zero
+      if ($line['amount'] <= 0 && $line['rate'] > 0) {
+        $weight = $line['weight'] ?? 0;
+        if ($weight > 0) {
+          $line['amount'] = round($weight * $line['rate'], 2);
+        } else {
+          $line['amount'] = round($line['quantity'] * $line['rate'], 2);
+        }
+      }
+
+      // Use original form index as key to stay in sync with line_images[N]
+      $lines[$index] = $line;
+    }
+
+    return $lines;
+  }
+
+  /**
+   * Handle line image uploads from form submission.
+   * Processes the line_images[N] file inputs, saves them, and updates the
+   * corresponding line data with the saved image_path.
+   * Lines array must use original form indices as keys (from parseLinesFromPost).
+   */
+  private function handleLineImageUploads(array $lines): array
+  {
+    // Get all files - line_images is an associative/indexed array of UploadedFile objects
+    $rawFiles = $this->request->getFiles();
+    $uploadedFiles = $rawFiles['line_images'] ?? [];
+
+    // Also try getFileMultiple as fallback
+    if (empty($uploadedFiles)) {
+      $uploaded = $this->request->getFileMultiple('line_images');
+      if (!empty($uploaded)) {
+        $uploadedFiles = $uploaded;
+      }
+    }
+
+    if (empty($uploadedFiles)) {
+      // Re-index before returning (InvoiceService expects sequential array)
+      return array_values($lines);
+    }
+
+    // Map uploaded files to line indices
+    foreach ($uploadedFiles as $index => $file) {
+      if (!$file instanceof \CodeIgniter\HTTP\Files\UploadedFile) {
+        continue;
+      }
+
+      // Skip files with no upload (user left file input empty)
+      if (!$file->isValid() || $file->getError() !== UPLOAD_ERR_OK) {
+        continue;
+      }
+
+      if ($file->hasMoved()) {
+        continue;
+      }
+
+      // Find the corresponding line by original form index
+      if (isset($lines[$index])) {
+        try {
+          $fileName = $this->fileUploadService->uploadFile(
+            $file,
+            'uploads/invoice_images',
+            ['jpg', 'jpeg', 'png', 'gif', 'webp']
+          );
+          $lines[$index]['image_path'] = 'uploads/invoice_images/' . $fileName;
+          log_message('info', "Saved invoice line image at index {$index}: uploads/invoice_images/{$fileName}");
+        } catch (\Exception $e) {
+          log_message('warning', "Invoice line #{$index} image upload failed: " . $e->getMessage());
+        }
+      }
+    }
+
+    // Re-index to sequential array before passing to InvoiceService
+    return array_values($lines);
   }
 }
