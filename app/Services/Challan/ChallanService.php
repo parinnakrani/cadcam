@@ -110,7 +110,7 @@ class ChallanService
     $data['challan_number'] = $this->generateNextChallanNumber($companyId);
 
     // 5. Set defaults
-    $data['challan_status'] = $data['challan_status'] ?? 'Draft';
+    $data['challan_status'] = $data['challan_status'] ?? 'Completed';
 
     // Extract lines before insert (not a challan column)
     $lines = $data['lines'] ?? [];

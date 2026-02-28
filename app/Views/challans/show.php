@@ -138,6 +138,7 @@ if ($customerType === 'Account') {
             <i class="ri-printer-line me-1"></i> Print
           </a>
 
+          <?php /* --- Change Status Button COMMENTED OUT per client request (do not remove) ---
           <?php if (!empty($nextStatuses) && ($action_flags['edit'] ?? false)): ?>
             <div class="btn-group">
               <button type="button" class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
@@ -156,6 +157,7 @@ if ($customerType === 'Account') {
               </ul>
             </div>
           <?php endif; ?>
+          --- End Change Status Button */ ?>
 
           <?php if (!$isInvoiced && ($action_flags['delete'] ?? false)): ?>
             <button type="button" class="btn btn-sm btn-outline-danger" id="btn-delete-challan">

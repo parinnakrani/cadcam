@@ -136,7 +136,7 @@ class InvoiceService
       $data['total_paid'] = $data['total_paid'] ?? 0.00;
       $data['amount_due'] = $data['grand_total'] - $data['total_paid'];
       $data['payment_status'] = $data['payment_status'] ?? 'Pending';
-      $data['invoice_status'] = $data['invoice_status'] ?? 'Draft';
+      $data['invoice_status'] = $data['invoice_status'] ?? 'Posted';
 
       // Insert invoice record
       $invoiceId = $this->invoiceModel->insert($data);

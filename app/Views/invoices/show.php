@@ -110,6 +110,7 @@ $statusLabels = [
       </a>
     <?php endif; ?>
 
+    <?php /* --- Change Status Dropdown COMMENTED OUT per client request (do not remove) ---
     <!-- Change Status Dropdown -->
     <?php if (!empty($nextStatuses)): ?>
       <div class="btn-group">
@@ -129,6 +130,7 @@ $statusLabels = [
         </ul>
       </div>
     <?php endif; ?>
+    --- End Change Status Dropdown */ ?>
 
     <!-- Record Payment Button (only if amount due > 0) -->
     <?php if ($invoice['amount_due'] > 0): ?>
