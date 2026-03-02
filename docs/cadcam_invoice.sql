@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 28, 2026 at 09:47 PM
+-- Generation Time: Mar 02, 2026 at 04:13 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -67,14 +67,6 @@ CREATE TABLE `accounts` (
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `accounts`
---
-
-INSERT INTO `accounts` (`id`, `company_id`, `account_code`, `account_name`, `business_name`, `contact_person`, `mobile`, `email`, `contact_person_name`, `mobile_number`, `email_address`, `billing_address_line1`, `billing_address_line2`, `billing_city`, `billing_state_id`, `billing_pincode`, `shipping_address_line1`, `shipping_address_line2`, `shipping_city`, `shipping_state_id`, `shipping_pincode`, `same_as_billing`, `gst_number`, `pan_number`, `opening_balance`, `opening_balance_type`, `current_balance`, `opening_balance_date`, `credit_limit`, `payment_terms`, `notes`, `account_group`, `wax_price_per_gram`, `is_active`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(3, 1, 'ACC-0001', 'Parin', 'Code Nine', '', '9586969009', '', NULL, '', NULL, 'Minibazaar', '', 'Surat', 1, '395006', '', '', '', NULL, '', 0, '', '', 0.00, 'Debit', 21769.67, NULL, NULL, '', '', NULL, NULL, 1, '2026-02-11 19:19:38', '2026-02-26 16:42:51', 0),
-(4, 1, 'ACC-0002', 'Alpesh Pansheriya', '', '', '8000259032', 'alpesh@gmail.com', NULL, '', NULL, 'Jakatnaka', '', 'Surat', 1, '395006', 'Jakatnaka', '', 'Surat', 1, '395006', 1, '22AAAAA0000A1Z5', 'ABCDE1234F', 160.00, 'Credit', 1714.40, NULL, NULL, 'No payment terms', 'No notes', NULL, NULL, 1, '2026-02-20 17:07:43', '2026-02-26 16:51:29', 0);
-
 -- --------------------------------------------------------
 
 --
@@ -120,33 +112,8 @@ CREATE TABLE `audit_logs` (
 --
 
 INSERT INTO `audit_logs` (`id`, `company_id`, `user_id`, `module`, `action_type`, `record_type`, `record_id`, `before_data`, `after_data`, `ip_address`, `user_agent`, `created_at`) VALUES
-(1, NULL, NULL, 'Auth', 'login', 'User', 8, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:13:29'),
-(2, NULL, NULL, 'Challan', '', 'Challan', 1, NULL, '{\"company_id\":\"1\",\"user_id\":\"8\",\"challan_number\":\"CH-0021\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:25:53'),
-(3, NULL, NULL, 'Invoice', 'create', 'Invoice', 1, NULL, '{\"invoice_type\":\"Cash Invoice\",\"invoice_date\":\"2026-02-28\",\"due_date\":\"\",\"account_id\":null,\"cash_customer_id\":\"1\",\"billing_address\":null,\"shipping_address\":null,\"reference_number\":null,\"tax_rate\":\"18\",\"notes\":null,\"terms_conditions\":\"\",\"company_id\":\"1\",\"created_by\":\"8\",\"updated_by\":\"8\",\"invoice_number\":\"SYS-0021\",\"subtotal\":169.49,\"tax_amount\":30.51,\"cgst_amount\":0,\"sgst_amount\":0,\"igst_amount\":30.51,\"grand_total\":200,\"payment_terms\":null,\"challan_ids\":null,\"total_paid\":0,\"amount_due\":200,\"payment_status\":\"Pending\",\"invoice_status\":\"Draft\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:44:26'),
-(4, NULL, NULL, 'Invoice', 'create', 'Invoice', 3, NULL, '{\"invoice_type\":\"Cash Invoice\",\"invoice_date\":\"2026-02-28\",\"due_date\":\"\",\"account_id\":null,\"cash_customer_id\":\"2\",\"billing_address\":null,\"shipping_address\":null,\"reference_number\":null,\"tax_rate\":\"18\",\"notes\":null,\"terms_conditions\":\"\",\"company_id\":\"1\",\"created_by\":\"8\",\"updated_by\":\"8\",\"invoice_number\":\"SYS-0022\",\"subtotal\":406.78,\"tax_amount\":73.22,\"cgst_amount\":0,\"sgst_amount\":0,\"igst_amount\":73.22,\"grand_total\":480,\"payment_terms\":null,\"challan_ids\":null,\"total_paid\":0,\"amount_due\":480,\"payment_status\":\"Pending\",\"invoice_status\":\"Draft\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:56:22'),
-(5, NULL, NULL, 'Invoice', 'update', 'Invoice', 3, NULL, '{\"invoice_date\":\"2026-02-28\",\"due_date\":\"\",\"billing_address\":\"\",\"shipping_address\":\"\",\"reference_number\":\"\",\"notes\":\"\",\"terms_conditions\":\"\",\"updated_by\":\"8\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 06:57:43'),
-(6, NULL, NULL, 'Roles', '', 'Role', 12, NULL, '{\"role_name\":\"Cashier\",\"company_id\":\"1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 08:11:36'),
-(7, NULL, NULL, 'User', 'update', 'User', 7, NULL, '{\"role_ids\":[\"12\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 08:12:29'),
-(8, NULL, NULL, 'User', 'update', 'User', 7, NULL, '{\"csrf_test_name\":\"37fc4990ca995aa4892bae73abd02eb8\",\"_method\":\"POST\",\"full_name\":\"Cashier\",\"email\":\"cashier@gmail.com\",\"mobile_number\":\"9992223323\",\"role_ids\":[\"12\"],\"id\":7}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 08:12:29'),
-(9, NULL, NULL, 'Auth', 'login', 'User', 7, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 08:12:43'),
-(10, NULL, NULL, 'Auth', 'login', 'User', 2, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 19:12:40'),
-(11, NULL, NULL, 'Roles', '', 'Role', 13, NULL, '{\"role_name\":\"Admin\",\"company_id\":\"1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 19:44:42'),
-(12, NULL, NULL, 'Roles', '', 'Role', 13, NULL, '{\"changes\":[\"csrf_test_name\",\"role_name\",\"role_description\",\"permissions\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 19:52:48'),
-(13, NULL, NULL, 'Roles', '', 'Role', 12, NULL, '{\"changes\":[\"csrf_test_name\",\"role_name\",\"role_description\",\"permissions\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 19:53:16'),
-(14, NULL, NULL, 'Roles', '', 'Role', 11, NULL, '{\"changes\":[\"csrf_test_name\",\"role_name\",\"role_description\",\"permissions\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 19:53:23'),
-(15, NULL, NULL, 'Master', 'create', 'GoldRate', 5, NULL, '{\"company_id\":\"1\",\"rate_date\":\"2026-03-01\",\"metal_type\":\"24K\",\"rate_per_gram\":\"16000\",\"created_by\":\"2\",\"is_deleted\":0,\"created_at\":\"2026-03-01 01:49:07\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:19:07'),
-(16, NULL, NULL, 'Invoice', 'update', 'Invoice', 3, NULL, '{\"invoice_date\":\"2026-02-28\",\"due_date\":\"\",\"billing_address\":\"\",\"shipping_address\":\"\",\"reference_number\":\"\",\"notes\":\"\",\"terms_conditions\":\"\",\"updated_by\":\"2\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:19:22'),
-(17, NULL, NULL, 'Challan', '', 'Challan', 1, '{\"id\":\"1\",\"company_id\":\"1\",\"challan_number\":\"CH-0021\",\"challan_date\":\"2026-02-28\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\",\"account_id\":\"3\",\"cash_customer_id\":null,\"challan_status\":\"Draft\",\"total_weight\":\"1.000\",\"subtotal_amount\":\"60.00\",\"tax_percent\":\"18.00\",\"tax_amount\":\"0.00\",\"total_amount\":\"60.00\",\"invoice_generated\":\"0\",\"invoice_id\":null,\"notes\":\"\",\"delivery_date\":\"0000-00-00\",\"created_by\":\"8\",\"is_deleted\":\"0\",\"created_at\":\"2026-02-28 11:55:53\",\"updated_at\":\"2026-02-28 11:55:53\"}', '{\"challan_date\":\"2026-02-28\",\"challan_type\":\"Rhodium\",\"customer_type\":\"Account\",\"account_id\":\"3\",\"notes\":\"\",\"delivery_date\":\"\",\"cash_customer_id\":null,\"updated_at\":\"2026-03-01 01:49:35\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:19:35'),
-(18, NULL, NULL, 'Challan', '', 'Challan', 1, NULL, '{\"challan_number\":\"CH-0021\",\"line_count\":1}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:19:35'),
-(19, NULL, NULL, 'Master', 'create', 'GoldRate', 6, NULL, '{\"company_id\":\"1\",\"rate_date\":\"2026-03-01\",\"metal_type\":\"24K\",\"rate_per_gram\":\"17000\",\"created_by\":\"2\",\"is_deleted\":0,\"created_at\":\"2026-03-01 01:55:09\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:25:09'),
-(20, NULL, NULL, 'Master', 'create', 'GoldRate', 7, NULL, '{\"company_id\":\"1\",\"rate_date\":\"2026-03-01\",\"metal_type\":\"24K\",\"rate_per_gram\":\"17500\",\"created_by\":\"2\",\"is_deleted\":0,\"created_at\":\"2026-03-01 02:00:19\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:30:20'),
-(21, NULL, NULL, 'User', 'update', 'User', 9, NULL, '{\"role_ids\":[\"13\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:41:03'),
-(22, NULL, NULL, 'User', 'create', 'User', 9, NULL, '{\"csrf_test_name\":\"ae29d341533adcd21a0d5c0e93816348\",\"full_name\":\"Admin\",\"username\":\"admin\",\"email\":\"admin1@gmail.com\",\"mobile_number\":\"9990009999\",\"password\":\"Admin@123\",\"role_ids\":[\"13\"],\"company_id\":\"1\",\"employment_status\":\"Active\",\"is_deleted\":0,\"failed_login_attempts\":0}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:41:03'),
-(23, NULL, NULL, 'User', 'update', 'User', 9, NULL, '{\"role_ids\":[\"13\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:41:39'),
-(24, NULL, NULL, 'User', 'update', 'User', 9, NULL, '{\"csrf_test_name\":\"ae29d341533adcd21a0d5c0e93816348\",\"_method\":\"POST\",\"full_name\":\"Admin\",\"email\":\"admin1@gmail.com\",\"mobile_number\":\"9990009999\",\"password\":\"Admin@123\",\"role_ids\":[\"13\"],\"id\":9}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:41:39'),
-(25, NULL, NULL, 'User', 'update', 'User', 9, NULL, '{\"role_ids\":[\"13\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:42:01'),
-(26, NULL, NULL, 'User', 'update', 'User', 9, NULL, '{\"csrf_test_name\":\"ae29d341533adcd21a0d5c0e93816348\",\"_method\":\"POST\",\"full_name\":\"Admin\",\"email\":\"admin1@gmail.com\",\"mobile_number\":\"9990009999\",\"password\":\"Admin@123\",\"role_ids\":[\"13\"],\"id\":9}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:42:01'),
-(27, NULL, NULL, 'Auth', 'login', 'User', 9, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-02-28 20:45:34');
+(1, NULL, NULL, 'Auth', 'login', 'User', 9, NULL, '{\"ip\":\"::1\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-03-02 15:11:14'),
+(2, NULL, NULL, 'Roles', '', 'Role', 13, NULL, '{\"changes\":[\"csrf_test_name\",\"role_name\",\"role_description\",\"permissions\"]}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '2026-03-02 15:12:39');
 
 -- --------------------------------------------------------
 
@@ -173,16 +140,6 @@ CREATE TABLE `cash_customers` (
   `notes` text DEFAULT NULL,
   `current_balance` decimal(15,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `cash_customers`
---
-
-INSERT INTO `cash_customers` (`id`, `company_id`, `customer_name`, `mobile_number`, `created_at`, `updated_at`, `is_active`, `is_deleted`, `mobile`, `email`, `address_line1`, `address_line2`, `city`, `state_id`, `pincode`, `notes`, `current_balance`) VALUES
-(1, 1, 'Parin Patel', '9586969009', '2026-02-21 08:22:38', '2026-02-28 06:44:26', 1, 0, '9586969009', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 450.00),
-(2, 1, 'Alpesh', '8000259032', '2026-02-23 18:11:37', '2026-02-28 20:19:22', 1, 0, '8000259032', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 15580.00),
-(3, 1, 'Parin Nakranni', '8888887777', '2026-02-25 19:26:41', '2026-02-26 17:04:40', 1, 0, '8888887777', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.00),
-(4, 1, 'Parin Nakrani', '4444444444', '2026-02-27 09:15:57', '2026-02-27 09:15:57', 1, 0, '4444444444', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 25.00);
 
 -- --------------------------------------------------------
 
@@ -215,13 +172,6 @@ CREATE TABLE `challans` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `challans`
---
-
-INSERT INTO `challans` (`id`, `company_id`, `challan_number`, `challan_date`, `challan_type`, `customer_type`, `account_id`, `cash_customer_id`, `challan_status`, `total_weight`, `subtotal_amount`, `tax_percent`, `tax_amount`, `total_amount`, `invoice_generated`, `invoice_id`, `notes`, `delivery_date`, `created_by`, `is_deleted`, `created_at`, `updated_at`) VALUES
-(1, 1, 'CH-0021', '2026-02-28', 'Rhodium', 'Account', 3, NULL, 'Draft', 1.500, 8060.00, 18.00, 0.00, 8060.00, 0, NULL, '', '0000-00-00', 8, 0, '2026-02-28 06:25:53', '2026-02-28 20:19:35');
-
 -- --------------------------------------------------------
 
 --
@@ -251,13 +201,6 @@ CREATE TABLE `challan_lines` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `challan_lines`
---
-
-INSERT INTO `challan_lines` (`id`, `challan_id`, `line_number`, `product_ids`, `product_name`, `process_ids`, `process_prices`, `quantity`, `weight`, `rate`, `amount`, `image_path`, `gold_weight`, `gold_fine_weight`, `gold_purity`, `current_gold_price`, `adjusted_gold_weight`, `gold_adjustment_amount`, `line_notes`, `created_at`, `updated_at`) VALUES
-(2, 1, 1, '[\"2\"]', 'Pendant', '[\"1\"]', '[{\"process_id\":1,\"process_name\":\"Rhodium Black\",\"rate\":60}]', 1, 1.000, 60.00, 8060.00, 'uploads/challan_images/1772259953_23dce7112d702f920568.png', 1.500, NULL, '24K', 16000.00, 0.500, 8000.00, NULL, '2026-02-28 20:19:35', '2026-02-28 20:19:35');
 
 -- --------------------------------------------------------
 
@@ -301,8 +244,8 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `company_name`, `business_legal_name`, `business_type`, `address_line1`, `address_line2`, `city`, `state_id`, `pincode`, `contact_person_name`, `contact_email`, `contact_phone`, `gst_number`, `pan_number`, `company_logo`, `invoice_prefix`, `challan_prefix`, `default_tax_rate`, `minimum_wax_price`, `financial_year_start_month`, `date_format`, `timezone`, `status`, `last_invoice_number`, `last_challan_number`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(1, 'Rhodium', 'Bunty Rhodium', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'admin@gmail.com', '9999999999', NULL, NULL, NULL, 'SYS-', 'CH-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 22, 21, '2026-02-08 16:31:03', '2026-02-28 19:28:24', 0),
-(2, 'Meena', 'Bunty Rhodium', 'Gold Manufacturing', 'System HQ', NULL, 'System City', 1, '000000', 'System Admin', 'meena@gmail.com', '8888888888', NULL, NULL, NULL, 'SYS-', 'MN-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 13, 9, '2026-02-08 16:31:03', '2026-02-28 19:28:18', 0);
+(1, 'Rhodium', 'Bunty Rhodium', 'Gold Manufacturing', 'OPP GOPIKISHAN FARSHAN', 'RATAN SANKAR MASTRNI SHREE AMBHAJI ROAD', 'Surat', 1, '000000', 'System Admin', 'admin@gmail.com', '9825766638', NULL, NULL, NULL, 'SYS-', 'CH-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 22, 21, '2026-02-08 16:31:03', '2026-03-02 09:16:10', 0),
+(2, 'Meena', 'Bunty Rhodium', 'Gold Manufacturing', 'OPP GOPIKISHAN FARSHAN', 'RATAN SANKAR MASTRNI SHREE AMBHAJI ROAD', 'Surat', 1, '000000', 'System Admin', 'meena@gmail.com', '9825766638', NULL, NULL, NULL, 'SYS-', 'MN-', 18.00, 0.00, 4, 'Y-m-d', 'Asia/Kolkata', 'Active', 13, 9, '2026-02-08 16:31:03', '2026-03-02 09:16:12', 0);
 
 -- --------------------------------------------------------
 
@@ -366,19 +309,6 @@ CREATE TABLE `gold_rates` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `gold_rates`
---
-
-INSERT INTO `gold_rates` (`id`, `company_id`, `rate_date`, `metal_type`, `rate_per_gram`, `created_by`, `updated_by`, `is_deleted`, `created_at`, `updated_at`) VALUES
-(1, 1, '2026-02-21', '24K', 15000.00, 2, NULL, 0, '2026-02-21 08:20:14', '2026-02-21 08:20:14'),
-(2, 1, '2026-02-23', '24K', 15000.00, 2, NULL, 0, '2026-02-23 17:52:27', '2026-02-23 17:52:27'),
-(3, 1, '2026-02-24', '24K', 14000.00, 7, NULL, 0, '2026-02-24 17:12:54', '2026-02-24 17:12:54'),
-(4, 2, '2026-02-24', '24K', 11000.00, 7, NULL, 0, '2026-02-24 17:13:07', '2026-02-24 17:13:07'),
-(5, 1, '2026-02-28', '24K', 16000.00, 2, NULL, 0, '2026-02-28 20:19:07', '2026-02-28 20:19:07'),
-(6, 1, '2026-03-01', '24K', 17000.00, 2, NULL, 0, '2026-02-28 20:25:09', '2026-02-28 20:25:09'),
-(7, 1, '2026-03-01', '24K', 17500.00, 2, NULL, 0, '2026-02-28 20:30:20', '2026-02-28 20:30:20');
-
 -- --------------------------------------------------------
 
 --
@@ -422,14 +352,6 @@ CREATE TABLE `invoices` (
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `invoices`
---
-
-INSERT INTO `invoices` (`id`, `company_id`, `invoice_number`, `invoice_type`, `invoice_date`, `due_date`, `account_id`, `cash_customer_id`, `billing_address`, `shipping_address`, `reference_number`, `challan_ids`, `subtotal`, `tax_rate`, `tax_amount`, `cgst_amount`, `sgst_amount`, `igst_amount`, `grand_total`, `total_paid`, `amount_due`, `invoice_status`, `payment_status`, `gold_adjustment_applied`, `gold_adjustment_date`, `gold_adjustment_amount`, `gold_rate_used`, `notes`, `terms_conditions`, `created_by`, `created_at`, `updated_by`, `updated_at`, `is_deleted`) VALUES
-(1, 1, 'SYS-0021', 'Cash Invoice', '2026-02-28', '0000-00-00', NULL, 1, NULL, NULL, NULL, NULL, 169.49, 18.00, 30.51, 15.26, 15.25, 0.00, 200.00, 0.00, 200.00, 'Draft', 'Pending', 0, NULL, NULL, NULL, NULL, '', 8, '2026-02-28 06:44:26', 8, '2026-02-28 06:44:26', 0),
-(3, 1, 'SYS-0022', 'Cash Invoice', '2026-02-28', '0000-00-00', NULL, 2, '', '', '', NULL, 13203.39, 18.00, 2376.61, 1188.31, 1188.30, 0.00, 15580.00, 0.00, 15580.00, 'Posted', 'Pending', 0, NULL, NULL, NULL, '', '', 8, '2026-02-28 06:56:22', 2, '2026-02-28 20:19:22', 0);
-
 -- --------------------------------------------------------
 
 --
@@ -462,15 +384,6 @@ CREATE TABLE `invoice_lines` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `invoice_lines`
---
-
-INSERT INTO `invoice_lines` (`id`, `invoice_id`, `line_number`, `source_challan_id`, `source_challan_line_id`, `product_ids`, `product_name`, `process_ids`, `process_prices`, `quantity`, `weight`, `rate`, `amount`, `gold_weight`, `gold_fine_weight`, `gold_purity`, `original_gold_weight`, `adjusted_gold_weight`, `gold_adjustment_amount`, `line_notes`, `image_path`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, NULL, NULL, '[\"4\"]', NULL, '[\"8\"]', NULL, 1, 1.000, 200.00, 200.00, 0.000, NULL, NULL, 0.000, 0.000, 0.00, NULL, NULL, '2026-02-28 06:44:26', '2026-02-28 06:44:26'),
-(6, 3, 1, NULL, NULL, '[\"3\"]', NULL, '[\"1\",\"7\"]', '[]', 1, 1.000, 80.00, 8080.00, 1.500, NULL, '24K', 0.000, 0.500, 8000.00, NULL, 'uploads/invoice_images/1772261782_0de4a094d73d8eafbe11.png', '2026-02-28 20:19:22', '2026-02-28 20:19:22'),
-(7, 3, 2, NULL, NULL, '[\"1\"]', NULL, '[\"8\"]', '[]', 1, 2.500, 200.00, 7500.00, 3.000, NULL, '24K', 0.000, 0.500, 7000.00, NULL, 'uploads/invoice_images/1772261782_e1114a24838396b85072.jpg', '2026-02-28 20:19:22', '2026-02-28 20:19:22');
-
 -- --------------------------------------------------------
 
 --
@@ -492,14 +405,6 @@ CREATE TABLE `ledger_entries` (
   `balance_after` decimal(15,2) NOT NULL DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `ledger_entries`
---
-
-INSERT INTO `ledger_entries` (`id`, `company_id`, `account_id`, `cash_customer_id`, `entry_date`, `reference_type`, `reference_id`, `reference_number`, `description`, `debit_amount`, `credit_amount`, `balance_after`, `created_at`) VALUES
-(1, 1, NULL, 1, '2026-02-28', 'invoice', 1, 'SYS-0021', 'Invoice Generated: SYS-0021', 200.00, 0.00, 450.00, '2026-02-28 06:44:26'),
-(2, 1, NULL, 2, '2026-02-28', 'invoice', 3, 'SYS-0022', 'Invoice Generated: SYS-0022', 15580.00, 0.00, 15580.00, '2026-02-28 06:56:22');
 
 -- --------------------------------------------------------
 
@@ -809,16 +714,30 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `company_id`, `category_id`, `product_code`, `product_name`, `description`, `image_path`, `hsn_code`, `unit_of_measure`, `is_active`, `is_deleted`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 'RING001', 'Ring', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:26', '2026-02-11 19:00:26'),
-(2, 1, 1, 'PEN001', 'Pendant', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:38', '2026-02-11 19:00:38'),
-(3, 1, 1, 'EAR001', 'Earring', '', 'uploads/products/1770901221_d2e1aff5be6425ec83e8.jpg', '', 'PCS', 1, 0, '2026-02-11 19:01:15', '2026-02-12 13:00:21'),
-(4, 1, 1, 'NECK001', 'Necklace', '', 'uploads/products/1771607177_98439e3b8d2d71cbb6a1.png', '', 'PCS', 1, 0, '2026-02-11 19:01:28', '2026-02-20 17:06:17'),
-(6, 1, 1, 'B001', 'Bracelet', '', NULL, '', 'PCS', 1, 0, '2026-02-20 17:09:02', '2026-02-20 17:09:02'),
-(7, 2, 1, 'RING001', 'Ring', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:26', '2026-02-11 19:00:26'),
-(8, 2, 1, 'PEN001', 'Pendant', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:38', '2026-02-11 19:00:38'),
-(9, 2, 1, 'EAR001', 'Earring', '', 'uploads/products/1770901221_d2e1aff5be6425ec83e8.jpg', '', 'PCS', 1, 0, '2026-02-11 19:01:15', '2026-02-12 13:00:21'),
-(10, 2, 1, 'NECK001', 'Necklace', '', 'uploads/products/1771607177_98439e3b8d2d71cbb6a1.png', '', 'PCS', 1, 0, '2026-02-11 19:01:28', '2026-02-20 17:06:17'),
-(11, 2, 1, 'B001', 'Bracelet', '', NULL, '', 'PCS', 1, 0, '2026-02-20 17:09:02', '2026-02-20 17:09:02');
+(1, 1, 1, 'Ring', 'Ring', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:26', '2026-02-11 19:00:26'),
+(2, 1, 1, 'Pendant', 'Pendant', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:38', '2026-02-11 19:00:38'),
+(3, 1, 1, 'Earring', 'Earring', '', 'uploads/products/1770901221_d2e1aff5be6425ec83e8.jpg', '', 'PCS', 1, 0, '2026-02-11 19:01:15', '2026-02-12 13:00:21'),
+(4, 1, 1, 'Necklace', 'Necklace', '', 'uploads/products/1771607177_98439e3b8d2d71cbb6a1.png', '', 'PCS', 1, 0, '2026-02-11 19:01:28', '2026-02-20 17:06:17'),
+(6, 1, 1, 'Bracelet', 'Bracelet', '', NULL, '', 'PCS', 1, 0, '2026-02-20 17:09:02', '2026-02-20 17:09:02'),
+(7, 2, 1, 'Ring', 'Ring', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:26', '2026-02-11 19:00:26'),
+(8, 2, 1, 'Pendant', 'Pendant', '', NULL, '', 'PCS', 1, 0, '2026-02-11 19:00:38', '2026-02-11 19:00:38'),
+(9, 2, 1, 'Earring', 'Earring', '', 'uploads/products/1770901221_d2e1aff5be6425ec83e8.jpg', '', 'PCS', 1, 0, '2026-02-11 19:01:15', '2026-02-12 13:00:21'),
+(10, 2, 1, 'Necklace', 'Necklace', '', 'uploads/products/1771607177_98439e3b8d2d71cbb6a1.png', '', 'PCS', 1, 0, '2026-02-11 19:01:28', '2026-02-20 17:06:17'),
+(11, 2, 1, 'Bracelet', 'Bracelet', '', NULL, '', 'PCS', 1, 0, '2026-02-20 17:09:02', '2026-02-20 17:09:02'),
+(12, 1, 1, 'Chain', 'Chain', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:00:29', '2026-03-02 15:00:29'),
+(13, 1, 1, 'Piece', 'Piece', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:01:06', '2026-03-02 15:01:06'),
+(14, 1, 1, 'Nose-Pin', 'Nose Pin', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:02:39', '2026-03-02 15:02:39'),
+(15, 1, 1, 'Bengal', 'Bengal', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:04:00', '2026-03-02 15:04:00'),
+(16, 1, 1, 'Bali', 'Bali', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:04:12', '2026-03-02 15:04:12'),
+(17, 1, 1, 'Kamar-Patto', 'Kamar Patto', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:04:31', '2026-03-02 15:04:31'),
+(18, 1, 1, 'Watch', 'Watch', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:05:11', '2026-03-02 15:05:11'),
+(19, 2, 1, 'Chain', 'Chain', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:00:29', '2026-03-02 15:00:29'),
+(20, 2, 1, 'Piece', 'Piece', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:01:06', '2026-03-02 15:01:06'),
+(21, 2, 1, 'Nose-Pin', 'Nose Pin', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:02:39', '2026-03-02 15:02:39'),
+(22, 2, 1, 'Bengal', 'Bengal', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:04:00', '2026-03-02 15:04:00'),
+(23, 2, 1, 'Bali', 'Bali', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:04:12', '2026-03-02 15:04:12'),
+(24, 2, 1, 'Kamar-Patto', 'Kamar Patto', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:04:31', '2026-03-02 15:04:31'),
+(25, 2, 1, 'Watch', 'Watch', '', NULL, '', 'PCS', 1, 0, '2026-03-02 15:05:11', '2026-03-02 15:05:11');
 
 -- --------------------------------------------------------
 
@@ -882,7 +801,7 @@ INSERT INTO `roles` (`id`, `company_id`, `role_name`, `role_description`, `permi
 (9, 1, 'Challan Viewer', 'Can see All Challans, Rhodium Challan, and Meena Challan menus. Has List/View/Print/Status Change on Rhodium and Meena. List/View/Print only on All Challans.', '[\"challans.all.list\",\"challans.all.view\",\"challans.all.print\",\"challans.rhodium.list\",\"challans.rhodium.view\",\"challans.rhodium.print\",\"challans.rhodium.status_change\",\"challans.meena.list\",\"challans.meena.view\",\"challans.meena.print\",\"challans.meena.status_change\"]', 0, 1, '2026-02-22 05:43:56', '2026-02-22 05:43:56', 0),
 (11, 1, 'Operator', '', '[\"challans.all.list\",\"challans.all.view\",\"challans.meena.list\",\"challans.meena.view\",\"challans.meena.create\",\"challans.meena.edit\",\"challans.meena.delete\",\"challans.meena.print\",\"challans.meena.status_change\",\"challans.rhodium.list\",\"challans.rhodium.view\",\"challans.rhodium.create\",\"challans.rhodium.edit\",\"challans.rhodium.delete\",\"challans.rhodium.print\",\"challans.rhodium.status_change\",\"customers.accounts.list\",\"customers.accounts.view\",\"customers.accounts.create\",\"customers.accounts.edit\",\"customers.accounts.delete\",\"customers.accounts.view_ledger\",\"customers.cash_customers.list\",\"customers.cash_customers.view\",\"customers.cash_customers.create\",\"customers.cash_customers.edit\",\"customers.cash_customers.delete\",\"invoices.account.list\",\"invoices.account.view\",\"invoices.account.create\",\"invoices.account.edit\",\"invoices.account.delete\",\"invoices.account.print\",\"invoices.account.status_change\",\"invoices.account.record_payment\",\"invoices.cash.list\",\"invoices.cash.view\",\"invoices.cash.create\",\"invoices.cash.edit\",\"invoices.cash.delete\",\"invoices.cash.print\",\"invoices.cash.status_change\",\"invoices.cash.record_payment\",\"masters.gold_rates.list\",\"masters.gold_rates.view\",\"masters.gold_rates.create\",\"masters.gold_rates.edit\",\"reports.daily.list\",\"reports.daily.export\"]', 0, 1, '2026-02-22 06:11:11', '2026-02-28 19:53:23', 0),
 (12, 1, 'Cashier', '', '[\"challans.meena.list\",\"challans.meena.view\",\"challans.meena.edit\",\"challans.meena.print\",\"challans.meena.status_change\",\"challans.rhodium.list\",\"challans.rhodium.view\",\"challans.rhodium.edit\",\"challans.rhodium.print\",\"challans.rhodium.status_change\",\"customers.accounts.list\",\"customers.accounts.view\",\"customers.accounts.create\",\"customers.accounts.edit\",\"customers.accounts.delete\",\"customers.accounts.view_ledger\",\"customers.cash_customers.list\",\"customers.cash_customers.view\",\"customers.cash_customers.create\",\"customers.cash_customers.edit\",\"customers.cash_customers.delete\",\"invoices.account.list\",\"invoices.account.view\",\"invoices.account.edit\",\"invoices.account.print\",\"invoices.account.status_change\",\"invoices.account.record_payment\",\"invoices.cash.list\",\"invoices.cash.view\",\"invoices.cash.edit\",\"invoices.cash.print\",\"invoices.cash.status_change\",\"invoices.cash.record_payment\",\"masters.gold_rates.list\",\"masters.gold_rates.view\",\"masters.gold_rates.create\",\"masters.gold_rates.edit\",\"payments.all.list\",\"payments.all.view\",\"payments.all.create\",\"payments.all.delete\",\"reports.daily.list\",\"reports.daily.export\"]', 0, 1, '2026-02-28 08:11:36', '2026-02-28 19:53:16', 0),
-(13, 1, 'Admin', '', '[\"challans.meena.list\",\"challans.meena.view\",\"challans.meena.create\",\"challans.meena.edit\",\"challans.meena.delete\",\"challans.meena.print\",\"challans.meena.status_change\",\"challans.rhodium.list\",\"challans.rhodium.view\",\"challans.rhodium.create\",\"challans.rhodium.edit\",\"challans.rhodium.delete\",\"challans.rhodium.print\",\"challans.rhodium.status_change\",\"invoices.account.list\",\"invoices.account.view\",\"invoices.account.create\",\"invoices.account.edit\",\"invoices.account.delete\",\"invoices.account.print\",\"invoices.account.status_change\",\"invoices.account.record_payment\",\"invoices.cash.list\",\"invoices.cash.view\",\"invoices.cash.create\",\"invoices.cash.edit\",\"invoices.cash.delete\",\"invoices.cash.print\",\"invoices.cash.status_change\",\"invoices.cash.record_payment\",\"masters.gold_rates.list\",\"masters.gold_rates.view\",\"masters.gold_rates.create\",\"masters.gold_rates.edit\",\"masters.processes.list\",\"masters.processes.view\",\"masters.processes.create\",\"masters.processes.edit\",\"masters.processes.delete\",\"masters.product_categories.list\",\"masters.product_categories.view\",\"masters.product_categories.create\",\"masters.product_categories.edit\",\"masters.product_categories.delete\",\"masters.products.list\",\"masters.products.view\",\"masters.products.create\",\"masters.products.edit\",\"masters.products.delete\",\"reports.daily.list\",\"reports.daily.export\"]', 0, 1, '2026-02-28 19:44:42', '2026-02-28 19:52:48', 0);
+(13, 1, 'Admin', '', '[\"challans.meena.list\",\"challans.meena.view\",\"challans.meena.create\",\"challans.meena.edit\",\"challans.meena.delete\",\"challans.meena.print\",\"challans.meena.status_change\",\"challans.rhodium.list\",\"challans.rhodium.view\",\"challans.rhodium.create\",\"challans.rhodium.edit\",\"challans.rhodium.delete\",\"challans.rhodium.print\",\"challans.rhodium.status_change\",\"customers.accounts.list\",\"customers.accounts.view\",\"customers.accounts.create\",\"customers.accounts.edit\",\"customers.accounts.delete\",\"customers.accounts.view_ledger\",\"customers.cash_customers.list\",\"customers.cash_customers.view\",\"customers.cash_customers.create\",\"customers.cash_customers.edit\",\"customers.cash_customers.delete\",\"invoices.account.list\",\"invoices.account.view\",\"invoices.account.create\",\"invoices.account.edit\",\"invoices.account.delete\",\"invoices.account.print\",\"invoices.account.status_change\",\"invoices.account.record_payment\",\"invoices.cash.list\",\"invoices.cash.view\",\"invoices.cash.create\",\"invoices.cash.edit\",\"invoices.cash.delete\",\"invoices.cash.print\",\"invoices.cash.status_change\",\"invoices.cash.record_payment\",\"masters.gold_rates.list\",\"masters.gold_rates.view\",\"masters.gold_rates.create\",\"masters.gold_rates.edit\",\"masters.processes.list\",\"masters.processes.view\",\"masters.processes.create\",\"masters.processes.edit\",\"masters.processes.delete\",\"masters.product_categories.list\",\"masters.product_categories.view\",\"masters.product_categories.create\",\"masters.product_categories.edit\",\"masters.product_categories.delete\",\"masters.products.list\",\"masters.products.view\",\"masters.products.create\",\"masters.products.edit\",\"masters.products.delete\",\"reports.daily.list\",\"reports.daily.export\"]', 0, 1, '2026-02-28 19:44:42', '2026-03-02 15:12:39', 0);
 
 -- --------------------------------------------------------
 
@@ -969,13 +888,13 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `company_id`, `username`, `email`, `password_hash`, `full_name`, `mobile_number`, `remember_token`, `remember_expires_at`, `profile_photo`, `adhar_card_number`, `date_of_joining`, `employment_status`, `failed_login_attempts`, `last_login_at`, `last_login_ip`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(2, 1, 'superadmin', 'admin@gmail.com', '$2y$10$3lD2hiugSlildxvjTeH9bue.5rQEqtidB6krrpytoJk4hpXfKZ/WC', 'System Administrator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-28 19:12:40', NULL, '2026-02-08 16:31:03', '2026-02-28 19:12:40', 0),
+(2, 1, 'superadmin', 'admin@gmail.com', '$2y$10$3lD2hiugSlildxvjTeH9bue.5rQEqtidB6krrpytoJk4hpXfKZ/WC', 'System Administrator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-03-02 14:57:20', NULL, '2026-02-08 16:31:03', '2026-03-02 14:57:20', 0),
 (4, 1, 'parinpatel', 'parinwork@gmail.com', '$2y$10$TBdnobbaIGwuvdZuPhT5yu7U1hVKWCcVbpSpmwMNhINEdFYkUsiNa', 'Parin Patel', '9586969009', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-10 20:12:17', NULL, '2026-02-10 20:11:17', '2026-02-10 20:12:17', 0),
 (5, 1, 'parindelivery', 'parindelivery@gmail.com', '$2y$10$JVSHEEiKOf62a3cxPmxjL.WmzMc.yCkRfH.oo/96cxRztNIcFiLA.', 'Parin Delivery', '9586969119', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-14 13:22:58', NULL, '2026-02-14 13:22:23', '2026-02-14 13:22:58', 0),
 (6, 1, 'manager', 'manager@gmail.com', '$2y$10$k3x9VwI9Bl1uXw6GcxGlLeflSixKRBccf7dgccbbAzZjz1Ws.0W.y', 'Billing Manager', '8888888888', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-21 09:31:04', NULL, '2026-02-21 09:30:33', '2026-02-21 09:31:04', 0),
 (7, 1, 'Cashier', 'cashier@gmail.com', '$2y$10$5URo0zwOZQ6Tdc2E7X/anuZCSbS7tDkGFmOVpX5whaU3F7SPPNn22', 'Cashier', '9992223323', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-28 08:12:43', NULL, '2026-02-22 06:12:24', '2026-02-28 08:12:43', 0),
 (8, 1, 'operator', 'operator@gmail.com', '$2y$10$JFKOOH1lQUHJtbyCHxr5Xunu0NOBV87jrkJMe3pwHTm.S9TRjRPcu', 'Operator', '9999999999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-28 06:13:29', NULL, '2026-02-27 09:34:40', '2026-02-28 06:13:29', 0),
-(9, 1, 'admin', 'admin1@gmail.com', '$2y$10$slXQQvoM.R01fOXPZm2O6.2TydjqlcNC73PMt72IJEpwSWxauXuH2', 'Admin', '9990009999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-02-28 20:45:34', NULL, '2026-02-28 20:41:03', '2026-02-28 20:45:34', 0);
+(9, 1, 'admin', 'admin1@gmail.com', '$2y$10$slXQQvoM.R01fOXPZm2O6.2TydjqlcNC73PMt72IJEpwSWxauXuH2', 'Admin', '9990009999', NULL, NULL, NULL, NULL, NULL, 'Active', 0, '2026-03-02 15:11:14', NULL, '2026-02-28 20:41:03', '2026-03-02 15:11:14', 0);
 
 -- --------------------------------------------------------
 
@@ -1253,7 +1172,7 @@ ALTER TABLE `user_roles`
 -- AUTO_INCREMENT for table `accounts`
 --
 ALTER TABLE `accounts`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `account_groups`
@@ -1265,25 +1184,25 @@ ALTER TABLE `account_groups`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `cash_customers`
 --
 ALTER TABLE `cash_customers`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `challans`
 --
 ALTER TABLE `challans`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `challan_lines`
 --
 ALTER TABLE `challan_lines`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `companies`
@@ -1307,25 +1226,25 @@ ALTER TABLE `deliveries`
 -- AUTO_INCREMENT for table `gold_rates`
 --
 ALTER TABLE `gold_rates`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `invoice_lines`
 --
 ALTER TABLE `invoice_lines`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `ledger_entries`
 --
 ALTER TABLE `ledger_entries`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `migrations`
@@ -1355,7 +1274,7 @@ ALTER TABLE `processes`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `product_categories`
