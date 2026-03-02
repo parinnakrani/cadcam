@@ -1,4 +1,4 @@
-<?= $this->extend('Layouts/main') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>Edit Gold Rate<?= $this->endSection() ?>
 

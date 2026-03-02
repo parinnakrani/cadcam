@@ -1,4 +1,4 @@
-<?= $this->extend('Layouts/main') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>Roles List<?= $this->endSection() ?>
 
@@ -50,7 +50,7 @@
                       <a class="dropdown-item" href="<?= base_url('roles/' . $role['id'] . '/permissions') ?>">
                         <i class="ri-shield-star-line me-2"></i> Permissions
                       </a>
-                      
+
                       <?php if (!$role['is_system_role']) : ?>
                         <a class="dropdown-item" href="<?= base_url('roles/' . $role['id'] . '/edit') ?>">
                           <i class="ri-pencil-line me-2"></i> Edit
@@ -61,7 +61,7 @@
                         </a>
                       <?php else : ?>
                         <a class="dropdown-item disabled text-muted" href="#">
-                           <i class="ri-lock-line me-2"></i> System Locked
+                          <i class="ri-lock-line me-2"></i> System Locked
                         </a>
                       <?php endif ?>
                     </div>

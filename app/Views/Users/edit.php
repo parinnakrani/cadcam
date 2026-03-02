@@ -1,4 +1,4 @@
-<?= $this->extend('Layouts/main') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>Edit User<?= $this->endSection() ?>
 
@@ -31,7 +31,7 @@
       <div class="row">
         <!-- Personal Info -->
         <h6 class="mb-3">Personal Information</h6>
-        
+
         <div class="col-md-6 mb-3">
           <label class="form-label">Full Name <span class="text-danger">*</span></label>
           <input type="text" name="full_name" class="form-control" value="<?= old('full_name', $user['full_name']) ?>" required>
@@ -62,14 +62,14 @@
 
         <!-- Roles -->
         <h6 class="mb-3 mt-4">Roles</h6>
-        
+
         <div class="col-12 mb-3">
           <?php if (!empty($roles)) : ?>
             <div class="d-flex flex-wrap gap-3">
               <?php foreach ($roles as $role) : ?>
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" name="role_ids[]" value="<?= $role['id'] ?>" id="role_<?= $role['id'] ?>" 
-                  <?= (in_array($role['id'], old('role_ids', $userRoles))) ? 'checked' : '' ?>>
+                  <input class="form-check-input" type="checkbox" name="role_ids[]" value="<?= $role['id'] ?>" id="role_<?= $role['id'] ?>"
+                    <?= (in_array($role['id'], old('role_ids', $userRoles))) ? 'checked' : '' ?>>
                   <label class="form-check-label" for="role_<?= $role['id'] ?>">
                     <?= esc($role['role_name']) ?>
                   </label>

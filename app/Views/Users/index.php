@@ -1,4 +1,4 @@
-<?= $this->extend('Layouts/main') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('title') ?>User List<?= $this->endSection() ?>
 
@@ -136,6 +136,8 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script>var baseUrl = '<?= base_url() ?>';</script>
+<script>
+  var baseUrl = '<?= base_url() ?>';
+</script>
 <script src="<?= base_url('assets/js/app-user-list.js') ?>"></script>
 <?= $this->endSection() ?>
