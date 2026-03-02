@@ -173,6 +173,7 @@ $routes->group('challans', ['filter' => 'auth'], function ($routes) {
 
   // Print
   $routes->get('(:num)/print', 'Challans\ChallanController::print/$1');
+  $routes->get('(:num)/print-cash-memo', 'Challans\ChallanController::printCashMemo/$1');
 });
 
 // INVOICE ROUTES
@@ -201,6 +202,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     // Print/PDF invoice
     $routes->get('(:num)/print', 'InvoiceController::print/$1');
+    $routes->get('(:num)/print-cash-memo', 'InvoiceController::printCashMemo/$1');
 
     // Change status (AJAX)
     $routes->post('(:num)/change-status', 'InvoiceController::changeStatus/$1');
@@ -221,6 +223,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->post('(:num)', 'AccountInvoiceController::update/$1');
     $routes->delete('(:num)', 'AccountInvoiceController::delete/$1');
     $routes->get('(:num)/print', 'AccountInvoiceController::print/$1');
+    $routes->get('(:num)/print-cash-memo', 'AccountInvoiceController::printCashMemo/$1');
   });
 
   // Cash Invoice Routes
@@ -237,6 +240,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->post('(:num)', 'CashInvoiceController::update/$1');
     $routes->delete('(:num)', 'CashInvoiceController::delete/$1');
     $routes->get('(:num)/print', 'CashInvoiceController::print/$1');
+    $routes->get('(:num)/print-cash-memo', 'CashInvoiceController::printCashMemo/$1');
   });
 
   // Wax Invoice Routes

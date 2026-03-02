@@ -731,6 +731,72 @@ class InvoiceController extends BaseController
   }
 
   /**
+   * Print a Cash Memo for Cash Invoice.
+   *
+   * GET /invoices/{id}/print-cash-memo
+   */
+  public function printCashMemo(int $id)
+  {
+    try {
+      $invoice = $this->invoiceService->getInvoiceById($id);
+
+      if (!$invoice) {
+        return redirect()->to('/invoices')->with('error', 'Invoice not found');
+      }
+
+      $sub = $this->resolveInvoiceSub($invoice['invoice_type']);
+      $this->gate("invoices.{$sub}.print");
+
+      $companyModel = new CompanyModel();
+      $company = $companyModel->find($invoice['company_id']);
+
+      $productMap = [];
+      $processMap = [];
+
+      if (!empty($invoice['lines'])) {
+        foreach ($invoice['lines'] as $line) {
+          if (!empty($line['product_ids'])) {
+            // Depending on whether it's an array or string (JSON decoded automatically or not)
+            $pids = is_string($line['product_ids']) ? json_decode($line['product_ids'], true) : $line['product_ids'];
+            if (is_array($pids)) {
+              foreach ($pids as $pid) {
+                if (!isset($productMap[$pid])) {
+                  $prod = $this->productModel->find($pid);
+                  $productMap[$pid] = rtrim(trim($prod ? ($prod['product_code'] ?? '') : ''));
+                }
+              }
+            }
+          }
+          if (!empty($line['process_ids'])) {
+            $pids = is_string($line['process_ids']) ? json_decode($line['process_ids'], true) : $line['process_ids'];
+            if (is_array($pids)) {
+              foreach ($pids as $pid) {
+                if (!isset($processMap[$pid])) {
+                  $proc = $this->processModel->find($pid);
+                  $processMap[$pid] = trim($proc ? ($proc['process_code'] ?? '') : '');
+                }
+              }
+            }
+          }
+        }
+      }
+
+      $data = [
+        'invoice'    => $invoice,
+        'company'    => $company,
+        'productMap' => $productMap,
+        'processMap' => $processMap,
+        'pageTitle'  => "Print Cash Memo: {$invoice['invoice_number']}",
+      ];
+
+      return $this->render('invoices/print_cash_memo', $data);
+    } catch (Exception $e) {
+      log_message('error', 'Invoice print error: ' . $e->getMessage());
+      return redirect()->back()->with('error', 'Failed to generate printable cash memo: ' . $e->getMessage());
+    }
+  }
+
+  /**
    * Change invoice status
    *
    * POST /invoices/{id}/change-status

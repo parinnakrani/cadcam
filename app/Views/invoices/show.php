@@ -103,6 +103,12 @@ $statusLabels = [
       <i class="ri-printer-line"></i> Print
     </a>
 
+    <?php if ($invoice['invoice_type'] === 'Cash Invoice'): ?>
+      <a href="<?= base_url("invoices/{$invoice['id']}/print-cash-memo") ?>" target="_blank" class="btn btn-outline-primary">
+        <i class="ri-file-paper-2-line"></i> Print Cash Memo
+      </a>
+    <?php endif; ?>
+
     <!-- Edit Button (only if not paid) -->
     <?php if ($invoice['total_paid'] == 0): ?>
       <a href="<?= base_url("{$baseRoute}/{$invoice['id']}/edit") ?>" class="btn btn-outline-secondary">

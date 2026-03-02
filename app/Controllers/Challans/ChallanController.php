@@ -653,6 +653,62 @@ class ChallanController extends BaseController
     return $this->render('challans/print', $data);
   }
 
+  /**
+   * Print a Cash Memo for challan.
+   *
+   * GET /challans/{id}/print-cash-memo
+   */
+  public function printCashMemo($id)
+  {
+    $challan = $this->challanService->getChallanWithLines($id);
+
+    if (!$challan) {
+      throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+    }
+
+    $sub = $this->resolveChallanSub($challan['challan_type']);
+    $this->gate("challans.{$sub}.print");
+
+    $companyModel = new CompanyModel();
+    $company = $companyModel->find($challan['company_id']);
+
+    $productMap = [];
+    $processMap = [];
+
+    if (!empty($challan['lines'])) {
+      $productModel = new ProductModel();
+      $processModel = new ProcessModel();
+      foreach ($challan['lines'] as $line) {
+        if (!empty($line['product_ids'])) {
+          foreach ($line['product_ids'] as $pid) {
+            if (!isset($productMap[$pid])) {
+              $prod = $productModel->find($pid);
+              $productMap[$pid] = rtrim(trim($prod ? ($prod['product_code'] ?? '') : ''));
+            }
+          }
+        }
+        if (!empty($line['process_ids'])) {
+          foreach ($line['process_ids'] as $pid) {
+            if (!isset($processMap[$pid])) {
+              $proc = $processModel->find($pid);
+              $processMap[$pid] = trim($proc ? ($proc['process_code'] ?? '') : '');
+            }
+          }
+        }
+      }
+    }
+
+    $data = [
+      'challan'    => $challan,
+      'company'    => $company,
+      'productMap' => $productMap,
+      'processMap' => $processMap,
+      'pageTitle'  => "Print Cash Memo: {$challan['challan_number']}",
+    ];
+
+    return $this->render('challans/print_cash_memo', $data);
+  }
+
     // =========================================================================
     // SEARCH (AJAX)
     // =========================================================================

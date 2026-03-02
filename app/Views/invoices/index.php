@@ -257,6 +257,16 @@
                     </a>
                   <?php endif; ?>
 
+                  <!-- Print Cash Memo -->
+                  <?php if (($rowFlags['print'] ?? false) && $invoice['invoice_type'] === 'Cash Invoice'): ?>
+                    <a href="<?= base_url("invoices/{$invoice['id']}/print-cash-memo") ?>"
+                      class="btn btn-outline-info"
+                      target="_blank"
+                      title="Print Cash Memo">
+                      <i class="ri-file-paper-2-line"></i>
+                    </a>
+                  <?php endif; ?>
+
                   <!-- Delete (only if not paid) -->
                   <?php if ($invoice['total_paid'] == 0 && ($rowFlags['delete'] ?? false)): ?>
                     <button type="button"

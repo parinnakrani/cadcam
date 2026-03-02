@@ -402,6 +402,8 @@
             if (getFlag(challanType, 'print')) {
               html += '<a href="' + baseUrl + '/' + data + '/print" class="btn btn-outline-info" target="_blank" title="Print">' +
                 '<i class="ri-printer-line"></i></a>';
+              html += '<a href="' + baseUrl + '/' + data + '/print-cash-memo" class="btn btn-outline-info" target="_blank" title="Print Cash Memo">' +
+                '<i class="ri-file-paper-2-line"></i></a>';
             }
 
             // Delete (disabled if invoiced)

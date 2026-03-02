@@ -138,6 +138,10 @@ if ($customerType === 'Account') {
             <i class="ri-printer-line me-1"></i> Print
           </a>
 
+          <a href="<?= base_url('challans/' . $challanId . '/print-cash-memo') ?>" class="btn btn-sm btn-outline-info" target="_blank">
+            <i class="ri-file-paper-2-line me-1"></i> Print Cash Memo
+          </a>
+
           <?php /* --- Change Status Button COMMENTED OUT per client request (do not remove) ---
           <?php if (!empty($nextStatuses) && ($action_flags['edit'] ?? false)): ?>
             <div class="btn-group">
