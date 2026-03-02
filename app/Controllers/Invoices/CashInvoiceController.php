@@ -4,6 +4,10 @@ namespace App\Controllers\Invoices;
 
 use CodeIgniter\HTTP\ResponseInterface;
 use App\Services\FileUploadService;
+use App\Services\Customer\CashCustomerService;
+use App\Models\StateModel;
+use App\Services\Validation\ValidationService;
+use App\Services\Audit\AuditService;
 
 /**
  * CashInvoiceController
@@ -15,11 +19,13 @@ use App\Services\FileUploadService;
  * - Automatic filter: invoice_type = 'Cash Invoice'
  * - Pre-set invoice type in creation form
  * - Only shows Cash customers in dropdowns
+ * - Auto-creates cash customer if name+mobile provided but no ID
  * - All other functionality inherited from InvoiceController
  */
 class CashInvoiceController extends InvoiceController
 {
   protected FileUploadService $fileUploadService;
+  protected CashCustomerService $cashCustomerService;
   protected string $invoiceType = 'Cash Invoice';
   protected string $customerType = 'Cash';
 
@@ -27,6 +33,12 @@ class CashInvoiceController extends InvoiceController
   {
     parent::__construct();
     $this->fileUploadService = new FileUploadService();
+    $this->cashCustomerService = new CashCustomerService(
+      $this->cashCustomerModel,
+      new StateModel(),
+      new ValidationService(),
+      new AuditService()
+    );
   }
 
   /**
@@ -206,6 +218,28 @@ class CashInvoiceController extends InvoiceController
         'company_id'        => session()->get('company_id') ?? 1,
       ];
 
+      // Auto-create cash customer if no cash_customer_id but name+mobile provided
+      if (empty($invoiceData['cash_customer_id'])) {
+        $customerName = trim($this->request->getPost('cash_customer_name') ?? '');
+        $customerMobile = trim($this->request->getPost('cash_customer_mobile') ?? '');
+
+        if (!empty($customerName) && !empty($customerMobile)) {
+          try {
+            $cashCustomerId = $this->cashCustomerService->findOrCreate($customerName, $customerMobile);
+            $invoiceData['cash_customer_id'] = $cashCustomerId;
+            log_message('info', "Auto-created/found cash customer ID {$cashCustomerId} for invoice: {$customerName} / {$customerMobile}");
+          } catch (\Exception $e) {
+            log_message('error', 'Failed to auto-create cash customer: ' . $e->getMessage());
+            if ($this->request->isAJAX()) {
+              return $this->response->setStatusCode(400)->setJSON([
+                'error' => 'Failed to create customer: ' . $e->getMessage()
+              ]);
+            }
+            return redirect()->back()->withInput()->with('error', 'Failed to create customer: ' . $e->getMessage());
+          }
+        }
+      }
+
       // Get lines data
       $lines = $this->parseLinesFromPost();
 
@@ -323,6 +357,10 @@ class CashInvoiceController extends InvoiceController
    * 
    * POST /cash-invoices/{id}
    * 
+   * Customer Change Rules:
+   * - Both name AND mobile changed → create new cash customer, update cash_customer_id
+   * - Only name OR mobile changed → update existing customer record, keep same cash_customer_id
+   * 
    * @param int $id Invoice ID
    * @return ResponseInterface
    */
@@ -356,6 +394,53 @@ class CashInvoiceController extends InvoiceController
         'notes'             => $this->request->getPost('notes'),
         'terms_conditions'  => $this->request->getPost('terms_conditions'),
       ];
+
+      // --- Handle Cash Customer Changes ---
+      $newName = trim($this->request->getPost('cash_customer_name') ?? '');
+      $newMobile = trim($this->request->getPost('cash_customer_mobile') ?? '');
+      $originalName = trim($this->request->getPost('original_customer_name') ?? '');
+      $originalMobile = trim($this->request->getPost('original_customer_mobile') ?? '');
+      $currentCustomerId = $invoice['cash_customer_id'];
+
+      if (!empty($newName) && !empty($newMobile)) {
+        $nameChanged = ($newName !== $originalName);
+        $mobileChanged = ($newMobile !== $originalMobile);
+
+        if ($nameChanged || $mobileChanged) {
+          try {
+            if ($nameChanged && $mobileChanged) {
+              // BOTH changed → create new customer (or find existing with new combo)
+              $newCustomerId = $this->cashCustomerService->findOrCreate($newName, $newMobile);
+              $invoiceData['cash_customer_id'] = $newCustomerId;
+              log_message('info', "Invoice #{$id}: Both name and mobile changed. New cash customer ID: {$newCustomerId} (was: {$currentCustomerId})");
+            } else {
+              // Only ONE changed → update existing customer record
+              $updateData = [];
+              if ($nameChanged) {
+                $updateData['customer_name'] = $newName;
+              }
+              if ($mobileChanged) {
+                $updateData['mobile_number'] = $newMobile;
+                $updateData['mobile'] = $newMobile;
+              }
+
+              if (!empty($updateData) && $currentCustomerId) {
+                $this->cashCustomerService->updateCashCustomer((int)$currentCustomerId, $updateData);
+                log_message('info', "Invoice #{$id}: Updated existing cash customer ID {$currentCustomerId}: " . json_encode($updateData));
+              }
+              // cash_customer_id stays the same — don't set it in $invoiceData
+            }
+          } catch (\Exception $e) {
+            log_message('error', 'Failed to handle customer change: ' . $e->getMessage());
+            if ($this->request->isAJAX()) {
+              return $this->response->setStatusCode(400)->setJSON([
+                'error' => 'Failed to update customer: ' . $e->getMessage()
+              ]);
+            }
+            return redirect()->back()->withInput()->with('error', 'Failed to update customer: ' . $e->getMessage());
+          }
+        }
+      }
 
       // Get lines data
       $lines = $this->parseLinesFromPost();

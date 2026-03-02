@@ -96,6 +96,8 @@ if ($invoice['invoice_type'] === 'Accounts Invoice') {
         <div class="col-md-12 row mt-4" id="cashCustomerSection">
           <div class="col-md-6">
             <input type="hidden" id="cashCustomerId" name="cash_customer_id" value="<?= esc($invoice['cash_customer_id'] ?? '') ?>">
+            <input type="hidden" name="original_customer_name" value="<?= esc($invoice['customer']['customer_name'] ?? '') ?>">
+            <input type="hidden" name="original_customer_mobile" value="<?= esc($invoice['customer']['mobile'] ?? '') ?>">
             <div class="mb-2">
               <label for="cashCustomerName" class="form-label">Cash Customer Name <span class="text-danger">*</span></label>
               <input type="text" class="form-control" id="cashCustomerName" name="cash_customer_name"
